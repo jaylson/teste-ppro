@@ -1,6 +1,5 @@
 using System.Text;
 using FluentValidation;
-using FluentValidation.AspNetCore;
 using Hangfire;
 using Hangfire.MySql;
 using Microsoft.AspNetCore.Authentication.JwtBearer;

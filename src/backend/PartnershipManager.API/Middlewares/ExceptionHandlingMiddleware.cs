@@ -1,5 +1,6 @@
 using System.Net;
 using System.Text.Json;
+using PartnershipManager.Application.Common.Models;
 using PartnershipManager.Domain.Constants;
 using PartnershipManager.Domain.Exceptions;
 
@@ -101,15 +102,4 @@ public class ExceptionHandlingMiddleware
         
         await response.WriteAsync(JsonSerializer.Serialize(errorResponse, jsonOptions));
     }
-}
-
-/// <summary>
-/// Modelo de resposta de erro
-/// </summary>
-public class ErrorResponse
-{
-    public string Message { get; set; } = string.Empty;
-    public string TraceId { get; set; } = string.Empty;
-    public DateTime Timestamp { get; set; }
-    public IDictionary<string, string[]>? Errors { get; set; }
 }

@@ -65,7 +65,7 @@ public class CompaniesController : ControllerBase
         var company = await _cacheService.GetOrSetAsync(
             cacheKey,
             async () => await _unitOfWork.Companies.GetByIdAsync(id),
-            TimeSpan.FromMinutes(SystemConstants.CacheMinutes));
+            TimeSpan.FromMinutes(SystemConstants.CacheExpirationMinutes));
         
         if (company == null)
         {

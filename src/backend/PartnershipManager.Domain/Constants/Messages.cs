@@ -50,14 +50,19 @@ public static class ErrorMessages
     public const string InvalidFoundationDate = "A data de fundação não pode ser futura.";
     public const string InvalidTotalShares = "O total de ações deve ser maior que zero.";
     public const string InvalidSharePrice = "O preço por ação deve ser maior que zero.";
+    public const string InvalidLegalForm = "Forma jurídica inválida.";
+    public const string InvalidCurrency = "Moeda inválida.";
     
     // =============== USUÁRIO ===============
     public const string EmailAlreadyExists = "Já existe um usuário com este email nesta empresa.";
+    public const string UserAlreadyExists = "Já existe um usuário com este email.";
     public const string EmailRequired = "O email é obrigatório.";
     public const string NameRequired = "O nome é obrigatório.";
     public const string InvalidRole = "Papel inválido.";
+    public const string UserAlreadyHasRole = "O usuário já possui este papel.";
     public const string CannotRemoveLastAdmin = "Não é possível remover o último administrador.";
     public const string CannotDeactivateSelf = "Você não pode desativar sua própria conta.";
+    public const string CannotDeactivateYourself = "Você não pode desativar sua própria conta.";
     
     // =============== SISTEMA ===============
     public const string NotFound = "{0} não encontrado(a).";
@@ -110,7 +115,7 @@ public static class SystemConstants
     public const int MaxPageSize = 100;
     
     // =============== CACHE ===============
-    public const int CacheMinutes = 30;
+    public const int CacheExpirationMinutes = 30;
     public const string CachePrefix = "pm:";
     
     // =============== SEGURANÇA ===============

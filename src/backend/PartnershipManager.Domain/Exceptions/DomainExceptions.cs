@@ -58,3 +58,13 @@ public class ForbiddenException : DomainException
     public ForbiddenException() : base("Você não tem permissão para realizar esta ação.") { }
     public ForbiddenException(string message) : base(message) { }
 }
+
+public class BusinessRuleException : DomainException
+{
+    public string RuleName { get; }
+    
+    public BusinessRuleException(string ruleName, string message) : base(message)
+    {
+        RuleName = ruleName;
+    }
+}

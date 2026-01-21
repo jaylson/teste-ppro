@@ -117,7 +117,7 @@ public class UsersController : ControllerBase
         
         var passwordHash = _authService.HashPassword(request.Password);
         
-        var user = User.Create(
+        var user = Domain.Entities.User.Create(
             companyId,
             request.Email,
             request.Name,

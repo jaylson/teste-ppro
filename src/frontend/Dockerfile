@@ -7,7 +7,7 @@
 FROM node:20-alpine AS dependencies
 WORKDIR /app
 COPY package*.json ./
-RUN npm ci
+RUN npm install
 
 # Stage 2: Development
 FROM node:20-alpine AS development

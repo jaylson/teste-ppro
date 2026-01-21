@@ -1,4 +1,5 @@
 using Hangfire;
+using Hangfire.Dashboard;
 using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using PartnershipManager.API.Extensions;
@@ -14,8 +15,6 @@ var builder = WebApplication.CreateBuilder(args);
 Log.Logger = new LoggerConfiguration()
     .ReadFrom.Configuration(builder.Configuration)
     .Enrich.FromLogContext()
-    .Enrich.WithEnvironmentName()
-    .Enrich.WithThreadId()
     .WriteTo.Console()
     .WriteTo.File("logs/log-.txt", rollingInterval: RollingInterval.Day)
     .CreateLogger();
@@ -111,9 +110,9 @@ finally
 /// <summary>
 /// Filtro de autorização para Hangfire Dashboard
 /// </summary>
-public class HangfireAuthorizationFilter : IDashboardAuthorizationFilter
+public class HangfireAuthorizationFilter : Hangfire.Dashboard.IDashboardAuthorizationFilter
 {
-    public bool Authorize(DashboardContext context)
+    public bool Authorize(Hangfire.Dashboard.DashboardContext context)
     {
         var httpContext = context.GetHttpContext();
         

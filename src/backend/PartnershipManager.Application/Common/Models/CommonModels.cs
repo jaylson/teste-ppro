@@ -115,3 +115,14 @@ public class ApiResponse
         Errors = errors?.ToList()
     };
 }
+
+/// <summary>
+/// Modelo de resposta de erro
+/// </summary>
+public class ErrorResponse
+{
+    public string Message { get; set; } = string.Empty;
+    public string TraceId { get; set; } = string.Empty;
+    public DateTime Timestamp { get; set; }
+    public IDictionary<string, string[]>? Errors { get; set; }
+}
