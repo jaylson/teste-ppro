@@ -1,0 +1,124 @@
+version: '3.8'
+
+services:
+  # ===========================================
+  # DATABASE - MySQL 8.0
+  # ===========================================
+  mysql:
+    image: mysql:8.0
+    container_name: pm-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-Root@123}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-partnership_manager}
+      MYSQL_USER: ${MYSQL_USER:-pm_user}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-Pm@2025}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./docker/mysql/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+      - ./docker/mysql/my.cnf:/etc/mysql/conf.d/my.cnf:ro
+    networks:
+      - pm-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD:-Root@123}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    command: --default-authentication-plugin=mysql_native_password
+
+  # ===========================================
+  # CACHE - Redis 7
+  # ===========================================
+  redis:
+    image: redis:7-alpine
+    container_name: pm-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+      - ./docker/redis/redis.conf:/usr/local/etc/redis/redis.conf:ro
+    command: redis-server /usr/local/etc/redis/redis.conf
+    networks:
+      - pm-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ===========================================
+  # BACKEND - .NET 9 API
+  # ===========================================
+  api:
+    build:
+      context: ./src/backend
+      dockerfile: Dockerfile
+    container_name: pm-api
+    restart: unless-stopped
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:5000
+      - ConnectionStrings__MySQL=Server=mysql;Port=3306;Database=${MYSQL_DATABASE:-partnership_manager};User=${MYSQL_USER:-pm_user};Password=${MYSQL_PASSWORD:-Pm@2025};
+      - ConnectionStrings__Redis=redis:6379
+      - ConnectionStrings__Hangfire=Server=mysql;Port=3306;Database=hangfire;User=${MYSQL_USER:-pm_user};Password=${MYSQL_PASSWORD:-Pm@2025};
+      - Jwt__Secret=${JWT_SECRET:-PartnershipManager_SecretKey_2025_Min32Chars!}
+      - Jwt__Issuer=${JWT_ISSUER:-PartnershipManager}
+      - Jwt__Audience=${JWT_AUDIENCE:-PartnershipManagerApp}
+    ports:
+      - "5000:5000"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - pm-network
+
+  # ===========================================
+  # FRONTEND - React + Vite
+  # ===========================================
+  frontend:
+    build:
+      context: ./src/frontend
+      dockerfile: Dockerfile
+      target: development
+    container_name: pm-frontend
+    restart: unless-stopped
+    environment:
+      - VITE_API_URL=http://localhost:5000/api
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api
+    volumes:
+      - ./src/frontend:/app
+      - /app/node_modules
+    networks:
+      - pm-network
+
+  # ===========================================
+  # ADMINER - Database Management
+  # ===========================================
+  adminer:
+    image: adminer:latest
+    container_name: pm-adminer
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      - ADMINER_DEFAULT_SERVER=mysql
+    networks:
+      - pm-network
+    depends_on:
+      - mysql
+
+networks:
+  pm-network:
+    driver: bridge
+
+volumes:
+  mysql_data:
+  redis_data:

@@ -1,0 +1,409 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* =====================================================
+   DESIGN SYSTEM - Partnership Manager
+   CSS Variables & Base Styles
+   ===================================================== */
+
+@layer base {
+  :root {
+    /* Colors */
+    --color-primary: #111827;
+    --color-secondary: #333333;
+    --color-background: #F3F4F6;
+    --color-accent: #0891B2;
+    --color-success: #059669;
+    --color-warning: #D97706;
+    --color-error: #DC2626;
+    --color-info: #2563EB;
+    --color-purple: #7C3AED;
+
+    /* Spacing */
+    --sidebar-width: 280px;
+    --header-height: 64px;
+
+    /* Transitions */
+    --transition-fast: 150ms;
+    --transition-normal: 250ms;
+    --transition-slow: 350ms;
+  }
+
+  * {
+    @apply border-primary-200;
+  }
+
+  html {
+    @apply scroll-smooth;
+  }
+
+  body {
+    @apply bg-background text-primary font-sans antialiased;
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+  }
+
+  /* Focus States */
+  *:focus-visible {
+    @apply outline-none ring-2 ring-accent ring-offset-2;
+  }
+
+  /* Selection */
+  ::selection {
+    @apply bg-accent/20 text-primary;
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar {
+    @apply w-2 h-2;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-primary-100 rounded-full;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-primary-300 rounded-full hover:bg-primary-400;
+  }
+}
+
+@layer components {
+  /* =====================================================
+     BUTTONS
+     ===================================================== */
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2 
+           font-medium rounded-lg transition-all duration-200
+           focus:outline-none focus:ring-2 focus:ring-offset-2
+           disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .btn-primary {
+    @apply btn bg-primary text-white hover:bg-primary-800 
+           focus:ring-primary active:scale-[0.98];
+  }
+
+  .btn-secondary {
+    @apply btn bg-white text-primary border border-primary-300
+           hover:bg-primary-50 focus:ring-primary-300;
+  }
+
+  .btn-success {
+    @apply btn bg-gradient-to-r from-purple-600 to-purple-700 text-white
+           hover:from-purple-700 hover:to-purple-800 focus:ring-purple-500;
+  }
+
+  .btn-danger {
+    @apply btn bg-error text-white hover:bg-error-700 focus:ring-error;
+  }
+
+  .btn-ghost {
+    @apply btn bg-transparent text-primary-600 hover:bg-primary-100;
+  }
+
+  .btn-sm {
+    @apply px-3 py-1.5 text-sm;
+  }
+
+  .btn-lg {
+    @apply px-6 py-3 text-lg;
+  }
+
+  .btn-icon {
+    @apply p-2 aspect-square;
+  }
+
+  /* =====================================================
+     CARDS
+     ===================================================== */
+  .card {
+    @apply bg-white rounded-xl shadow-soft p-6 transition-shadow
+           hover:shadow-medium;
+  }
+
+  .card-flat {
+    @apply bg-white rounded-xl border border-primary-200 p-6;
+  }
+
+  .stat-card {
+    @apply card flex items-start gap-4;
+  }
+
+  .stat-card-icon {
+    @apply w-12 h-12 rounded-xl flex items-center justify-center text-white;
+  }
+
+  .stat-card-value {
+    @apply text-2xl font-bold text-primary;
+  }
+
+  .stat-card-label {
+    @apply text-sm text-primary-500;
+  }
+
+  .stat-card-badge {
+    @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium;
+  }
+
+  /* =====================================================
+     FORM INPUTS
+     ===================================================== */
+  .input {
+    @apply w-full px-4 py-2.5 bg-white border border-primary-300 rounded-lg
+           text-primary placeholder:text-primary-400
+           focus:border-accent focus:ring-2 focus:ring-accent/20
+           disabled:bg-primary-50 disabled:cursor-not-allowed
+           transition-colors duration-200;
+  }
+
+  .input-error {
+    @apply border-error focus:border-error focus:ring-error/20;
+  }
+
+  .input-label {
+    @apply block text-sm font-medium text-primary-700 mb-1.5;
+  }
+
+  .input-error-message {
+    @apply text-sm text-error mt-1;
+  }
+
+  .input-hint {
+    @apply text-sm text-primary-500 mt-1;
+  }
+
+  /* =====================================================
+     BADGES
+     ===================================================== */
+  .badge {
+    @apply inline-flex items-center gap-1 px-2.5 py-1 rounded-full 
+           text-xs font-medium;
+  }
+
+  .badge-active {
+    @apply bg-success-100 text-success-700;
+  }
+
+  .badge-pending {
+    @apply bg-warning-100 text-warning-700;
+  }
+
+  .badge-inactive {
+    @apply bg-primary-100 text-primary-600;
+  }
+
+  .badge-vesting {
+    @apply bg-info-100 text-info-700;
+  }
+
+  .badge-investor {
+    @apply bg-purple-100 text-purple-700;
+  }
+
+  .badge-founder {
+    @apply bg-info-100 text-info-700;
+  }
+
+  /* =====================================================
+     TABLES
+     ===================================================== */
+  .table-container {
+    @apply overflow-x-auto rounded-xl border border-primary-200;
+  }
+
+  .table {
+    @apply w-full text-left;
+  }
+
+  .table th {
+    @apply px-4 py-3 text-xs font-semibold text-primary-500 uppercase 
+           tracking-wider bg-primary-50 border-b border-primary-200;
+  }
+
+  .table td {
+    @apply px-4 py-4 text-sm text-primary-700 border-b border-primary-100;
+  }
+
+  .table tbody tr {
+    @apply hover:bg-primary-50/50 transition-colors;
+  }
+
+  /* =====================================================
+     SIDEBAR
+     ===================================================== */
+  .sidebar {
+    @apply fixed left-0 top-0 h-screen w-[280px] bg-primary text-white
+           flex flex-col z-50;
+  }
+
+  .sidebar-logo {
+    @apply px-6 py-5 border-b border-white/10;
+  }
+
+  .sidebar-nav {
+    @apply flex-1 overflow-y-auto py-4 px-3;
+  }
+
+  .sidebar-item {
+    @apply flex items-center gap-3 px-4 py-2.5 rounded-lg text-white/70
+           hover:bg-white/10 hover:text-white transition-all duration-200;
+  }
+
+  .sidebar-item-active {
+    @apply bg-white/10 text-white;
+  }
+
+  .sidebar-footer {
+    @apply px-4 py-4 border-t border-white/10;
+  }
+
+  /* =====================================================
+     LAYOUT
+     ===================================================== */
+  .main-content {
+    @apply ml-[280px] min-h-screen bg-background;
+  }
+
+  .page-header {
+    @apply flex items-center justify-between mb-6;
+  }
+
+  .page-title {
+    @apply text-2xl font-bold text-primary;
+  }
+
+  .page-subtitle {
+    @apply text-primary-500 mt-1;
+  }
+
+  /* =====================================================
+     MODALS
+     ===================================================== */
+  .modal-overlay {
+    @apply fixed inset-0 bg-black/50 backdrop-blur-sm z-50
+           flex items-center justify-center p-4;
+  }
+
+  .modal {
+    @apply bg-white rounded-2xl shadow-hard max-w-lg w-full 
+           max-h-[90vh] overflow-hidden animate-scale-in;
+  }
+
+  .modal-header {
+    @apply flex items-center justify-between px-6 py-4 
+           border-b border-primary-200;
+  }
+
+  .modal-title {
+    @apply text-lg font-semibold text-primary;
+  }
+
+  .modal-body {
+    @apply px-6 py-4 overflow-y-auto;
+  }
+
+  .modal-footer {
+    @apply flex items-center justify-end gap-3 px-6 py-4 
+           border-t border-primary-200 bg-primary-50;
+  }
+
+  /* =====================================================
+     PROGRESS BARS
+     ===================================================== */
+  .progress-bar {
+    @apply h-2 bg-primary-100 rounded-full overflow-hidden;
+  }
+
+  .progress-bar-fill {
+    @apply h-full rounded-full transition-all duration-500;
+  }
+
+  /* =====================================================
+     AVATARS
+     ===================================================== */
+  .avatar {
+    @apply rounded-full bg-primary-200 flex items-center justify-center
+           text-primary font-medium overflow-hidden;
+  }
+
+  .avatar-sm {
+    @apply w-8 h-8 text-sm;
+  }
+
+  .avatar-md {
+    @apply w-10 h-10 text-base;
+  }
+
+  .avatar-lg {
+    @apply w-12 h-12 text-lg;
+  }
+
+  .avatar-xl {
+    @apply w-16 h-16 text-xl;
+  }
+
+  /* =====================================================
+     LOADING STATES
+     ===================================================== */
+  .skeleton {
+    @apply bg-primary-200 animate-pulse rounded;
+  }
+
+  .spinner {
+    @apply w-5 h-5 border-2 border-primary-200 border-t-primary 
+           rounded-full animate-spin;
+  }
+
+  /* =====================================================
+     TOOLTIPS
+     ===================================================== */
+  .tooltip {
+    @apply absolute z-50 px-2 py-1 text-xs text-white bg-primary 
+           rounded shadow-medium whitespace-nowrap;
+  }
+
+  /* =====================================================
+     CHARTS
+     ===================================================== */
+  .chart-container {
+    @apply w-full h-64;
+  }
+
+  .donut-chart {
+    @apply w-full max-w-xs mx-auto;
+  }
+
+  /* =====================================================
+     UTILITY CLASSES
+     ===================================================== */
+  .text-gradient {
+    @apply bg-gradient-to-r from-purple-600 to-info-600 
+           bg-clip-text text-transparent;
+  }
+
+  .glass {
+    @apply bg-white/80 backdrop-blur-md;
+  }
+
+  .divider {
+    @apply border-t border-primary-200;
+  }
+
+  .truncate-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+}
+
+@layer utilities {
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+}
