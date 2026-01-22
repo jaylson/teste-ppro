@@ -97,6 +97,8 @@ public class SubscriptionsController : ControllerBase
                 AutoRenew = subscription.AutoRenew,
                 CompaniesCount = subscription.CompaniesCount,
                 UsersCount = subscription.UsersCount,
+                DueDay = subscription.DueDay,
+                PaymentMethod = MapPaymentMethod(subscription.PaymentMethod),
                 CreatedAt = subscription.CreatedAt,
                 UpdatedAt = subscription.UpdatedAt
             };
@@ -178,7 +180,9 @@ public class SubscriptionsController : ControllerBase
                 StartDate = dto.StartDate ?? DateTime.UtcNow,
                 AutoRenew = dto.AutoRenew,
                 CompaniesCount = 0,
-                UsersCount = 0
+                UsersCount = 0,
+                DueDay = dto.DueDay,
+                PaymentMethod = ParsePaymentMethod(dto.PaymentMethod)
             };
 
             var subscriptionId = await _subscriptionRepository.CreateAsync(subscription, cancellationToken);
@@ -203,6 +207,8 @@ public class SubscriptionsController : ControllerBase
                 AutoRenew = createdSubscription.AutoRenew,
                 CompaniesCount = createdSubscription.CompaniesCount,
                 UsersCount = createdSubscription.UsersCount,
+                DueDay = createdSubscription.DueDay,
+                PaymentMethod = MapPaymentMethod(createdSubscription.PaymentMethod),
                 CreatedAt = createdSubscription.CreatedAt,
                 UpdatedAt = createdSubscription.UpdatedAt
             };
@@ -251,6 +257,8 @@ public class SubscriptionsController : ControllerBase
             existingSubscription.UsersCount = dto.UsersCount;
             existingSubscription.StartDate = dto.StartDate;
             existingSubscription.EndDate = dto.EndDate;
+            existingSubscription.DueDay = dto.DueDay;
+            existingSubscription.PaymentMethod = ParsePaymentMethod(dto.PaymentMethod);
             
             _logger.LogInformation($"Antes do update - StartDate: {existingSubscription.StartDate}, EndDate: {existingSubscription.EndDate}");
 
@@ -276,6 +284,8 @@ public class SubscriptionsController : ControllerBase
                 AutoRenew = updatedSubscription.AutoRenew,
                 CompaniesCount = updatedSubscription.CompaniesCount,
                 UsersCount = updatedSubscription.UsersCount,
+                DueDay = updatedSubscription.DueDay,
+                PaymentMethod = MapPaymentMethod(updatedSubscription.PaymentMethod),
                 CreatedAt = updatedSubscription.CreatedAt,
                 UpdatedAt = updatedSubscription.UpdatedAt
             };
@@ -398,5 +408,26 @@ public class SubscriptionsController : ControllerBase
         SubscriptionStatus.Suspended => "suspended",
         SubscriptionStatus.Cancelled => "cancelled",
         _ => "unknown"
+    };
+
+    private static string MapPaymentMethod(PaymentMethod method) => method switch
+    {
+        PaymentMethod.BankTransfer => "bank_transfer",
+        PaymentMethod.CreditCard => "credit_card",
+        PaymentMethod.Pix => "pix",
+        PaymentMethod.Boleto => "boleto",
+        PaymentMethod.Cash => "cash",
+        PaymentMethod.Other => "other",
+        _ => "other"
+    };
+
+    private static PaymentMethod ParsePaymentMethod(string method) => method?.ToLower() switch
+    {
+        "bank_transfer" => PaymentMethod.BankTransfer,
+        "credit_card" => PaymentMethod.CreditCard,
+        "pix" => PaymentMethod.Pix,
+        "boleto" => PaymentMethod.Boleto,
+        "cash" => PaymentMethod.Cash,
+        _ => PaymentMethod.Pix
     };
 }

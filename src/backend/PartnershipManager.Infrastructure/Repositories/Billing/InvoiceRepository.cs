@@ -17,7 +17,18 @@ public class InvoiceRepository : IInvoiceRepository
     public async Task<Invoice?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
         const string sql = @"
-            SELECT i.*, c.*, s.*, p.*
+            SELECT 
+                i.Id, i.ClientId, i.SubscriptionId, i.InvoiceNumber, i.Amount, 
+                i.IssueDate, i.DueDate, i.Status, i.PaymentDate, i.Description, 
+                i.Notes, i.CreatedAt, i.CreatedBy, i.UpdatedAt, i.UpdatedBy, i.DeletedAt,
+                c.Id, c.Name, c.Email, c.Document, c.Type, c.Status, c.Phone, 
+                c.Address, c.City, c.State, c.ZipCode, c.Country, c.CreatedAt, 
+                c.CreatedBy, c.UpdatedAt, c.UpdatedBy, c.DeletedAt,
+                s.Id, s.ClientId, s.PlanId, s.StartDate, s.EndDate, s.Status, 
+                s.AutoRenew, s.CreatedAt, s.CreatedBy, s.UpdatedAt, s.UpdatedBy, s.DeletedAt,
+                p.Id, p.Name, p.Description, p.Price, p.BillingCycle, p.Features, 
+                p.MaxCompanies, p.MaxUsers, p.IsActive, p.CreatedAt, p.CreatedBy, 
+                p.UpdatedAt, p.UpdatedBy, p.DeletedAt
             FROM BillingInvoices i
             INNER JOIN BillingClients c ON i.ClientId = c.Id
             LEFT JOIN BillingSubscriptions s ON i.SubscriptionId = s.Id
@@ -49,7 +60,7 @@ public class InvoiceRepository : IInvoiceRepository
                 return invoiceEntry;
             },
             new { Id = id },
-            splitOn: "Id,Id,Id"
+            splitOn: "Id,Id,Id,Id"
         );
 
         return invoiceDict.Values.FirstOrDefault();
@@ -343,6 +354,7 @@ public class InvoiceRepository : IInvoiceRepository
                 Amount = @Amount,
                 DueDate = @DueDate,
                 Status = @Status,
+                PaymentDate = @PaymentDate,
                 Description = @Description,
                 Notes = @Notes,
                 UpdatedAt = @UpdatedAt

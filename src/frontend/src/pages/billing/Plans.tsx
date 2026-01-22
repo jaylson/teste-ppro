@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Plus, Edit, Trash2, Check, X } from 'lucide-react';
-import { Button } from '@/components/ui';
+import { Button, AlertContainer, useAlerts, ConfirmDialog } from '@/components/ui';
 import { PlanModal } from '@/components/modals';
 import { plansApi, type Plan } from '@/services/api';
 
@@ -11,6 +11,25 @@ export default function Plans() {
   const [error, setError] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [editingPlan, setEditingPlan] = useState<Plan | null>(null);
+  
+  // Sistema de alertas
+  const { alerts, showSuccess, showError, removeAlert } = useAlerts();
+  
+  // Modal de confirmação
+  const [confirmDialog, setConfirmDialog] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    onConfirm: () => void;
+    confirmText?: string;
+    confirmVariant?: 'primary' | 'danger';
+  }>({
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: () => {},
+  });
+  const [confirmLoading, setConfirmLoading] = useState(false);
 
   // Carregar planos da API
   useEffect(() => {
@@ -52,25 +71,56 @@ export default function Plans() {
   };
 
   const handleDelete = async (planId: string) => {
-    if (confirm('Tem certeza que deseja excluir este plano?')) {
-      try {
-        await plansApi.delete(planId);
-        await loadPlans();
-      } catch (err: any) {
-        console.error('Erro ao deletar plano:', err);
-        alert(err.response?.data?.message || 'Erro ao deletar plano');
-      }
-    }
+    const plan = plans.find(p => p.id === planId);
+    
+    setConfirmDialog({
+      isOpen: true,
+      title: 'Excluir Plano',
+      message: `Tem certeza que deseja excluir o plano "${plan?.name}"?`,
+      confirmText: 'Sim, excluir',
+      confirmVariant: 'danger',
+      onConfirm: async () => {
+        setConfirmLoading(true);
+        try {
+          await plansApi.delete(planId);
+          await loadPlans();
+          showSuccess(`Plano "${plan?.name}" excluído com sucesso!`);
+          setConfirmDialog((prev) => ({ ...prev, isOpen: false }));
+        } catch (err: any) {
+          console.error('Erro ao deletar plano:', err);
+          showError(err.response?.data?.message || 'Erro ao deletar plano');
+        } finally {
+          setConfirmLoading(false);
+        }
+      },
+    });
   };
 
   const handleToggleStatus = async (planId: string) => {
-    try {
-      await plansApi.toggleStatus(planId);
-      await loadPlans();
-    } catch (err: any) {
-      console.error('Erro ao alterar status do plano:', err);
-      alert(err.response?.data?.message || 'Erro ao alterar status do plano');
-    }
+    const plan = plans.find(p => p.id === planId);
+    const newStatus = !plan?.isActive;
+    
+    setConfirmDialog({
+      isOpen: true,
+      title: newStatus ? 'Ativar Plano' : 'Desativar Plano',
+      message: `Tem certeza que deseja ${newStatus ? 'ativar' : 'desativar'} o plano "${plan?.name}"?`,
+      confirmText: newStatus ? 'Sim, ativar' : 'Sim, desativar',
+      confirmVariant: 'primary',
+      onConfirm: async () => {
+        setConfirmLoading(true);
+        try {
+          await plansApi.toggleStatus(planId);
+          await loadPlans();
+          showSuccess(`Plano "${plan?.name}" ${newStatus ? 'ativado' : 'desativado'} com sucesso!`);
+          setConfirmDialog((prev) => ({ ...prev, isOpen: false }));
+        } catch (err: any) {
+          console.error('Erro ao alterar status do plano:', err);
+          showError(err.response?.data?.message || 'Erro ao alterar status do plano');
+        } finally {
+          setConfirmLoading(false);
+        }
+      },
+    });
   };
 
   const handleSavePlan = async (plan: Plan) => {
@@ -78,14 +128,18 @@ export default function Plans() {
       if (plan.id) {
         // Editar
         await plansApi.update(plan.id, plan);
+        showSuccess(`Plano "${plan.name}" atualizado com sucesso!`);
       } else {
         // Criar novo
         await plansApi.create(plan);
+        showSuccess(`Plano "${plan.name}" criado com sucesso!`);
       }
       await loadPlans();
+      setShowModal(false);
+      setEditingPlan(null);
     } catch (err: any) {
       console.error('Erro ao salvar plano:', err);
-      alert(err.response?.data?.message || 'Erro ao salvar plano');
+      showError(err.response?.data?.message || 'Erro ao salvar plano');
     }
   };
 
@@ -231,6 +285,21 @@ export default function Plans() {
         }}
         onSave={handleSavePlan}
         plan={editingPlan}
+      />
+      
+      {/* Sistema de Alertas */}
+      <AlertContainer alerts={alerts} onClose={removeAlert} />
+      
+      {/* Modal de Confirmação */}
+      <ConfirmDialog
+        isOpen={confirmDialog.isOpen}
+        title={confirmDialog.title}
+        message={confirmDialog.message}
+        confirmText={confirmDialog.confirmText}
+        confirmVariant={confirmDialog.confirmVariant}
+        onConfirm={confirmDialog.onConfirm}
+        onCancel={() => setConfirmDialog((prev) => ({ ...prev, isOpen: false }))}
+        loading={confirmLoading}
       />
     </div>
   );

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Plus, Search, Eye, Edit, Ban, CheckCircle, Calendar, DollarSign } from 'lucide-react';
-import { Button } from '@/components/ui';
+import { Button, AlertContainer, useAlerts, ConfirmDialog } from '@/components/ui';
 import { ClientModal, SubscriptionModal } from '@/components/modals';
 import { clientsApi, subscriptionsApi, plansApi, type Client as ApiClient, type ClientListItem, type SubscriptionListItem, type Plan } from '@/services/api';
 
@@ -45,6 +45,25 @@ export default function ClientsSubscriptions() {
   const [error, setError] = useState<string | null>(null);
   const [viewingClient, setViewingClient] = useState<Client | null>(null);
   const [viewingSubscription, setViewingSubscription] = useState<Subscription | null>(null);
+  
+  // Sistema de alertas
+  const { alerts, showSuccess, showError, removeAlert } = useAlerts();
+  
+  // Modal de confirmação
+  const [confirmDialog, setConfirmDialog] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    onConfirm: () => void;
+    confirmText?: string;
+    confirmVariant?: 'primary' | 'danger';
+  }>({
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: () => {},
+  });
+  const [confirmLoading, setConfirmLoading] = useState(false);
 
   // Carregar clientes, assinaturas e planos da API
   useEffect(() => {
@@ -191,15 +210,19 @@ export default function ClientsSubscriptions() {
       if (client.id) {
         // Atualizar
         await clientsApi.update(client.id, client);
+        showSuccess(`Cliente "${client.name}" atualizado com sucesso!`);
       } else {
         // Criar
         await clientsApi.create(client);
+        showSuccess(`Cliente "${client.name}" criado com sucesso!`);
       }
       // Recarregar lista
       await loadClients();
+      setShowClientModal(false);
+      setEditingClient(null);
     } catch (err: any) {
       console.error('Erro ao salvar cliente:', err);
-      alert(err.response?.data?.message || 'Erro ao salvar cliente');
+      showError(err.response?.data?.message || 'Erro ao salvar cliente');
     }
   };
 
@@ -214,26 +237,31 @@ export default function ClientsSubscriptions() {
           companiesCount: subscription.companiesCount,
           usersCount: subscription.usersCount,
           startDate: subscription.startDate,
-          endDate: subscription.endDate || undefined
+          endDate: subscription.endDate || undefined,
+          dueDay: subscription.dueDay,
+          paymentMethod: subscription.paymentMethod
         };
         console.log('Dados de atualização:', updateData);
         await subscriptionsApi.update(subscription.id, updateData);
+        showSuccess('Assinatura atualizada com sucesso!');
       } else {
         // Criar
         await subscriptionsApi.create({
           clientId: subscription.clientId,
           planId: subscription.planId,
-          autoRenew: subscription.autoRenew
+          autoRenew: subscription.autoRenew,
+          dueDay: subscription.dueDay,
+          paymentMethod: subscription.paymentMethod
         });
+        showSuccess('Assinatura criada com sucesso!');
       }
       // Recarregar lista
       await loadSubscriptions();
       setShowSubscriptionModal(false);
       setEditingSubscription(null);
-      alert('Assinatura salva com sucesso!');
     } catch (err: any) {
       console.error('Erro ao salvar assinatura:', err);
-      alert(err.response?.data?.message || 'Erro ao salvar assinatura');
+      showError(err.response?.data?.message || 'Erro ao salvar assinatura');
     }
   };
 
@@ -245,7 +273,7 @@ export default function ClientsSubscriptions() {
       setShowClientModal(true);
     } catch (err: any) {
       console.error('Erro ao carregar cliente:', err);
-      alert('Erro ao carregar dados do cliente');
+      showError('Erro ao carregar dados do cliente');
     }
   };
 
@@ -255,7 +283,7 @@ export default function ClientsSubscriptions() {
       setViewingClient(fullClient);
     } catch (err: any) {
       console.error('Erro ao carregar cliente:', err);
-      alert('Erro ao carregar dados do cliente');
+      showError('Erro ao carregar dados do cliente');
     }
   };
 
@@ -274,29 +302,55 @@ export default function ClientsSubscriptions() {
   };
 
   const handleSuspendSubscription = async (subscriptionId: string) => {
-    if (!confirm('Deseja realmente suspender esta assinatura?')) return;
+    const subscription = subscriptions.find(s => s.id === subscriptionId);
     
-    try {
-      await subscriptionsApi.suspend(subscriptionId);
-      await loadSubscriptions();
-      alert('Assinatura suspensa com sucesso!');
-    } catch (err: any) {
-      console.error('Erro ao suspender assinatura:', err);
-      alert(err.response?.data?.message || 'Erro ao suspender assinatura');
-    }
+    setConfirmDialog({
+      isOpen: true,
+      title: 'Suspender Assinatura',
+      message: `Deseja realmente suspender a assinatura de "${subscription?.clientName}"?`,
+      confirmText: 'Sim, suspender',
+      confirmVariant: 'danger',
+      onConfirm: async () => {
+        setConfirmLoading(true);
+        try {
+          await subscriptionsApi.suspend(subscriptionId);
+          await loadSubscriptions();
+          showSuccess('Assinatura suspensa com sucesso!');
+          setConfirmDialog((prev) => ({ ...prev, isOpen: false }));
+        } catch (err: any) {
+          console.error('Erro ao suspender assinatura:', err);
+          showError(err.response?.data?.message || 'Erro ao suspender assinatura');
+        } finally {
+          setConfirmLoading(false);
+        }
+      },
+    });
   };
 
   const handleActivateSubscription = async (subscriptionId: string) => {
-    if (!confirm('Deseja realmente ativar esta assinatura?')) return;
+    const subscription = subscriptions.find(s => s.id === subscriptionId);
     
-    try {
-      await subscriptionsApi.activate(subscriptionId);
-      await loadSubscriptions();
-      alert('Assinatura ativada com sucesso!');
-    } catch (err: any) {
-      console.error('Erro ao ativar assinatura:', err);
-      alert(err.response?.data?.message || 'Erro ao ativar assinatura');
-    }
+    setConfirmDialog({
+      isOpen: true,
+      title: 'Ativar Assinatura',
+      message: `Deseja realmente ativar a assinatura de "${subscription?.clientName}"?`,
+      confirmText: 'Sim, ativar',
+      confirmVariant: 'primary',
+      onConfirm: async () => {
+        setConfirmLoading(true);
+        try {
+          await subscriptionsApi.activate(subscriptionId);
+          await loadSubscriptions();
+          showSuccess('Assinatura ativada com sucesso!');
+          setConfirmDialog((prev) => ({ ...prev, isOpen: false }));
+        } catch (err: any) {
+          console.error('Erro ao ativar assinatura:', err);
+          showError(err.response?.data?.message || 'Erro ao ativar assinatura');
+        } finally {
+          setConfirmLoading(false);
+        }
+      },
+    });
   };
 
   const filteredClients = clients.filter(client =>
@@ -723,6 +777,21 @@ export default function ClientsSubscriptions() {
           </div>
         </div>
       )}
+      
+      {/* Sistema de Alertas */}
+      <AlertContainer alerts={alerts} onClose={removeAlert} />
+      
+      {/* Modal de Confirmação */}
+      <ConfirmDialog
+        isOpen={confirmDialog.isOpen}
+        title={confirmDialog.title}
+        message={confirmDialog.message}
+        confirmText={confirmDialog.confirmText}
+        confirmVariant={confirmDialog.confirmVariant}
+        onConfirm={confirmDialog.onConfirm}
+        onCancel={() => setConfirmDialog((prev) => ({ ...prev, isOpen: false }))}
+        loading={confirmLoading}
+      />
     </div>
   );
 }

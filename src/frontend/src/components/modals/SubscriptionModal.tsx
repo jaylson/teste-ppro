@@ -17,6 +17,8 @@ interface Subscription {
   autoRenew: boolean;
   companiesCount: number;
   usersCount: number;
+  dueDay: number;
+  paymentMethod: string;
 }
 
 interface Client {
@@ -61,6 +63,8 @@ export default function SubscriptionModal({
       autoRenew: true,
       companiesCount: 0,
       usersCount: 0,
+      dueDay: 10,
+      paymentMethod: 'pix',
     }
   });
 
@@ -91,6 +95,8 @@ export default function SubscriptionModal({
           autoRenew: true,
           companiesCount: 0,
           usersCount: 0,
+          dueDay: 10,
+          paymentMethod: 'pix',
         });
       }
     }
@@ -177,6 +183,73 @@ export default function SubscriptionModal({
             {errors.planId && (
               <p className="text-red-500 text-sm mt-1">{errors.planId.message}</p>
             )}
+          </div>
+
+          {/* Ciclo de Cobrança - apenas exibição */}
+          {selectedPlanId && (
+            <div>
+              <label className="block text-sm font-medium mb-2">
+                Ciclo de Cobrança
+              </label>
+              <input
+                type="text"
+                value={watch('billingCycle') === 'monthly' ? 'Mensal' : 'Anual'}
+                disabled
+                className="input w-full bg-gray-100 cursor-not-allowed"
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                O ciclo de cobrança é definido pelo plano selecionado
+              </p>
+            </div>
+          )}
+
+          {/* Dia de Vencimento */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-2">
+                Dia de Vencimento *
+              </label>
+              <input
+                type="number"
+                {...register('dueDay', { 
+                  required: 'Dia de vencimento é obrigatório',
+                  valueAsNumber: true,
+                  min: { value: 1, message: 'Mínimo: dia 1' },
+                  max: { value: 31, message: 'Máximo: dia 31' }
+                })}
+                className="input w-full"
+                placeholder="10"
+                min="1"
+                max="31"
+              />
+              {errors.dueDay && (
+                <p className="text-red-500 text-sm mt-1">{errors.dueDay.message}</p>
+              )}
+              <p className="text-xs text-muted-foreground mt-1">
+                Dia do mês em que a fatura vence (1-31)
+              </p>
+            </div>
+
+            {/* Método de Pagamento */}
+            <div>
+              <label className="block text-sm font-medium mb-2">
+                Método de Pagamento *
+              </label>
+              <select 
+                {...register('paymentMethod', { required: 'Método de pagamento é obrigatório' })}
+                className="input w-full"
+              >
+                <option value="pix">PIX</option>
+                <option value="boleto">Boleto</option>
+                <option value="credit_card">Cartão de Crédito</option>
+                <option value="bank_transfer">Transferência Bancária</option>
+                <option value="cash">Dinheiro</option>
+                <option value="other">Outro</option>
+              </select>
+              {errors.paymentMethod && (
+                <p className="text-red-500 text-sm mt-1">{errors.paymentMethod.message}</p>
+              )}
+            </div>
           </div>
 
           {/* Datas */}

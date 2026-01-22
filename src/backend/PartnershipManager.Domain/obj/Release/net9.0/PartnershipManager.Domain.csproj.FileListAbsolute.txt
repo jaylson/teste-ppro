@@ -1,0 +1,12 @@
+/workspaces/teste-ppro/src/backend/PartnershipManager.Domain/bin/Release/net9.0/PartnershipManager.Domain.deps.json
+/workspaces/teste-ppro/src/backend/PartnershipManager.Domain/bin/Release/net9.0/PartnershipManager.Domain.dll
+/workspaces/teste-ppro/src/backend/PartnershipManager.Domain/bin/Release/net9.0/PartnershipManager.Domain.pdb
+/workspaces/teste-ppro/src/backend/PartnershipManager.Domain/obj/Release/net9.0/PartnershipManager.Domain.GeneratedMSBuildEditorConfig.editorconfig
+/workspaces/teste-ppro/src/backend/PartnershipManager.Domain/obj/Release/net9.0/PartnershipManager.Domain.AssemblyInfoInputs.cache
+/workspaces/teste-ppro/src/backend/PartnershipManager.Domain/obj/Release/net9.0/PartnershipManager.Domain.AssemblyInfo.cs
+/workspaces/teste-ppro/src/backend/PartnershipManager.Domain/obj/Release/net9.0/PartnershipManager.Domain.csproj.CoreCompileInputs.cache
+/workspaces/teste-ppro/src/backend/PartnershipManager.Domain/obj/Release/net9.0/PartnershipManager.Domain.sourcelink.json
+/workspaces/teste-ppro/src/backend/PartnershipManager.Domain/obj/Release/net9.0/PartnershipManager.Domain.dll
+/workspaces/teste-ppro/src/backend/PartnershipManager.Domain/obj/Release/net9.0/refint/PartnershipManager.Domain.dll
+/workspaces/teste-ppro/src/backend/PartnershipManager.Domain/obj/Release/net9.0/PartnershipManager.Domain.pdb
+/workspaces/teste-ppro/src/backend/PartnershipManager.Domain/obj/Release/net9.0/ref/PartnershipManager.Domain.dll

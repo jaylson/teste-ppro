@@ -115,8 +115,8 @@ public class SubscriptionRepository : ISubscriptionRepository
         subscription.UpdatedAt = DateTime.UtcNow;
 
         const string sql = @"
-            INSERT INTO BillingSubscriptions (Id, ClientId, PlanId, Status, StartDate, EndDate, AutoRenew, CompaniesCount, UsersCount, CreatedAt, UpdatedAt)
-            VALUES (@Id, @ClientId, @PlanId, @Status, @StartDate, @EndDate, @AutoRenew, @CompaniesCount, @UsersCount, @CreatedAt, @UpdatedAt)";
+            INSERT INTO BillingSubscriptions (Id, ClientId, PlanId, Status, StartDate, EndDate, AutoRenew, CompaniesCount, UsersCount, DueDay, PaymentMethod, CreatedAt, UpdatedAt)
+            VALUES (@Id, @ClientId, @PlanId, @Status, @StartDate, @EndDate, @AutoRenew, @CompaniesCount, @UsersCount, @DueDay, @PaymentMethod, @CreatedAt, @UpdatedAt)";
 
         await _context.Connection.ExecuteAsync(sql, subscription);
         return subscription.Id;
@@ -136,6 +136,8 @@ public class SubscriptionRepository : ISubscriptionRepository
                 AutoRenew = @AutoRenew,
                 CompaniesCount = @CompaniesCount,
                 UsersCount = @UsersCount,
+                DueDay = @DueDay,
+                PaymentMethod = @PaymentMethod,
                 UpdatedAt = @UpdatedAt
             WHERE Id = @Id AND DeletedAt IS NULL";
 

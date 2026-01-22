@@ -276,3 +276,10 @@ export function Spinner({ className }: { className?: string }) {
 export function Skeleton({ className }: { className?: string }) {
   return <div className={cn('skeleton', className)} />;
 }
+
+/* =====================================================
+   EXPORTS FROM SEPARATE FILES
+   ===================================================== */
+export { Alert, AlertContainer, useAlerts, type AlertType, type AlertProps, type AlertState } from './Alert';
+export { ConfirmDialog, useConfirm, type ConfirmDialogProps, type ConfirmOptions } from './ConfirmDialog';
+

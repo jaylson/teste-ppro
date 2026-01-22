@@ -15,6 +15,8 @@ public record SubscriptionListResponseDto
     public bool AutoRenew { get; init; }
     public int CompaniesCount { get; init; }
     public int UsersCount { get; init; }
+    public int DueDay { get; init; }
+    public string PaymentMethod { get; init; } = string.Empty;
     public DateTime CreatedAt { get; init; }
 }
 
@@ -34,6 +36,8 @@ public record SubscriptionResponseDto
     public bool AutoRenew { get; init; }
     public int CompaniesCount { get; init; }
     public int UsersCount { get; init; }
+    public int DueDay { get; init; }
+    public string PaymentMethod { get; init; } = string.Empty;
     public DateTime CreatedAt { get; init; }
     public DateTime UpdatedAt { get; init; }
 }
@@ -44,6 +48,8 @@ public record SubscriptionCreateDto
     public Guid PlanId { get; init; }
     public DateTime? StartDate { get; init; }
     public bool AutoRenew { get; init; } = true;
+    public int DueDay { get; init; } = 10; // Padrão: dia 10
+    public string PaymentMethod { get; init; } = "pix"; // Padrão: PIX
 }
 
 public record SubscriptionUpdateDto
@@ -54,4 +60,6 @@ public record SubscriptionUpdateDto
     public int UsersCount { get; init; }
     public DateTime StartDate { get; init; }
     public DateTime? EndDate { get; init; }
+    public int DueDay { get; init; }
+    public string PaymentMethod { get; init; } = string.Empty;
 }

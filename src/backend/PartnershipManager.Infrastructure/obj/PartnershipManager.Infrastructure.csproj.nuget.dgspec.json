@@ -56,6 +56,10 @@
               "target": "Package",
               "version": "[11.11.0, )"
             },
+            "MediatR": {
+              "target": "Package",
+              "version": "[12.2.0, )"
+            },
             "Microsoft.Extensions.Logging.Abstractions": {
               "target": "Package",
               "version": "[9.0.0, )"
@@ -243,6 +247,10 @@
             "MySqlConnector": {
               "target": "Package",
               "version": "[2.4.0, )"
+            },
+            "QuestPDF": {
+              "target": "Package",
+              "version": "[2024.12.3, )"
             }
           },
           "imports": [

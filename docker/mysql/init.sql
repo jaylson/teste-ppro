@@ -148,6 +148,8 @@ CREATE TABLE IF NOT EXISTS BillingInvoices (
     FOREIGN KEY (ClientId) REFERENCES BillingClients(Id),
     FOREIGN KEY (SubscriptionId) REFERENCES BillingSubscriptions(Id),
     UNIQUE INDEX idx_billing_invoice_number (InvoiceNumber),
+    INDEX idx_subscription_issue_month (SubscriptionId, IssueDate),
+    INDEX idx_subscription_issue_status (SubscriptionId, IssueDate, Status),
     INDEX idx_billing_invoice_client (ClientId),
     INDEX idx_billing_invoice_status (Status),
     INDEX idx_billing_invoice_duedate (DueDate)

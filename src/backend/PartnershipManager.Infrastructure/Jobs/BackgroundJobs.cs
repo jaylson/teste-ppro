@@ -14,7 +14,7 @@ public interface IBackgroundJobs
     Task SendEmailAsync(string to, string subject, string body);
     Task ProcessAuditLogsAsync();
     Task GenerateReportsAsync(Guid companyId);
-    Task GenerateMonthlyInvoicesAsync();
+    Task GenerateMonthlyInvoicesAsync(int month, int year);
 }
 
 /// <summary>
@@ -105,43 +105,79 @@ public class BackgroundJobs : IBackgroundJobs
     /// </summary>
     [AutomaticRetry(Attempts = 2)]
     [Queue("billing")]
-    public async Task GenerateMonthlyInvoicesAsync()
+    public async Task GenerateMonthlyInvoicesAsync(int month, int year)
     {
-        _logger.LogInformation("Iniciando geração mensal de faturas...");
+        _logger.LogInformation("Iniciando geração mensal de faturas para {Month}/{Year}...", month, year);
+        
+        var logEntries = new List<string>();
+        var now = DateTime.UtcNow;
+        var issueDate = new DateTime(year, month, 1);
+        
+        logEntries.Add($"=== RELATÓRIO DE GERAÇÃO DE FATURAS ===");
+        logEntries.Add($"Data/Hora: {now:dd/MM/yyyy HH:mm:ss} UTC");
+        logEntries.Add($"Período de referência: {issueDate:MMMM/yyyy}");
+        logEntries.Add($"Primeira execução do mês: {issueDate:dd/MM/yyyy}");
+        logEntries.Add("");
         
         try
         {
-            // Busca todas as assinaturas ativas
-            var activeSubscriptions = await _subscriptionRepository.GetActiveSubscriptionsAsync(CancellationToken.None);
+            // Busca todas as assinaturas e filtra as ativas
+            var allSubscriptions = await _subscriptionRepository.GetAllAsync(CancellationToken.None);
+            var activeSubscriptions = allSubscriptions.Where(s => s.Status == SubscriptionStatus.Active).ToList();
+            
+            logEntries.Add($"Total de assinaturas no sistema: {allSubscriptions.Count()}");
+            logEntries.Add($"Assinaturas ativas: {activeSubscriptions.Count}");
+            logEntries.Add($"Assinaturas inativas: {allSubscriptions.Count() - activeSubscriptions.Count}");
+            logEntries.Add("");
+            logEntries.Add("--- PROCESSAMENTO DE ASSINATURAS ---");
+            logEntries.Add("");
             
             var generatedCount = 0;
             var errorCount = 0;
-            var now = DateTime.UtcNow;
-            var issueDate = new DateTime(now.Year, now.Month, 1); // Primeiro dia do mês
+            var skippedCount = 0;
             
             foreach (var subscription in activeSubscriptions)
             {
                 try
                 {
-                    // Verifica se já existe fatura para este mês
-                    var existingInvoice = await _invoiceRepository.GetBySubscriptionAndPeriodAsync(
-                        subscription.Id, 
-                        issueDate, 
-                        CancellationToken.None);
+                    var clientName = subscription.Client?.Name ?? "Cliente não identificado";
+                    var planName = subscription.Plan?.Name ?? "Plano não identificado";
+                    var planPrice = subscription.Plan?.Price ?? 0;
+                    
+                    logEntries.Add($"[Assinatura #{subscription.Id}]");
+                    logEntries.Add($"  Cliente: {clientName}");
+                    logEntries.Add($"  Plano: {planName} (R$ {planPrice:N2})");
+                    logEntries.Add($"  Status: {subscription.Status}");
+                    
+                    // Verifica se já existe fatura para este mês e assinatura
+                    var allInvoices = await _invoiceRepository.GetAllAsync(CancellationToken.None);
+                    var existingInvoice = allInvoices.FirstOrDefault(i => 
+                        i.SubscriptionId == subscription.Id && 
+                        i.IssueDate.Year == issueDate.Year && 
+                        i.IssueDate.Month == issueDate.Month &&
+                        i.Status != InvoiceStatus.Cancelled);
                     
                     if (existingInvoice != null)
                     {
+                        skippedCount++;
+                        logEntries.Add($"  ❌ PULADA: Fatura já existe - #{existingInvoice.InvoiceNumber}");
+                        logEntries.Add($"  Motivo: Fatura já gerada para este período");
+                        logEntries.Add($"  Data da fatura existente: {existingInvoice.IssueDate:dd/MM/yyyy}");
+                        logEntries.Add("");
+                        
                         _logger.LogInformation(
-                            "Fatura já existe para assinatura {SubscriptionId} no período {Period}", 
+                            "Fatura já existe para assinatura {SubscriptionId} no período {Period} - Fatura #{InvoiceNumber}", 
                             subscription.Id, 
-                            issueDate.ToString("yyyy-MM"));
+                            issueDate.ToString("yyyy-MM"),
+                            existingInvoice.InvoiceNumber);
                         continue;
                     }
                     
-                    // Calcula a data de vencimento baseada no ciclo de cobrança
-                    var dueDate = subscription.Plan.BillingCycle == BillingCycle.Monthly 
-                        ? issueDate.AddDays(30) 
-                        : issueDate.AddDays(365);
+                    // Calcula a data de vencimento: dia de vencimento da assinatura no mês seguinte ao período de geração
+                    var nextMonth = issueDate.AddMonths(1);
+                    var maxDayInNextMonth = DateTime.DaysInMonth(nextMonth.Year, nextMonth.Month);
+                    var dueDay = Math.Min(subscription.DueDay, maxDayInNextMonth); // Ajusta para meses com menos dias
+                    var dueDate = new DateTime(nextMonth.Year, nextMonth.Month, dueDay);
                     
                     // Gera número da fatura
                     var invoiceNumber = await _invoiceRepository.GenerateInvoiceNumberAsync(CancellationToken.None);
@@ -163,6 +199,12 @@ public class BackgroundJobs : IBackgroundJobs
                     await _invoiceRepository.CreateAsync(invoice, CancellationToken.None);
                     generatedCount++;
                     
+                    logEntries.Add($"  ✅ GERADA COM SUCESSO: #{invoiceNumber}");
+                    logEntries.Add($"  Valor: R$ {invoice.Amount:N2}");
+                    logEntries.Add($"  Data de emissão: {invoice.IssueDate:dd/MM/yyyy}");
+                    logEntries.Add($"  Data de vencimento: {invoice.DueDate:dd/MM/yyyy}");
+                    logEntries.Add("");
+                    
                     _logger.LogInformation(
                         "Fatura {InvoiceNumber} gerada com sucesso para cliente {ClientId}", 
                         invoiceNumber, 
@@ -171,6 +213,12 @@ public class BackgroundJobs : IBackgroundJobs
                 catch (Exception ex)
                 {
                     errorCount++;
+                    var clientName = subscription.Client?.Name ?? "Cliente não identificado";
+                    logEntries.Add($"  ❌ ERRO: Falha ao gerar fatura");
+                    logEntries.Add($"  Motivo: {ex.Message}");
+                    logEntries.Add($"  Tipo de erro: {ex.GetType().Name}");
+                    logEntries.Add("");
+                    
                     _logger.LogError(
                         ex, 
                         "Erro ao gerar fatura para assinatura {SubscriptionId}", 
@@ -178,16 +226,67 @@ public class BackgroundJobs : IBackgroundJobs
                 }
             }
             
+            // Resumo final
+            logEntries.Add("\n=== RESUMO ===");
+            logEntries.Add($"Total processado: {activeSubscriptions.Count}");
+            logEntries.Add($"✅ Geradas com sucesso: {generatedCount}");
+            logEntries.Add($"⏭️  Puladas (já existentes): {skippedCount}");
+            logEntries.Add($"❌ Erros: {errorCount}");
+            logEntries.Add($"\nProcessamento concluído em: {DateTime.UtcNow:dd/MM/yyyy HH:mm:ss} UTC");
+            
+            // Salvar log em arquivo
+            await SaveInvoiceGenerationLog(logEntries, issueDate);
+            
             _logger.LogInformation(
-                "Geração mensal de faturas concluída. Total: {Total}, Geradas: {Generated}, Erros: {Errors}", 
-                activeSubscriptions.Count(), 
+                "Geração de faturas concluída. Geradas: {GeneratedCount}, Puladas: {SkippedCount}, Erros: {ErrorCount}", 
                 generatedCount, 
+                skippedCount,
                 errorCount);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Erro ao executar job de geração mensal de faturas");
+            _logger.LogError(ex, "Erro fatal ao gerar faturas mensais");
+            
+            // Tentar salvar log de erro
+            try
+            {
+                var errorLog = new List<string>
+                {
+                    "=== ERRO FATAL NA GERAÇÃO DE FATURAS ===",
+                    $"Data/Hora: {DateTime.UtcNow:dd/MM/yyyy HH:mm:ss} UTC",
+                    $"Erro: {ex.Message}",
+                    $"Stack Trace: {ex.StackTrace}"
+                };
+                await SaveInvoiceGenerationLog(errorLog, issueDate);
+            }
+            catch
+            {
+                // Ignorar erro ao salvar log de erro
+            }
+            
             throw;
+        }
+    }
+    
+    private async Task SaveInvoiceGenerationLog(List<string> logEntries, DateTime issueDate)
+    {
+        try
+        {
+            var logDirectory = "/app/logs/billing";
+            Directory.CreateDirectory(logDirectory);
+            
+            var fileName = $"invoice-generation-{issueDate:yyyy-MM}-{DateTime.UtcNow:yyyyMMdd-HHmmss}.log";
+            var filePath = Path.Combine(logDirectory, fileName);
+            
+            await File.WriteAllLinesAsync(filePath, logEntries);
+            
+            _logger.LogInformation(
+                "Log de geração de faturas salvo em: {FilePath}", 
+                filePath);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Erro ao salvar log de geração de faturas");
         }
     }
 }
@@ -214,7 +313,7 @@ public static class HangfireJobsConfiguration
         // Geração mensal de faturas - todo dia 1º às 2h
         RecurringJob.AddOrUpdate<IBackgroundJobs>(
             "generate-monthly-invoices",
-            job => job.GenerateMonthlyInvoicesAsync(),
+            job => job.GenerateMonthlyInvoicesAsync(DateTime.UtcNow.Month, DateTime.UtcNow.Year),
             "0 2 1 * *"); // Minuto 0, Hora 2, Dia 1 de cada mês
     }
 }

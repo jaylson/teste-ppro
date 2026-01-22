@@ -14,6 +14,7 @@ public class Invoice : BaseEntity
     public InvoiceStatus Status { get; set; }
     public string Description { get; set; } = string.Empty;
     public string? Notes { get; set; }
+    public DateTime? PaymentDate { get; set; }
     
     // Relacionamentos
     public Client Client { get; set; } = null!;
@@ -23,6 +24,7 @@ public class Invoice : BaseEntity
     public void MarkAsPaid(DateTime paymentDate)
     {
         Status = InvoiceStatus.Paid;
+        PaymentDate = paymentDate;
         UpdatedAt = paymentDate;
     }
     

@@ -104,6 +104,8 @@ export interface Subscription {
   autoRenew: boolean;
   companiesCount: number;
   usersCount: number;
+  dueDay?: number;
+  paymentMethod?: string;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -122,6 +124,8 @@ export interface SubscriptionListItem {
   autoRenew: boolean;
   companiesCount: number;
   usersCount: number;
+  dueDay?: number;
+  paymentMethod?: string;
   createdAt: string;
 }
 
@@ -145,13 +149,13 @@ export const subscriptionsApi = {
   },
 
   // Criar nova assinatura
-  create: async (subscription: { clientId: string; planId: string; startDate?: string; autoRenew?: boolean }): Promise<Subscription> => {
+  create: async (subscription: { clientId: string; planId: string; startDate?: string; autoRenew?: boolean; dueDay?: number; paymentMethod?: string }): Promise<Subscription> => {
     const response = await api.post<Subscription>('/subscriptions', subscription);
     return response.data;
   },
 
   // Atualizar assinatura
-  update: async (id: string, subscription: { planId: string; autoRenew: boolean; companiesCount: number; usersCount: number; startDate: string; endDate?: string }): Promise<Subscription> => {
+  update: async (id: string, subscription: { planId: string; autoRenew: boolean; companiesCount: number; usersCount: number; startDate: string; endDate?: string; dueDay: number; paymentMethod: string }): Promise<Subscription> => {
     const response = await api.put<Subscription>(`/subscriptions/${id}`, subscription);
     return response.data;
   },
@@ -304,20 +308,24 @@ export const invoicesApi = {
   },
 
   // Marcar fatura como paga
-  markAsPaid: async (id: string): Promise<Invoice> => {
-    const response = await api.post<Invoice>(`/invoices/${id}/mark-paid`);
+  markAsPaid: async (id: string, paymentDate?: Date): Promise<Invoice> => {
+    const response = await api.post<Invoice>(`/invoices/${id}/pay`, paymentDate ? { paymentDate: paymentDate.toISOString() } : {});
     return response.data;
   },
 
   // Cancelar fatura
-  cancel: async (id: string): Promise<Invoice> => {
-    const response = await api.post<Invoice>(`/invoices/${id}/cancel`);
-    return response.data;
+  cancel: async (id: string): Promise<void> => {
+    await api.post(`/invoices/${id}/cancel`);
   },
 
   // Gerar faturas do mês
-  generateMonthly: async (): Promise<{ message: string; invoicesGenerated: number }> => {
-    const response = await api.post<{ message: string; invoicesGenerated: number }>('/invoices/generate-monthly');
+  generateMonthly: async (month?: number, year?: number): Promise<{ message: string; invoicesGenerated: number }> => {
+    const params = new URLSearchParams();
+    if (month) params.append('month', month.toString());
+    if (year) params.append('year', year.toString());
+    
+    const url = params.toString() ? `/invoices/generate-monthly?${params.toString()}` : '/invoices/generate-monthly';
+    const response = await api.post<{ message: string; invoicesGenerated: number }>(url);
     return response.data;
   },
 
@@ -332,6 +340,23 @@ export const invoicesApi = {
   // Obter URL do PDF (para ferramentas externas)
   getPdfUrl: (id: string): string => {
     return `${API_URL}/invoices/${id}/pdf`;
+  },
+
+  // Obter dados de MRR
+  getMrrData: async (months: number = 12): Promise<{
+    monthlyData: Array<{
+      year: number;
+      month: number;
+      monthName: string;
+      revenue: number;
+      invoiceCount: number;
+    }>;
+    currentMrr: number;
+    averageMrr: number;
+    growthRate: number;
+  }> => {
+    const response = await api.get(`/invoices/mrr?months=${months}`);
+    return response.data;
   },
 };
 

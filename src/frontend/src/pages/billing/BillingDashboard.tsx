@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import {
   DollarSign,
@@ -9,167 +9,94 @@ import {
   Clock,
   AlertCircle,
   Download,
-  Send,
   Eye,
   Calendar,
   CreditCard,
   Users,
   Package,
 } from 'lucide-react';
+import { LineChart, Line, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { Button } from '@/components/ui';
-import { InvoiceModal } from '@/components/modals';
+import { invoicesApi } from '@/services/api';
 
-interface Invoice {
-  id: string;
-  clientName: string;
-  amount: number;
-  dueDate: string;
-  issueDate: string;
-  status: 'paid' | 'pending' | 'overdue' | 'cancelled';
-  paymentDate?: string;
-  description: string;
+interface InvoiceStatistics {
+  totalRevenue: number;
+  pendingRevenue: number;
+  overdueRevenue: number;
+  totalInvoices: number;
+  paidInvoices: number;
+  pendingInvoices: number;
+  overdueInvoices: number;
+  cancelledInvoices: number;
 }
 
-interface Payment {
-  id: string;
-  invoiceId: string;
-  clientName: string;
-  amount: number;
-  paymentDate: string;
-  paymentMethod: 'bank_transfer' | 'credit_card' | 'pix' | 'boleto';
-  reference: string;
+interface MrrData {
+  monthlyData: Array<{
+    year: number;
+    month: number;
+    monthName: string;
+    revenue: number;
+    invoiceCount: number;
+  }>;
+  currentMrr: number;
+  averageMrr: number;
+  growthRate: number;
 }
 
 export default function BillingDashboard() {
-  const [showInvoiceModal, setShowInvoiceModal] = useState(false);
-  const [editingInvoice, setEditingInvoice] = useState<Invoice | null>(null);
-  
-  const [invoices, setInvoices] = useState<Invoice[]>([
-    {
-      id: 'INV-001',
-      clientName: 'TechStartup Ltda',
-      amount: 299.00,
-      dueDate: '2025-02-15',
-      issueDate: '2025-01-15',
-      status: 'pending',
-      description: 'Plano Professional - Janeiro/2025',
-    },
-    {
-      id: 'INV-002',
-      clientName: 'João Silva',
-      amount: 99.00,
-      dueDate: '2025-02-10',
-      issueDate: '2025-01-10',
-      status: 'paid',
-      paymentDate: '2025-01-12',
-      description: 'Plano Starter - Janeiro/2025',
-    },
-    {
-      id: 'INV-003',
-      clientName: 'InnovaCorp S.A.',
-      amount: 999.00,
-      dueDate: '2025-01-20',
-      issueDate: '2024-12-20',
-      status: 'overdue',
-      description: 'Plano Enterprise - Janeiro/2025',
-    },
-    {
-      id: 'INV-004',
-      clientName: 'Startup XYZ',
-      amount: 299.00,
-      dueDate: '2025-02-01',
-      issueDate: '2025-01-01',
-      status: 'paid',
-      paymentDate: '2025-01-03',
-      description: 'Plano Professional - Janeiro/2025',
-    },
-  ]);
+  const [statistics, setStatistics] = useState<InvoiceStatistics>({
+    totalRevenue: 0,
+    pendingRevenue: 0,
+    overdueRevenue: 0,
+    totalInvoices: 0,
+    paidInvoices: 0,
+    pendingInvoices: 0,
+    overdueInvoices: 0,
+    cancelledInvoices: 0,
+  });
+  const [mrrData, setMrrData] = useState<MrrData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const [payments] = useState<Payment[]>([
-    {
-      id: 'PAY-001',
-      invoiceId: 'INV-002',
-      clientName: 'João Silva',
-      amount: 99.00,
-      paymentDate: '2025-01-12',
-      paymentMethod: 'pix',
-      reference: 'PIX-ABC123',
-    },
-    {
-      id: 'PAY-002',
-      invoiceId: 'INV-004',
-      clientName: 'Startup XYZ',
-      amount: 299.00,
-      paymentDate: '2025-01-03',
-      paymentMethod: 'bank_transfer',
-      reference: 'TRF-XYZ789',
-    },
-  ]);
+  useEffect(() => {
+    loadStatistics();
+    loadMrrData();
+  }, []);
 
-  const totalRevenue = invoices
-    .filter(inv => inv.status === 'paid')
-    .reduce((acc, inv) => acc + inv.amount, 0);
-
-  const pendingRevenue = invoices
-    .filter(inv => inv.status === 'pending')
-    .reduce((acc, inv) => acc + inv.amount, 0);
-
-  const overdueRevenue = invoices
-    .filter(inv => inv.status === 'overdue')
-    .reduce((acc, inv) => acc + inv.amount, 0);
-
-  const getStatusBadge = (status: string) => {
-    const variants: Record<string, string> = {
-      paid: 'badge-success',
-      pending: 'badge-warning',
-      overdue: 'badge-error',
-      cancelled: 'badge-muted',
-    };
-    const labels: Record<string, string> = {
-      paid: 'Pago',
-      pending: 'Pendente',
-      overdue: 'Vencido',
-      cancelled: 'Cancelado',
-    };
-    return <span className={`badge ${variants[status]}`}>{labels[status]}</span>;
-  };
-
-  const getPaymentMethodLabel = (method: string) => {
-    const labels: Record<string, string> = {
-      bank_transfer: 'Transferência',
-      credit_card: 'Cartão',
-      pix: 'PIX',
-      boleto: 'Boleto',
-    };
-    return labels[method] || method;
-  };
-
-  const clients = [
-    { id: '1', name: 'TechStartup Ltda' },
-    { id: '2', name: 'João Silva' },
-    { id: '3', name: 'InnovaCorp S.A.' },
-    { id: '4', name: 'Startup XYZ' },
-  ];
-
-  const subscriptions = [
-    { id: '1', clientId: '1', planName: 'Professional', planPrice: 299.00 },
-    { id: '2', clientId: '2', planName: 'Starter', planPrice: 99.00 },
-    { id: '3', clientId: '3', planName: 'Enterprise', planPrice: 999.00 },
-    { id: '4', clientId: '4', planName: 'Professional', planPrice: 299.00 },
-  ];
-
-  const handleSaveInvoice = (invoice: Invoice) => {
-    if (invoice.id) {
-      setInvoices(invoices.map(inv => inv.id === invoice.id ? invoice : inv));
-    } else {
-      setInvoices([...invoices, { ...invoice, id: `INV-${invoices.length + 1}` }]);
+  const loadStatistics = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await fetch('/api/invoices/statistics');
+      const data = await response.json();
+      setStatistics(data);
+    } catch (err: any) {
+      console.error('Erro ao carregar estatísticas:', err);
+      setError(err.message || 'Erro ao carregar estatísticas');
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleEditInvoice = (invoice: Invoice) => {
-    setEditingInvoice(invoice);
-    setShowInvoiceModal(true);
+  const loadMrrData = async () => {
+    try {
+      console.log('[BillingDashboard] Carregando dados de MRR...');
+      const data = await invoicesApi.getMrrData(12);
+      console.log('[BillingDashboard] Dados de MRR carregados:', data);
+      setMrrData(data);
+    } catch (err: any) {
+      console.error('Erro ao carregar dados de MRR:', err);
+    }
   };
+
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
+    }).format(value);
+  };
+
+
 
   return (
     <div className="page-container">
@@ -183,10 +110,6 @@ export default function BillingDashboard() {
           <Button variant="outline">
             <Download className="w-4 h-4 mr-2" />
             Exportar
-          </Button>
-          <Button>
-            <FileText className="w-4 h-4 mr-2" />
-            Nova Fatura
           </Button>
         </div>
       </div>
@@ -207,172 +130,203 @@ export default function BillingDashboard() {
         </Link>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <div className="card">
-          <div className="flex items-center justify-between mb-4">
-            <div className="p-3 bg-green-100 rounded-xl">
-              <DollarSign className="w-6 h-6 text-green-600" />
-            </div>
-            <div className="flex items-center gap-1 text-sm text-green-600">
-              <TrendingUp className="w-4 h-4" />
-              <span>+12%</span>
-            </div>
-          </div>
-          <div className="text-sm text-muted-foreground mb-1">Receita Recebida</div>
-          <div className="text-3xl font-bold">R$ {totalRevenue.toFixed(2)}</div>
-          <div className="text-xs text-muted-foreground mt-1">
-            {invoices.filter(i => i.status === 'paid').length} faturas pagas
-          </div>
+      {/* Error Message */}
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md mb-6">
+          {error}
         </div>
+      )}
 
-        <div className="card">
-          <div className="flex items-center justify-between mb-4">
-            <div className="p-3 bg-yellow-100 rounded-xl">
-              <Clock className="w-6 h-6 text-yellow-600" />
-            </div>
-          </div>
-          <div className="text-sm text-muted-foreground mb-1">A Receber</div>
-          <div className="text-3xl font-bold text-yellow-600">
-            R$ {pendingRevenue.toFixed(2)}
-          </div>
-          <div className="text-xs text-muted-foreground mt-1">
-            {invoices.filter(i => i.status === 'pending').length} faturas pendentes
-          </div>
+      {/* Loading State */}
+      {loading ? (
+        <div className="text-center py-12">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Carregando estatísticas...</p>
         </div>
-
-        <div className="card">
-          <div className="flex items-center justify-between mb-4">
-            <div className="p-3 bg-red-100 rounded-xl">
-              <AlertCircle className="w-6 h-6 text-red-600" />
-            </div>
-            <div className="flex items-center gap-1 text-sm text-red-600">
-              <TrendingDown className="w-4 h-4" />
-              <span>Atenção</span>
-            </div>
-          </div>
-          <div className="text-sm text-muted-foreground mb-1">Em Atraso</div>
-          <div className="text-3xl font-bold text-red-600">
-            R$ {overdueRevenue.toFixed(2)}
-          </div>
-          <div className="text-xs text-muted-foreground mt-1">
-            {invoices.filter(i => i.status === 'overdue').length} faturas vencidas
-          </div>
-        </div>
-
-        <div className="card">
-          <div className="flex items-center justify-between mb-4">
-            <div className="p-3 bg-blue-100 rounded-xl">
-              <FileText className="w-6 h-6 text-blue-600" />
-            </div>
-          </div>
-          <div className="text-sm text-muted-foreground mb-1">Total de Faturas</div>
-          <div className="text-3xl font-bold">{invoices.length}</div>
-          <div className="text-xs text-muted-foreground mt-1">
-            Este mês
-          </div>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Recent Invoices */}
-        <div className="card">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-lg font-semibold">Faturas Recentes</h2>
-            <Button variant="ghost" size="sm">
-              Ver todas
-            </Button>
-          </div>
-          <div className="space-y-4">
-            {invoices.slice(0, 5).map((invoice) => (
-              <div key={invoice.id} className="flex items-center justify-between p-4 border border-border rounded-lg hover:bg-muted/50 transition-colors">
-                <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-1">
-                    <span className="font-medium">{invoice.id}</span>
-                    {getStatusBadge(invoice.status)}
-                  </div>
-                  <div className="text-sm text-muted-foreground mb-1">
-                    {invoice.clientName}
-                  </div>
-                  <div className="text-xs text-muted-foreground">
-                    {invoice.description}
-                  </div>
+      ) : (
+        <>
+          {/* Stats Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div className="card">
+              <div className="flex items-center justify-between mb-4">
+                <div className="p-3 bg-green-100 rounded-xl">
+                  <DollarSign className="w-6 h-6 text-green-600" />
                 </div>
-                <div className="text-right ml-4">
-                  <div className="font-bold text-lg mb-1">
-                    R$ {invoice.amount.toFixed(2)}
-                  </div>
-                  <div className="text-xs text-muted-foreground flex items-center gap-1">
-                    <Calendar className="w-3 h-3" />
-                    Venc: {new Date(invoice.dueDate).toLocaleDateString('pt-BR')}
-                  </div> onClick={() => handleEditInvoice(invoice)}
-                </div>
-                <div className="flex gap-2 ml-4">
-                  <Button variant="ghost" size="sm">
-                    <Eye className="w-4 h-4" />
-                  </Button>
-                  {invoice.status === 'pending' && (
-                    <Button variant="ghost" size="sm">
-                      <Send className="w-4 h-4" />
-                    </Button>
-                  )}
+                <div className="flex items-center gap-1 text-sm text-green-600">
+                  <TrendingUp className="w-4 h-4" />
+                  <span>+12%</span>
                 </div>
               </div>
-            ))}
-          </div>
-        </div>
+              <div className="text-sm text-muted-foreground mb-1">Receita Recebida</div>
+              <div className="text-3xl font-bold">R$ {statistics.totalRevenue.toFixed(2)}</div>
+              <div className="text-xs text-muted-foreground mt-1">
+                {statistics.paidInvoices} faturas pagas
+              </div>
+            </div>
 
-        {/* Recent Payments */}
-        <div className="card">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-lg font-semibold">Pagamentos Recentes</h2>
-            <Button variant="outline" size="sm">
-              <CheckCircle className="w-4 h-4 mr-2" />
-              Registrar Pagamento
-            </Button>
+            <div className="card">
+              <div className="flex items-center justify-between mb-4">
+                <div className="p-3 bg-yellow-100 rounded-xl">
+                  <Clock className="w-6 h-6 text-yellow-600" />
+                </div>
+              </div>
+              <div className="text-sm text-muted-foreground mb-1">A Receber</div>
+              <div className="text-3xl font-bold text-yellow-600">
+                R$ {statistics.pendingRevenue.toFixed(2)}
+              </div>
+              <div className="text-xs text-muted-foreground mt-1">
+                {statistics.pendingInvoices} faturas pendentes
+              </div>
+            </div>
+
+            <div className="card">
+              <div className="flex items-center justify-between mb-4">
+                <div className="p-3 bg-red-100 rounded-xl">
+                  <AlertCircle className="w-6 h-6 text-red-600" />
+                </div>
+                <div className="flex items-center gap-1 text-sm text-red-600">
+                  <TrendingDown className="w-4 h-4" />
+                  <span>Atenção</span>
+                </div>
+              </div>
+              <div className="text-sm text-muted-foreground mb-1">Em Atraso</div>
+              <div className="text-3xl font-bold text-red-600">
+                R$ {statistics.overdueRevenue.toFixed(2)}
+              </div>
+              <div className="text-xs text-muted-foreground mt-1">
+                {statistics.overdueInvoices} faturas vencidas
+              </div>
+            </div>
+
+            <div className="card">
+              <div className="flex items-center justify-between mb-4">
+                <div className="p-3 bg-blue-100 rounded-xl">
+                  <FileText className="w-6 h-6 text-blue-600" />
+                </div>
+              </div>
+              <div className="text-sm text-muted-foreground mb-1">Total de Faturas</div>
+              <div className="text-3xl font-bold">{statistics.totalInvoices}</div>
+              <div className="text-xs text-muted-foreground mt-1">
+                Este mês
+              </div>
+            </div>
           </div>
-          <div className="space-y-4">
-            {payments.map((payment) => (
-              <div key={payment.id} className="flex items-center justify-between p-4 border border-border rounded-lg hover:bg-muted/50 transition-colors">
+
+          {/* Gráfico de MRR */}
+          {mrrData && mrrData.monthlyData && mrrData.monthlyData.length > 0 ? (
+            <div className="card mb-8">
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h2 className="text-xl font-bold text-gray-900">
+                    Faturamento Mensal (MRR)
+                  </h2>
+                  <p className="text-sm text-gray-600 mt-1">
+                    Receita recorrente dos últimos 12 meses
+                  </p>
+                </div>
                 <div className="flex items-center gap-4">
-                  <div className="p-3 bg-green-100 rounded-lg">
-                    <CheckCircle className="w-5 h-5 text-green-600" />
+                  <div className="text-right">
+                    <p className="text-xs text-gray-500">MRR Atual</p>
+                    <p className="text-lg font-bold text-green-600">
+                      {formatCurrency(mrrData.currentMrr)}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-xs text-gray-500">Crescimento</p>
+                    <p className={`text-lg font-bold flex items-center gap-1 ${
+                      mrrData.growthRate >= 0 ? 'text-green-600' : 'text-red-600'
+                    }`}>
+                      {mrrData.growthRate >= 0 ? (
+                        <TrendingUp className="w-4 h-4" />
+                      ) : (
+                        <TrendingDown className="w-4 h-4" />
+                      )}
+                      {Math.abs(mrrData.growthRate).toFixed(1)}%
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <ResponsiveContainer width="100%" height={350}>
+                <AreaChart
+                  data={mrrData.monthlyData}
+                  margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+                >
+                  <defs>
+                    <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#10b981" stopOpacity={0.8}/>
+                      <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                  <XAxis 
+                    dataKey="monthName" 
+                    stroke="#6b7280"
+                    style={{ fontSize: '12px' }}
+                  />
+                  <YAxis 
+                    stroke="#6b7280"
+                    style={{ fontSize: '12px' }}
+                    tickFormatter={(value) => `R$ ${(value / 1000).toFixed(0)}k`}
+                  />
+                  <Tooltip 
+                    contentStyle={{
+                      backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                      border: '1px solid #e5e7eb',
+                      borderRadius: '8px',
+                      boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
+                    }}
+                    formatter={(value: number) => [formatCurrency(value), 'Receita']}
+                    labelFormatter={(label) => `Período: ${label}`}
+                  />
+                  <Legend 
+                    wrapperStyle={{ paddingTop: '20px' }}
+                    formatter={() => 'Receita Mensal'}
+                  />
+                  <Area 
+                    type="monotone" 
+                    dataKey="revenue" 
+                    stroke="#10b981" 
+                    strokeWidth={2}
+                    fillOpacity={1} 
+                    fill="url(#colorRevenue)" 
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+
+              <div className="mt-6 pt-6 border-t border-gray-200">
+                <div className="grid grid-cols-3 gap-4 text-center">
+                  <div>
+                    <p className="text-xs text-gray-500 mb-1">MRR Médio</p>
+                    <p className="text-lg font-semibold text-gray-900">
+                      {formatCurrency(mrrData.averageMrr)}
+                    </p>
                   </div>
                   <div>
-                    <div className="font-medium mb-1">{payment.clientName}</div>
-                    <div className="text-sm text-muted-foreground mb-1">
-                      Fatura: {payment.invoiceId}
-                    </div>
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <span className="badge badge-sm badge-outline">
-                        {getPaymentMethodLabel(payment.paymentMethod)}
-                      </span>
-                      <span>Ref: {payment.reference}</span>
-                    </div>
+                    <p className="text-xs text-gray-500 mb-1">Total de Faturas</p>
+                    <p className="text-lg font-semibold text-gray-900">
+                      {mrrData.monthlyData.reduce((acc, m) => acc + m.invoiceCount, 0)}
+                    </p>
                   </div>
-                </div>
-                <div className="text-right">
-                  <div className="font-bold text-lg text-green-600 mb-1">
-                    R$ {payment.amount.toFixed(2)}
-                  </div>
-                  <div className="text-xs text-muted-foreground">
-                    {new Date(payment.paymentDate).toLocaleDateString('pt-BR')}
+                  <div>
+                    <p className="text-xs text-gray-500 mb-1">Período</p>
+                    <p className="text-lg font-semibold text-gray-900">
+                      12 meses
+                    </p>
                   </div>
                 </div>
               </div>
-            ))}
-            
-            {payments.length === 0 && (
-              <div className="text-center py-12 text-muted-foreground">
-                Nenhum pagamento registrado ainda
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
+            </div>
+          ) : (
+            <div className="card mb-8 text-center py-12">
+              <p className="text-gray-500">
+                {mrrData === null ? 'Carregando dados de MRR...' : 'Nenhum dado de faturamento disponível'}
+              </p>
+            </div>
+          )}
 
-      {/* Quick Actions */}
-      <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* Quick Actions */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Link to="/billing/plans">
           <div className="card hover:shadow-lg transition-shadow cursor-pointer text-left">
             <div className="flex items-center gap-4">
@@ -405,33 +359,24 @@ export default function BillingDashboard() {
           </div>
         </Link>
 
-        <button className="card hover:shadow-lg transition-shadow cursor-pointer text-left">
-          <div className="flex items-center gap-4">
-            <div className="p-3 bg-purple-100 rounded-xl">
-              <CreditCard className="w-6 h-6 text-purple-600" />
-            </div>
-            <div>
-              <div className="font-semibold mb-1">Gerar Faturas do Mês</div>
-              <div className="text-sm text-muted-foreground">
-                Criar faturas para todas as assinaturas ativas
+        <Link to="/billing/invoices">
+          <div className="card hover:shadow-lg transition-shadow cursor-pointer text-left">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-purple-100 rounded-xl">
+                <CreditCard className="w-6 h-6 text-purple-600" />
+              </div>
+              <div>
+                <div className="font-semibold mb-1">Gerar Faturas do Mês</div>
+                <div className="text-sm text-muted-foreground">
+                  Criar faturas para todas as assinaturas ativas
+                </div>
               </div>
             </div>
           </div>
-        </button>
-      </div>
-
-      {/* Modal */}
-      <InvoiceModal
-        isOpen={showInvoiceModal}
-        onClose={() => {
-          setShowInvoiceModal(false);
-          setEditingInvoice(null);
-        }}
-        onSave={handleSaveInvoice}
-        invoice={editingInvoice}
-        clients={clients}
-        subscriptions={subscriptions}
-      />
+        </Link>
+          </div>
+        </>
+      )}
     </div>
   );
 }

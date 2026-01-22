@@ -29,6 +29,172 @@
             Altera a senha do usuário autenticado
             </summary>
         </member>
+        <member name="M:PartnershipManager.API.Controllers.Billing.InvoicesController.GetAll(System.Nullable{System.Guid},System.String,System.Nullable{System.DateTime},System.Nullable{System.DateTime},System.Nullable{System.Guid},System.Threading.CancellationToken)">
+            <summary>
+            Lista todas as faturas com filtros opcionais
+            </summary>
+            <param name="clientId">ID do cliente (opcional)</param>
+            <param name="status">Status da fatura (opcional)</param>
+            <param name="startDate">Data inicial do período (opcional)</param>
+            <param name="endDate">Data final do período (opcional)</param>
+            <param name="planId">ID do plano (opcional)</param>
+            <param name="cancellationToken">Token de cancelamento</param>
+        </member>
+        <member name="M:PartnershipManager.API.Controllers.Billing.InvoicesController.GetById(System.Guid,System.Threading.CancellationToken)">
+            <summary>
+            Busca uma fatura por ID
+            </summary>
+        </member>
+        <member name="M:PartnershipManager.API.Controllers.Billing.InvoicesController.GetByClient(System.Guid,System.Threading.CancellationToken)">
+            <summary>
+            Busca faturas de um cliente específico
+            </summary>
+        </member>
+        <member name="M:PartnershipManager.API.Controllers.Billing.InvoicesController.Create(PartnershipManager.Application.Features.Billing.Commands.CreateInvoiceCommand,System.Threading.CancellationToken)">
+            <summary>
+            Cria uma nova fatura
+            </summary>
+        </member>
+        <member name="M:PartnershipManager.API.Controllers.Billing.InvoicesController.Update(System.Guid,PartnershipManager.Application.Features.Billing.Commands.UpdateInvoiceCommand,System.Threading.CancellationToken)">
+            <summary>
+            Atualiza uma fatura existente
+            </summary>
+        </member>
+        <member name="M:PartnershipManager.API.Controllers.Billing.InvoicesController.MarkAsPaid(System.Guid,System.Threading.CancellationToken)">
+            <summary>
+            Marca uma fatura como paga
+            </summary>
+        </member>
+        <member name="M:PartnershipManager.API.Controllers.Billing.InvoicesController.Cancel(System.Guid,System.Threading.CancellationToken)">
+            <summary>
+            Cancela uma fatura
+            </summary>
+        </member>
+        <member name="M:PartnershipManager.API.Controllers.Billing.InvoicesController.Delete(System.Guid,System.Threading.CancellationToken)">
+            <summary>
+            Deleta uma fatura
+            </summary>
+        </member>
+        <member name="M:PartnershipManager.API.Controllers.Billing.InvoicesController.GetPdf(System.Guid,System.Threading.CancellationToken)">
+            <summary>
+            Gera o PDF da fatura
+            </summary>
+        </member>
+        <member name="M:PartnershipManager.API.Controllers.Billing.InvoicesController.GenerateMonthly(System.Threading.CancellationToken)">
+            <summary>
+            Gera faturas mensais para todas as assinaturas ativas
+            </summary>
+        </member>
+        <member name="M:PartnershipManager.API.Controllers.Billing.InvoicesController.GetStatistics(System.Nullable{System.Guid},System.Nullable{System.DateTime},System.Nullable{System.DateTime},System.Threading.CancellationToken)">
+            <summary>
+            Obtém estatísticas de faturas
+            </summary>
+        </member>
+        <member name="M:PartnershipManager.API.Controllers.Billing.PlansController.GetAll(System.Threading.CancellationToken)">
+            <summary>
+            Lista todos os planos
+            </summary>
+        </member>
+        <member name="M:PartnershipManager.API.Controllers.Billing.PlansController.GetActive(System.Threading.CancellationToken)">
+            <summary>
+            Lista apenas planos ativos
+            </summary>
+        </member>
+        <member name="M:PartnershipManager.API.Controllers.Billing.PlansController.GetById(System.Guid,System.Threading.CancellationToken)">
+            <summary>
+            Busca plano por ID
+            </summary>
+        </member>
+        <member name="M:PartnershipManager.API.Controllers.Billing.PlansController.Create(PartnershipManager.API.Controllers.Billing.PlanCreateDto,System.Threading.CancellationToken)">
+            <summary>
+            Cria um novo plano
+            </summary>
+        </member>
+        <member name="M:PartnershipManager.API.Controllers.Billing.PlansController.Update(System.Guid,PartnershipManager.API.Controllers.Billing.PlanUpdateDto,System.Threading.CancellationToken)">
+            <summary>
+            Atualiza um plano
+            </summary>
+        </member>
+        <member name="M:PartnershipManager.API.Controllers.Billing.PlansController.Delete(System.Guid,System.Threading.CancellationToken)">
+            <summary>
+            Deleta um plano
+            </summary>
+        </member>
+        <member name="M:PartnershipManager.API.Controllers.Billing.PlansController.ToggleStatus(System.Guid,System.Threading.CancellationToken)">
+            <summary>
+            Ativa/Desativa um plano
+            </summary>
+        </member>
+        <member name="M:PartnershipManager.API.Controllers.Billing.SubscriptionsController.GetAll(System.Threading.CancellationToken)">
+            <summary>
+            Lista todas as assinaturas
+            </summary>
+        </member>
+        <member name="M:PartnershipManager.API.Controllers.Billing.SubscriptionsController.GetById(System.Guid,System.Threading.CancellationToken)">
+            <summary>
+            Busca assinatura por ID
+            </summary>
+        </member>
+        <member name="M:PartnershipManager.API.Controllers.Billing.SubscriptionsController.GetByClientId(System.Guid,System.Threading.CancellationToken)">
+            <summary>
+            Busca assinaturas por cliente
+            </summary>
+        </member>
+        <member name="M:PartnershipManager.API.Controllers.Billing.SubscriptionsController.Create(PartnershipManager.Application.Features.Billing.DTOs.SubscriptionCreateDto,System.Threading.CancellationToken)">
+            <summary>
+            Cria uma nova assinatura
+            </summary>
+        </member>
+        <member name="M:PartnershipManager.API.Controllers.Billing.SubscriptionsController.Update(System.Guid,PartnershipManager.Application.Features.Billing.DTOs.SubscriptionUpdateDto,System.Threading.CancellationToken)">
+            <summary>
+            Atualiza uma assinatura
+            </summary>
+        </member>
+        <member name="M:PartnershipManager.API.Controllers.Billing.SubscriptionsController.Activate(System.Guid,System.Threading.CancellationToken)">
+            <summary>
+            Ativa uma assinatura
+            </summary>
+        </member>
+        <member name="M:PartnershipManager.API.Controllers.Billing.SubscriptionsController.Suspend(System.Guid,System.Threading.CancellationToken)">
+            <summary>
+            Suspende uma assinatura
+            </summary>
+        </member>
+        <member name="M:PartnershipManager.API.Controllers.Billing.SubscriptionsController.Cancel(System.Guid,System.Threading.CancellationToken)">
+            <summary>
+            Cancela uma assinatura
+            </summary>
+        </member>
+        <member name="M:PartnershipManager.API.Controllers.Billing.SubscriptionsController.Delete(System.Guid,System.Threading.CancellationToken)">
+            <summary>
+            Deleta uma assinatura
+            </summary>
+        </member>
+        <member name="M:PartnershipManager.API.Controllers.ClientsController.GetAll(System.Threading.CancellationToken)">
+            <summary>
+            Lista todos os clientes
+            </summary>
+        </member>
+        <member name="M:PartnershipManager.API.Controllers.ClientsController.GetById(System.Guid,System.Threading.CancellationToken)">
+            <summary>
+            Busca cliente por ID
+            </summary>
+        </member>
+        <member name="M:PartnershipManager.API.Controllers.ClientsController.Create(PartnershipManager.Application.Features.Billing.DTOs.ClientCreateDto,System.Threading.CancellationToken)">
+            <summary>
+            Cria um novo cliente
+            </summary>
+        </member>
+        <member name="M:PartnershipManager.API.Controllers.ClientsController.Update(System.Guid,PartnershipManager.Application.Features.Billing.DTOs.ClientUpdateDto,System.Threading.CancellationToken)">
+            <summary>
+            Atualiza um cliente
+            </summary>
+        </member>
+        <member name="M:PartnershipManager.API.Controllers.ClientsController.Delete(System.Guid,System.Threading.CancellationToken)">
+            <summary>
+            Remove um cliente (soft delete)
+            </summary>
+        </member>
         <member name="T:PartnershipManager.API.Controllers.CompaniesController">
             <summary>
             Controller de empresas

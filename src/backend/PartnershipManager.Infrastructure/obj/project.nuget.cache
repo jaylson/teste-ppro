@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "wc67sDVEU48=",
+  "dgSpecHash": "HIZ2C2XXhOw=",
   "success": true,
   "projectFilePath": "/workspaces/teste-ppro/src/backend/PartnershipManager.Infrastructure/PartnershipManager.Infrastructure.csproj",
   "expectedPackageFiles": [
@@ -12,6 +12,8 @@
     "/home/codespace/.nuget/packages/hangfire.core/1.8.17/hangfire.core.1.8.17.nupkg.sha512",
     "/home/codespace/.nuget/packages/hangfire.mysqlstorage/2.0.3/hangfire.mysqlstorage.2.0.3.nupkg.sha512",
     "/home/codespace/.nuget/packages/hangfire.netcore/1.8.17/hangfire.netcore.1.8.17.nupkg.sha512",
+    "/home/codespace/.nuget/packages/mediatr/12.2.0/mediatr.12.2.0.nupkg.sha512",
+    "/home/codespace/.nuget/packages/mediatr.contracts/2.0.1/mediatr.contracts.2.0.1.nupkg.sha512",
     "/home/codespace/.nuget/packages/microsoft.aspnetcore.authentication.jwtbearer/9.0.0/microsoft.aspnetcore.authentication.jwtbearer.9.0.0.nupkg.sha512",
     "/home/codespace/.nuget/packages/microsoft.csharp/4.4.1/microsoft.csharp.4.4.1.nupkg.sha512",
     "/home/codespace/.nuget/packages/microsoft.extensions.caching.abstractions/9.0.0/microsoft.extensions.caching.abstractions.9.0.0.nupkg.sha512",
@@ -32,6 +34,7 @@
     "/home/codespace/.nuget/packages/mysqlconnector/2.4.0/mysqlconnector.2.4.0.nupkg.sha512",
     "/home/codespace/.nuget/packages/newtonsoft.json/11.0.2/newtonsoft.json.11.0.2.nupkg.sha512",
     "/home/codespace/.nuget/packages/pipelines.sockets.unofficial/2.2.8/pipelines.sockets.unofficial.2.2.8.nupkg.sha512",
+    "/home/codespace/.nuget/packages/questpdf/2024.12.3/questpdf.2024.12.3.nupkg.sha512",
     "/home/codespace/.nuget/packages/stackexchange.redis/2.7.27/stackexchange.redis.2.7.27.nupkg.sha512",
     "/home/codespace/.nuget/packages/system.identitymodel.tokens.jwt/8.0.1/system.identitymodel.tokens.jwt.8.0.1.nupkg.sha512",
     "/home/codespace/.nuget/packages/system.io.pipelines/5.0.1/system.io.pipelines.5.0.1.nupkg.sha512",

@@ -13,6 +13,8 @@ public class Subscription : BaseEntity
     public bool AutoRenew { get; set; }
     public int CompaniesCount { get; set; } // Uso atual
     public int UsersCount { get; set; } // Uso atual
+    public int DueDay { get; set; } // Dia do vencimento da fatura (1-31)
+    public PaymentMethod PaymentMethod { get; set; } // Método de pagamento preferencial
     
     // Relacionamentos
     public Client Client { get; set; } = null!;

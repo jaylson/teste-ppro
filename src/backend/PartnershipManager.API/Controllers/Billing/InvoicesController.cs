@@ -5,6 +5,7 @@ using PartnershipManager.Application.Features.Billing.Commands;
 using PartnershipManager.Application.Features.Billing.DTOs;
 using PartnershipManager.Application.Features.Billing.Queries;
 using PartnershipManager.Domain.Entities.Billing;
+using PartnershipManager.Infrastructure.Jobs;
 
 namespace PartnershipManager.API.Controllers.Billing;
 
@@ -32,6 +33,7 @@ public class InvoicesController : ControllerBase
     /// <param name="startDate">Data inicial do período (opcional)</param>
     /// <param name="endDate">Data final do período (opcional)</param>
     /// <param name="planId">ID do plano (opcional)</param>
+    /// <param name="cancellationToken">Token de cancelamento</param>
     [HttpGet]
     [ProducesResponseType(typeof(IEnumerable<InvoiceDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<InvoiceDto>>> GetAll(
@@ -70,6 +72,30 @@ public class InvoicesController : ControllerBase
     }
 
     /// <summary>
+    /// Obtém dados de MRR (Monthly Recurring Revenue) dos últimos N meses
+    /// </summary>
+    /// <param name="months">Número de meses a buscar (padrão: 12)</param>
+    /// <param name="cancellationToken">Token de cancelamento</param>
+    [HttpGet("mrr")]
+    [ProducesResponseType(typeof(MrrDataDto), StatusCodes.Status200OK)]
+    public async Task<ActionResult<MrrDataDto>> GetMrrData(
+        [FromQuery] int months = 12,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var query = new GetMrrDataQuery { Months = months };
+            var mrrData = await _mediator.Send(query, cancellationToken);
+            return Ok(mrrData);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Erro ao buscar dados de MRR");
+            return StatusCode(500, new { message = "Erro ao buscar dados de MRR" });
+        }
+    }
+
+    /// <summary>
     /// Busca uma fatura por ID
     /// </summary>
     [HttpGet("{id}")]
@@ -79,7 +105,7 @@ public class InvoicesController : ControllerBase
     {
         try
         {
-            var query = new GetInvoiceByIdQuery { Id = id };
+            var query = new GetInvoiceByIdQuery(id);
             var invoice = await _mediator.Send(query, cancellationToken);
 
             if (invoice == null)
@@ -173,11 +199,12 @@ public class InvoicesController : ControllerBase
     [HttpPost("{id}/pay")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult> MarkAsPaid(Guid id, CancellationToken cancellationToken)
+    public async Task<ActionResult> MarkAsPaid(Guid id, [FromBody] MarkAsPaidRequest? request, CancellationToken cancellationToken)
     {
         try
         {
-            var command = new MarkInvoiceAsPaidCommand { Id = id };
+            var paymentDate = request?.PaymentDate ?? DateTime.UtcNow;
+            var command = new MarkInvoiceAsPaidCommand(id, paymentDate);
             var result = await _mediator.Send(command, cancellationToken);
 
             if (!result)
@@ -194,6 +221,8 @@ public class InvoicesController : ControllerBase
         }
     }
 
+    public record MarkAsPaidRequest(DateTime? PaymentDate);
+
     /// <summary>
     /// Cancela uma fatura
     /// </summary>
@@ -204,7 +233,7 @@ public class InvoicesController : ControllerBase
     {
         try
         {
-            var command = new CancelInvoiceCommand { Id = id };
+            var command = new CancelInvoiceCommand(id);
             var result = await _mediator.Send(command, cancellationToken);
 
             if (!result)
@@ -231,7 +260,7 @@ public class InvoicesController : ControllerBase
     {
         try
         {
-            var command = new DeleteInvoiceCommand { Id = id };
+            var command = new DeleteInvoiceCommand(id);
             var result = await _mediator.Send(command, cancellationToken);
 
             if (!result)
@@ -258,20 +287,70 @@ public class InvoicesController : ControllerBase
     {
         try
         {
-            var query = new GenerateInvoicePdfQuery { InvoiceId = id };
-            var pdfBytes = await _mediator.Send(query, cancellationToken);
+            var query = new GetInvoicePdfQuery(id);
+            var result = await _mediator.Send(query, cancellationToken);
 
-            if (pdfBytes == null || pdfBytes.Length == 0)
+            if (result == null || result.PdfData == null || result.PdfData.Length == 0)
             {
                 return NotFound(new { message = "Fatura não encontrada ou erro ao gerar PDF" });
             }
 
-            return File(pdfBytes, "application/pdf", $"invoice-{id}.pdf");
+            return File(result.PdfData, result.ContentType, result.FileName);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Erro ao gerar PDF da fatura {InvoiceId}", id);
             return StatusCode(500, new { message = "Erro ao gerar PDF da fatura" });
+        }
+    }
+
+    /// <summary>
+    /// Gera faturas mensais para todas as assinaturas ativas
+    /// </summary>
+    /// <param name="backgroundJobs">Serviço de jobs em background</param>
+    /// <param name="month">Mês de referência (1-12)</param>
+    /// <param name="year">Ano de referência</param>
+    /// <param name="cancellationToken">Token de cancelamento</param>
+    [HttpPost("generate-monthly")]
+    [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
+    public async Task<ActionResult> GenerateMonthly(
+        [FromServices] IBackgroundJobs backgroundJobs,
+        [FromQuery] int? month = null,
+        [FromQuery] int? year = null,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            // Se não for especificado, usa o mês/ano atual
+            var now = DateTime.UtcNow;
+            var referenceMonth = month ?? now.Month;
+            var referenceYear = year ?? now.Year;
+
+            // Validar mês
+            if (referenceMonth < 1 || referenceMonth > 12)
+            {
+                return BadRequest(new { message = "Mês inválido. Deve estar entre 1 e 12." });
+            }
+
+            // Validar ano
+            if (referenceYear < 2000 || referenceYear > 2100)
+            {
+                return BadRequest(new { message = "Ano inválido." });
+            }
+
+            await backgroundJobs.GenerateMonthlyInvoicesAsync(referenceMonth, referenceYear);
+            
+            return Ok(new 
+            { 
+                message = $"Geração de faturas para {referenceMonth:D2}/{referenceYear} iniciada com sucesso.",
+                status = "completed",
+                invoicesGenerated = 0 // Será atualizado pelo job
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Erro ao gerar faturas mensais");
+            return StatusCode(500, new { message = "Erro ao gerar faturas mensais" });
         }
     }
 

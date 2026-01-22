@@ -162,7 +162,26 @@ public class GenerateMonthlyInvoicesHandler : IRequestHandler<GenerateMonthlyInv
         foreach (var subscription in activeSubscriptions)
         {
             var issueDate = request.ReferenceDate;
-            var dueDate = issueDate.AddDays(30); // 30 dias para pagamento
+            
+            // Calcula a data de vencimento: dia de vencimento da assinatura no mês seguinte ao período de geração
+            var nextMonth = issueDate.AddMonths(1);
+            var maxDayInNextMonth = DateTime.DaysInMonth(nextMonth.Year, nextMonth.Month);
+            var dueDay = Math.Min(subscription.DueDay, maxDayInNextMonth); // Ajusta para meses com menos dias
+            var dueDate = new DateTime(nextMonth.Year, nextMonth.Month, dueDay);
+
+            // Verificar se já existe uma fatura NÃO-CANCELADA para esta assinatura neste mês
+            var existingInvoices = await _invoiceRepository.GetByFilterAsync(
+                subscriptionId: subscription.Id,
+                startDate: issueDate,
+                endDate: issueDate,
+                cancellationToken: cancellationToken);
+
+            // Se já existe uma fatura não-cancelada para este período, pular
+            var hasActiveInvoice = existingInvoices.Any(i => i.Status != InvoiceStatus.Cancelled);
+            if (hasActiveInvoice)
+            {
+                continue; // Pula esta assinatura
+            }
 
             var invoiceNumber = await _invoiceRepository.GenerateInvoiceNumberAsync(cancellationToken);
 

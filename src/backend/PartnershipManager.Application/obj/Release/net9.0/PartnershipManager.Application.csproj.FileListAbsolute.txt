@@ -1,0 +1,16 @@
+/workspaces/teste-ppro/src/backend/PartnershipManager.Application/bin/Release/net9.0/PartnershipManager.Application.deps.json
+/workspaces/teste-ppro/src/backend/PartnershipManager.Application/bin/Release/net9.0/PartnershipManager.Application.dll
+/workspaces/teste-ppro/src/backend/PartnershipManager.Application/bin/Release/net9.0/PartnershipManager.Application.pdb
+/workspaces/teste-ppro/src/backend/PartnershipManager.Application/bin/Release/net9.0/PartnershipManager.Domain.dll
+/workspaces/teste-ppro/src/backend/PartnershipManager.Application/bin/Release/net9.0/PartnershipManager.Domain.pdb
+/workspaces/teste-ppro/src/backend/PartnershipManager.Application/obj/Release/net9.0/PartnershipManager.Application.csproj.AssemblyReference.cache
+/workspaces/teste-ppro/src/backend/PartnershipManager.Application/obj/Release/net9.0/PartnershipManager.Application.GeneratedMSBuildEditorConfig.editorconfig
+/workspaces/teste-ppro/src/backend/PartnershipManager.Application/obj/Release/net9.0/PartnershipManager.Application.AssemblyInfoInputs.cache
+/workspaces/teste-ppro/src/backend/PartnershipManager.Application/obj/Release/net9.0/PartnershipManager.Application.AssemblyInfo.cs
+/workspaces/teste-ppro/src/backend/PartnershipManager.Application/obj/Release/net9.0/PartnershipManager.Application.csproj.CoreCompileInputs.cache
+/workspaces/teste-ppro/src/backend/PartnershipManager.Application/obj/Release/net9.0/PartnershipManager.Application.sourcelink.json
+/workspaces/teste-ppro/src/backend/PartnershipManager.Application/obj/Release/net9.0/Partners.0C976034.Up2Date
+/workspaces/teste-ppro/src/backend/PartnershipManager.Application/obj/Release/net9.0/PartnershipManager.Application.dll
+/workspaces/teste-ppro/src/backend/PartnershipManager.Application/obj/Release/net9.0/refint/PartnershipManager.Application.dll
+/workspaces/teste-ppro/src/backend/PartnershipManager.Application/obj/Release/net9.0/PartnershipManager.Application.pdb
+/workspaces/teste-ppro/src/backend/PartnershipManager.Application/obj/Release/net9.0/ref/PartnershipManager.Application.dll

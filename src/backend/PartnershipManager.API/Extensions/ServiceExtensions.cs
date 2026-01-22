@@ -8,6 +8,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using PartnershipManager.Domain.Interfaces;
 using PartnershipManager.Domain.Interfaces.Billing;
+using PartnershipManager.Domain.Interfaces.Services;
 using PartnershipManager.Infrastructure.Caching;
 using PartnershipManager.Infrastructure.Jobs;
 using PartnershipManager.Infrastructure.Persistence;
@@ -24,6 +25,10 @@ public static class ApplicationServiceExtensions
 {
     public static IServiceCollection AddApplicationServices(this IServiceCollection services)
     {
+        // MediatR
+        services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(
+            typeof(PartnershipManager.Application.Features.Auth.Validators.LoginValidator).Assembly));
+        
         // FluentValidation - registra todos os validators do assembly
         services.AddValidatorsFromAssemblyContaining<PartnershipManager.Application.Features.Auth.Validators.LoginValidator>();
         
@@ -58,9 +63,13 @@ public static class InfrastructureServiceExtensions
         services.AddScoped<IClientRepository, ClientRepository>();
         services.AddScoped<ISubscriptionRepository, SubscriptionRepository>();
         services.AddScoped<IPlanRepository, PlanRepository>();
+        services.AddScoped<IInvoiceRepository, InvoiceRepository>();
         
         // Auth Service
         services.AddScoped<IAuthService, AuthService>();
+        
+        // PDF Generator Service  
+        services.AddScoped<IPdfGeneratorService, PdfGeneratorService>();
         
         // Cache - Redis ou Memory
         var redisConnection = configuration.GetConnectionString("Redis");

@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "UQ/qAAxZXyg=",
+  "dgSpecHash": "qjE+SZT49lI=",
   "success": true,
   "projectFilePath": "/workspaces/teste-ppro/src/backend/PartnershipManager.API/PartnershipManager.API.csproj",
   "expectedPackageFiles": [
@@ -17,6 +17,8 @@
     "/home/codespace/.nuget/packages/hangfire.core/1.8.17/hangfire.core.1.8.17.nupkg.sha512",
     "/home/codespace/.nuget/packages/hangfire.mysqlstorage/2.0.3/hangfire.mysqlstorage.2.0.3.nupkg.sha512",
     "/home/codespace/.nuget/packages/hangfire.netcore/1.8.17/hangfire.netcore.1.8.17.nupkg.sha512",
+    "/home/codespace/.nuget/packages/mediatr/12.2.0/mediatr.12.2.0.nupkg.sha512",
+    "/home/codespace/.nuget/packages/mediatr.contracts/2.0.1/mediatr.contracts.2.0.1.nupkg.sha512",
     "/home/codespace/.nuget/packages/microsoft.aspnetcore.authentication.jwtbearer/9.0.0/microsoft.aspnetcore.authentication.jwtbearer.9.0.0.nupkg.sha512",
     "/home/codespace/.nuget/packages/microsoft.csharp/4.4.1/microsoft.csharp.4.4.1.nupkg.sha512",
     "/home/codespace/.nuget/packages/microsoft.extensions.apidescription.server/6.0.5/microsoft.extensions.apidescription.server.6.0.5.nupkg.sha512",
@@ -46,6 +48,7 @@
     "/home/codespace/.nuget/packages/mysqlconnector/2.4.0/mysqlconnector.2.4.0.nupkg.sha512",
     "/home/codespace/.nuget/packages/newtonsoft.json/11.0.2/newtonsoft.json.11.0.2.nupkg.sha512",
     "/home/codespace/.nuget/packages/pipelines.sockets.unofficial/2.2.8/pipelines.sockets.unofficial.2.2.8.nupkg.sha512",
+    "/home/codespace/.nuget/packages/questpdf/2024.12.3/questpdf.2024.12.3.nupkg.sha512",
     "/home/codespace/.nuget/packages/serilog/4.0.0/serilog.4.0.0.nupkg.sha512",
     "/home/codespace/.nuget/packages/serilog.aspnetcore/8.0.3/serilog.aspnetcore.8.0.3.nupkg.sha512",
     "/home/codespace/.nuget/packages/serilog.extensions.hosting/8.0.0/serilog.extensions.hosting.8.0.0.nupkg.sha512",
