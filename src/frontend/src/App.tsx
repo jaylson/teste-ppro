@@ -10,6 +10,7 @@ import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import CapTable from './pages/CapTable';
 import Partners from './pages/Partners';
+import { Plans, ClientsSubscriptions, BillingDashboard } from './pages/billing';
 
 function App() {
   const { isAuthenticated } = useAuthStore();
@@ -31,6 +32,11 @@ function App() {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/cap-table" element={<CapTable />} />
         <Route path="/partners" element={<Partners />} />
+        
+        {/* Billing Routes */}
+        <Route path="/billing" element={<BillingDashboard />} />
+        <Route path="/billing/plans" element={<Plans />} />
+        <Route path="/billing/clients" element={<ClientsSubscriptions />} />
       </Route>
 
       {/* 404 */}

@@ -1,0 +1,163 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>PartnershipManager.API</name>
+    </assembly>
+    <members>
+        <member name="T:PartnershipManager.API.Controllers.AuthController">
+            <summary>
+            Controller de autenticação
+            </summary>
+        </member>
+        <member name="M:PartnershipManager.API.Controllers.AuthController.Login(PartnershipManager.Application.Features.Auth.DTOs.LoginRequest)">
+            <summary>
+            Realiza login no sistema
+            </summary>
+        </member>
+        <member name="M:PartnershipManager.API.Controllers.AuthController.Logout">
+            <summary>
+            Realiza logout do sistema
+            </summary>
+        </member>
+        <member name="M:PartnershipManager.API.Controllers.AuthController.GetCurrentUser">
+            <summary>
+            Retorna informações do usuário autenticado
+            </summary>
+        </member>
+        <member name="M:PartnershipManager.API.Controllers.AuthController.ChangePassword(PartnershipManager.Application.Features.Auth.DTOs.ChangePasswordRequest)">
+            <summary>
+            Altera a senha do usuário autenticado
+            </summary>
+        </member>
+        <member name="T:PartnershipManager.API.Controllers.CompaniesController">
+            <summary>
+            Controller de empresas
+            </summary>
+        </member>
+        <member name="M:PartnershipManager.API.Controllers.CompaniesController.GetAll(System.Int32,System.Int32,System.String)">
+            <summary>
+            Lista todas as empresas com paginação
+            </summary>
+        </member>
+        <member name="M:PartnershipManager.API.Controllers.CompaniesController.GetById(System.Guid)">
+            <summary>
+            Obtém uma empresa por ID
+            </summary>
+        </member>
+        <member name="M:PartnershipManager.API.Controllers.CompaniesController.Create(PartnershipManager.Application.Features.Companies.DTOs.CreateCompanyRequest)">
+            <summary>
+            Cria uma nova empresa
+            </summary>
+        </member>
+        <member name="M:PartnershipManager.API.Controllers.CompaniesController.Update(System.Guid,PartnershipManager.Application.Features.Companies.DTOs.UpdateCompanyRequest)">
+            <summary>
+            Atualiza uma empresa
+            </summary>
+        </member>
+        <member name="M:PartnershipManager.API.Controllers.CompaniesController.UpdateShareInfo(System.Guid,PartnershipManager.Application.Features.Companies.DTOs.UpdateShareInfoRequest)">
+            <summary>
+            Atualiza informações de ações da empresa
+            </summary>
+        </member>
+        <member name="M:PartnershipManager.API.Controllers.CompaniesController.Deactivate(System.Guid)">
+            <summary>
+            Desativa uma empresa
+            </summary>
+        </member>
+        <member name="M:PartnershipManager.API.Controllers.CompaniesController.Activate(System.Guid)">
+            <summary>
+            Ativa uma empresa
+            </summary>
+        </member>
+        <member name="M:PartnershipManager.API.Controllers.CompaniesController.Delete(System.Guid)">
+            <summary>
+            Exclui uma empresa (soft delete)
+            </summary>
+        </member>
+        <member name="T:PartnershipManager.API.Controllers.UsersController">
+            <summary>
+            Controller de usuários
+            </summary>
+        </member>
+        <member name="M:PartnershipManager.API.Controllers.UsersController.GetAll(System.Int32,System.Int32,System.String)">
+            <summary>
+            Lista usuários da empresa com paginação
+            </summary>
+        </member>
+        <member name="M:PartnershipManager.API.Controllers.UsersController.GetById(System.Guid)">
+            <summary>
+            Obtém um usuário por ID
+            </summary>
+        </member>
+        <member name="M:PartnershipManager.API.Controllers.UsersController.Create(PartnershipManager.Application.Features.Users.DTOs.CreateUserRequest)">
+            <summary>
+            Cria um novo usuário
+            </summary>
+        </member>
+        <member name="M:PartnershipManager.API.Controllers.UsersController.Update(System.Guid,PartnershipManager.Application.Features.Users.DTOs.UpdateUserRequest)">
+            <summary>
+            Atualiza um usuário
+            </summary>
+        </member>
+        <member name="M:PartnershipManager.API.Controllers.UsersController.UpdatePreferences(System.Guid,PartnershipManager.Application.Features.Users.DTOs.UpdateUserPreferencesRequest)">
+            <summary>
+            Atualiza preferências do usuário
+            </summary>
+        </member>
+        <member name="M:PartnershipManager.API.Controllers.UsersController.AddRole(System.Guid,PartnershipManager.Application.Features.Users.DTOs.ManageUserRoleRequest)">
+            <summary>
+            Adiciona papel ao usuário
+            </summary>
+        </member>
+        <member name="M:PartnershipManager.API.Controllers.UsersController.RemoveRole(System.Guid,System.String)">
+            <summary>
+            Remove papel do usuário
+            </summary>
+        </member>
+        <member name="M:PartnershipManager.API.Controllers.UsersController.Activate(System.Guid)">
+            <summary>
+            Ativa um usuário
+            </summary>
+        </member>
+        <member name="M:PartnershipManager.API.Controllers.UsersController.Deactivate(System.Guid)">
+            <summary>
+            Desativa um usuário
+            </summary>
+        </member>
+        <member name="M:PartnershipManager.API.Controllers.UsersController.Delete(System.Guid)">
+            <summary>
+            Exclui um usuário (soft delete)
+            </summary>
+        </member>
+        <member name="T:PartnershipManager.API.Extensions.ApplicationServiceExtensions">
+            <summary>
+            Extensões para configuração de serviços da Application
+            </summary>
+        </member>
+        <member name="T:PartnershipManager.API.Extensions.InfrastructureServiceExtensions">
+            <summary>
+            Extensões para configuração de serviços de infraestrutura
+            </summary>
+        </member>
+        <member name="T:PartnershipManager.API.Extensions.ApiServiceExtensions">
+            <summary>
+            Extensões para configuração de serviços da API
+            </summary>
+        </member>
+        <member name="T:PartnershipManager.API.Extensions.CurrentUserService">
+            <summary>
+            Serviço para obter informações do usuário atual
+            </summary>
+        </member>
+        <member name="T:PartnershipManager.API.Middlewares.ExceptionHandlingMiddleware">
+            <summary>
+            Middleware para tratamento global de exceções
+            </summary>
+        </member>
+        <member name="T:HangfireAuthorizationFilter">
+            <summary>
+            Filtro de autorização para Hangfire Dashboard
+            </summary>
+        </member>
+    </members>
+</doc>

@@ -26,13 +26,31 @@ public class MySqlConnectionFactory : IDbConnectionFactory
 
     public IDbConnection CreateConnection()
     {
-        return new MySqlConnection(_connectionString);
+        var connection = new MySqlConnection(_connectionString);
+        connection.Open();
+        
+        // Garantir que a conexão use UTF-8
+        using (var cmd = connection.CreateCommand())
+        {
+            cmd.CommandText = "SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci";
+            cmd.ExecuteNonQuery();
+        }
+        
+        return connection;
     }
 
     public async Task<IDbConnection> CreateConnectionAsync()
     {
         var connection = new MySqlConnection(_connectionString);
         await connection.OpenAsync();
+        
+        // Garantir que a conexão use UTF-8
+        using (var cmd = connection.CreateCommand())
+        {
+            cmd.CommandText = "SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci";
+            await cmd.ExecuteNonQueryAsync();
+        }
+        
         return connection;
     }
 }
@@ -59,7 +77,6 @@ public class DapperContext : IDisposable
             if (_connection == null || _connection.State != ConnectionState.Open)
             {
                 _connection = _connectionFactory.CreateConnection();
-                _connection.Open();
             }
             return _connection;
         }

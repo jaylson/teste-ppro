@@ -12,6 +12,7 @@ import {
   Settings,
   LogOut,
   Globe,
+  CreditCard,
 } from 'lucide-react';
 import { useAuthStore } from '@/stores/authStore';
 import { cn } from '@/utils/cn';
@@ -25,6 +26,7 @@ const navigation = [
   { name: 'Vesting & Metas', href: '/vesting', icon: Target },
   { name: 'Valuation', href: '/valuation', icon: TrendingUp },
   { name: 'Financeiro', href: '/financial', icon: DollarSign },
+  { name: 'Billing', href: '/billing', icon: CreditCard },
   { name: 'Portal Investidor', href: '/investor', icon: Briefcase },
 ];
 

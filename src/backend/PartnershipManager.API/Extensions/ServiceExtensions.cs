@@ -7,10 +7,12 @@ using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using PartnershipManager.Domain.Interfaces;
+using PartnershipManager.Domain.Interfaces.Billing;
 using PartnershipManager.Infrastructure.Caching;
 using PartnershipManager.Infrastructure.Jobs;
 using PartnershipManager.Infrastructure.Persistence;
 using PartnershipManager.Infrastructure.Persistence.Repositories;
+using PartnershipManager.Infrastructure.Repositories.Billing;
 using PartnershipManager.Infrastructure.Services;
 
 namespace PartnershipManager.API.Extensions;
@@ -51,6 +53,11 @@ public static class InfrastructureServiceExtensions
         services.AddScoped<IUserRoleRepository, UserRoleRepository>();
         services.AddScoped<IAuditLogRepository, AuditLogRepository>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
+        
+        // Billing Repositories
+        services.AddScoped<IClientRepository, ClientRepository>();
+        services.AddScoped<ISubscriptionRepository, SubscriptionRepository>();
+        services.AddScoped<IPlanRepository, PlanRepository>();
         
         // Auth Service
         services.AddScoped<IAuthService, AuthService>();
@@ -118,13 +125,14 @@ public static class ApiServiceExtensions
             {
                 options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
                 options.JsonSerializerOptions.WriteIndented = true;
+                options.JsonSerializerOptions.Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping;
             });
         
         // CORS
         var corsOrigins = configuration["Cors:Origins"]?.Split(',') ?? new[] { "http://localhost:3000" };
         services.AddCors(options =>
         {
-            options.AddDefaultPolicy(builder =>
+            options.AddPolicy("DefaultPolicy", builder =>
             {
                 builder.WithOrigins(corsOrigins)
                     .AllowAnyMethod()

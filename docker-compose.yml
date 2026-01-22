@@ -67,6 +67,7 @@ services:
       - Jwt__Secret=${JWT_SECRET:-PartnershipManager_SecretKey_2025_Min32Chars!}
       - Jwt__Issuer=${JWT_ISSUER:-PartnershipManager}
       - Jwt__Audience=${JWT_AUDIENCE:-PartnershipManagerApp}
+      - Cors__Origins=http://localhost:3000,http://frontend:3000
     ports:
       - "5000:5000"
     depends_on:
@@ -87,8 +88,6 @@ services:
       target: development
     container_name: pm-frontend
     restart: unless-stopped
-    environment:
-      - VITE_API_URL=http://localhost:5000/api
     ports:
       - "3000:3000"
     depends_on:
