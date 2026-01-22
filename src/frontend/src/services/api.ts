@@ -234,4 +234,105 @@ export const plansApi = {
   },
 };
 
+export interface Invoice {
+  id: string;
+  subscriptionId: string;
+  clientId: string;
+  clientName: string;
+  clientEmail: string;
+  clientDocument: string;
+  planId: string;
+  planName: string;
+  amount: number;
+  dueDate: string;
+  issueDate: string;
+  paymentDate?: string;
+  status: 'pending' | 'paid' | 'overdue' | 'cancelled';
+  invoiceNumber: string;
+  referenceMonth: number;
+  referenceYear: number;
+  description: string;
+  notes?: string;
+  pdfUrl?: string;
+  createdAt: string;
+}
+
+export interface InvoiceFilters {
+  clientId?: string;
+  status?: string;
+  startDate?: string;
+  endDate?: string;
+  planId?: string;
+}
+
+export const invoicesApi = {
+  // Listar todas as faturas com filtros
+  getAll: async (filters?: InvoiceFilters): Promise<Invoice[]> => {
+    const params = new URLSearchParams();
+    if (filters?.clientId) params.append('clientId', filters.clientId);
+    if (filters?.status) params.append('status', filters.status);
+    if (filters?.startDate) params.append('startDate', filters.startDate);
+    if (filters?.endDate) params.append('endDate', filters.endDate);
+    if (filters?.planId) params.append('planId', filters.planId);
+    
+    const response = await api.get<Invoice[]>(`/invoices?${params.toString()}`);
+    return response.data;
+  },
+
+  // Buscar fatura por ID
+  getById: async (id: string): Promise<Invoice> => {
+    const response = await api.get<Invoice>(`/invoices/${id}`);
+    return response.data;
+  },
+
+  // Buscar faturas por cliente
+  getByClientId: async (clientId: string): Promise<Invoice[]> => {
+    const response = await api.get<Invoice[]>(`/invoices/client/${clientId}`);
+    return response.data;
+  },
+
+  // Buscar faturas por assinatura
+  getBySubscriptionId: async (subscriptionId: string): Promise<Invoice[]> => {
+    const response = await api.get<Invoice[]>(`/invoices/subscription/${subscriptionId}`);
+    return response.data;
+  },
+
+  // Criar fatura manual
+  create: async (invoice: { subscriptionId: string; dueDate: string; notes?: string }): Promise<Invoice> => {
+    const response = await api.post<Invoice>('/invoices', invoice);
+    return response.data;
+  },
+
+  // Marcar fatura como paga
+  markAsPaid: async (id: string): Promise<Invoice> => {
+    const response = await api.post<Invoice>(`/invoices/${id}/mark-paid`);
+    return response.data;
+  },
+
+  // Cancelar fatura
+  cancel: async (id: string): Promise<Invoice> => {
+    const response = await api.post<Invoice>(`/invoices/${id}/cancel`);
+    return response.data;
+  },
+
+  // Gerar faturas do mês
+  generateMonthly: async (): Promise<{ message: string; invoicesGenerated: number }> => {
+    const response = await api.post<{ message: string; invoicesGenerated: number }>('/invoices/generate-monthly');
+    return response.data;
+  },
+
+  // Download PDF da fatura
+  downloadPdf: async (id: string): Promise<Blob> => {
+    const response = await api.get(`/invoices/${id}/pdf`, {
+      responseType: 'blob',
+    });
+    return response.data;
+  },
+
+  // Obter URL do PDF (para ferramentas externas)
+  getPdfUrl: (id: string): string => {
+    return `${API_URL}/invoices/${id}/pdf`;
+  },
+};
+
 export default api;

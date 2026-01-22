@@ -40,7 +40,18 @@ public interface IInvoiceRepository
     Task<IEnumerable<Invoice>> GetAllAsync(CancellationToken cancellationToken = default);
     Task<IEnumerable<Invoice>> GetByClientIdAsync(Guid clientId, CancellationToken cancellationToken = default);
     Task<IEnumerable<Invoice>> GetByStatusAsync(string status, CancellationToken cancellationToken = default);
+    Task<IEnumerable<Invoice>> GetByFilterAsync(
+        Guid? clientId = null,
+        Guid? subscriptionId = null,
+        string? status = null,
+        DateTime? startDate = null,
+        DateTime? endDate = null,
+        string? planName = null,
+        CancellationToken cancellationToken = default);
+    Task<IEnumerable<Invoice>> GetPendingInvoicesAsync(CancellationToken cancellationToken = default);
+    Task<IEnumerable<Invoice>> GetOverdueInvoicesAsync(CancellationToken cancellationToken = default);
     Task<Guid> CreateAsync(Invoice invoice, CancellationToken cancellationToken = default);
     Task<bool> UpdateAsync(Invoice invoice, CancellationToken cancellationToken = default);
     Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken = default);
+    Task<string> GenerateInvoiceNumberAsync(CancellationToken cancellationToken = default);
 }

@@ -1,5 +1,7 @@
 using Hangfire;
 using Microsoft.Extensions.Logging;
+using PartnershipManager.Domain.Entities.Billing;
+using PartnershipManager.Domain.Interfaces.Billing;
 
 namespace PartnershipManager.Infrastructure.Jobs;
 
@@ -12,6 +14,7 @@ public interface IBackgroundJobs
     Task SendEmailAsync(string to, string subject, string body);
     Task ProcessAuditLogsAsync();
     Task GenerateReportsAsync(Guid companyId);
+    Task GenerateMonthlyInvoicesAsync();
 }
 
 /// <summary>
@@ -20,10 +23,17 @@ public interface IBackgroundJobs
 public class BackgroundJobs : IBackgroundJobs
 {
     private readonly ILogger<BackgroundJobs> _logger;
+    private readonly ISubscriptionRepository _subscriptionRepository;
+    private readonly IInvoiceRepository _invoiceRepository;
 
-    public BackgroundJobs(ILogger<BackgroundJobs> logger)
+    public BackgroundJobs(
+        ILogger<BackgroundJobs> logger,
+        ISubscriptionRepository subscriptionRepository,
+        IInvoiceRepository invoiceRepository)
     {
         _logger = logger;
+        _subscriptionRepository = subscriptionRepository;
+        _invoiceRepository = invoiceRepository;
     }
 
     /// <summary>
@@ -89,6 +99,97 @@ public class BackgroundJobs : IBackgroundJobs
         
         _logger.LogInformation("Relatórios gerados com sucesso para empresa {CompanyId}", companyId);
     }
+
+    /// <summary>
+    /// Gera faturas mensais para todas as assinaturas ativas
+    /// </summary>
+    [AutomaticRetry(Attempts = 2)]
+    [Queue("billing")]
+    public async Task GenerateMonthlyInvoicesAsync()
+    {
+        _logger.LogInformation("Iniciando geração mensal de faturas...");
+        
+        try
+        {
+            // Busca todas as assinaturas ativas
+            var activeSubscriptions = await _subscriptionRepository.GetActiveSubscriptionsAsync(CancellationToken.None);
+            
+            var generatedCount = 0;
+            var errorCount = 0;
+            var now = DateTime.UtcNow;
+            var issueDate = new DateTime(now.Year, now.Month, 1); // Primeiro dia do mês
+            
+            foreach (var subscription in activeSubscriptions)
+            {
+                try
+                {
+                    // Verifica se já existe fatura para este mês
+                    var existingInvoice = await _invoiceRepository.GetBySubscriptionAndPeriodAsync(
+                        subscription.Id, 
+                        issueDate, 
+                        CancellationToken.None);
+                    
+                    if (existingInvoice != null)
+                    {
+                        _logger.LogInformation(
+                            "Fatura já existe para assinatura {SubscriptionId} no período {Period}", 
+                            subscription.Id, 
+                            issueDate.ToString("yyyy-MM"));
+                        continue;
+                    }
+                    
+                    // Calcula a data de vencimento baseada no ciclo de cobrança
+                    var dueDate = subscription.Plan.BillingCycle == BillingCycle.Monthly 
+                        ? issueDate.AddDays(30) 
+                        : issueDate.AddDays(365);
+                    
+                    // Gera número da fatura
+                    var invoiceNumber = await _invoiceRepository.GenerateInvoiceNumberAsync(CancellationToken.None);
+                    
+                    // Cria a fatura
+                    var invoice = new Invoice
+                    {
+                        ClientId = subscription.ClientId,
+                        SubscriptionId = subscription.Id,
+                        InvoiceNumber = invoiceNumber,
+                        Amount = subscription.Plan.Price,
+                        IssueDate = issueDate,
+                        DueDate = dueDate,
+                        Status = InvoiceStatus.Pending,
+                        Description = $"Fatura mensal - {subscription.Plan.Name}",
+                        Notes = $"Período de referência: {issueDate:MMMM/yyyy}"
+                    };
+                    
+                    await _invoiceRepository.CreateAsync(invoice, CancellationToken.None);
+                    generatedCount++;
+                    
+                    _logger.LogInformation(
+                        "Fatura {InvoiceNumber} gerada com sucesso para cliente {ClientId}", 
+                        invoiceNumber, 
+                        subscription.ClientId);
+                }
+                catch (Exception ex)
+                {
+                    errorCount++;
+                    _logger.LogError(
+                        ex, 
+                        "Erro ao gerar fatura para assinatura {SubscriptionId}", 
+                        subscription.Id);
+                }
+            }
+            
+            _logger.LogInformation(
+                "Geração mensal de faturas concluída. Total: {Total}, Geradas: {Generated}, Erros: {Errors}", 
+                activeSubscriptions.Count(), 
+                generatedCount, 
+                errorCount);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Erro ao executar job de geração mensal de faturas");
+            throw;
+        }
+    }
 }
 
 /// <summary>
@@ -109,5 +210,11 @@ public static class HangfireJobsConfiguration
             "process-audit-logs",
             job => job.ProcessAuditLogsAsync(),
             Cron.Hourly());
+        
+        // Geração mensal de faturas - todo dia 1º às 2h
+        RecurringJob.AddOrUpdate<IBackgroundJobs>(
+            "generate-monthly-invoices",
+            job => job.GenerateMonthlyInvoicesAsync(),
+            "0 2 1 * *"); // Minuto 0, Hora 2, Dia 1 de cada mês
     }
 }

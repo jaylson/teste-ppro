@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("PartnershipManager.Infrastructure")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+9980c527da3c000b51cfff87b5c1ac97b4e6b23e")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+411dd3d4b6b7c3a4cc3614404298387fc56ab0ed")]
 [assembly: System.Reflection.AssemblyProductAttribute("PartnershipManager.Infrastructure")]
 [assembly: System.Reflection.AssemblyTitleAttribute("PartnershipManager.Infrastructure")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

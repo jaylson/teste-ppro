@@ -202,6 +202,9 @@ export default function BillingDashboard() {
         <Link to="/billing/clients" className="px-4 py-3 font-medium text-muted-foreground hover:text-foreground transition-colors">
           Clientes & Assinaturas
         </Link>
+        <Link to="/billing/invoices" className="px-4 py-3 font-medium text-muted-foreground hover:text-foreground transition-colors">
+          Faturas
+        </Link>
       </div>
 
       {/* Stats Cards */}
