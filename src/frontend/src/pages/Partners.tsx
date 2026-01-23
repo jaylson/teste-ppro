@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Search, Filter, Plus, Mail, Phone, MoreVertical } from 'lucide-react';
+import { Search, Plus, Mail, Phone, MoreVertical } from 'lucide-react';
 import { Button, Card, Badge, Avatar } from '@/components/ui';
 
 // Mock data

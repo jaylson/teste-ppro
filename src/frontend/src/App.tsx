@@ -10,6 +10,7 @@ import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import CapTable from './pages/CapTable';
 import Partners from './pages/Partners';
+import Users from './pages/settings/Users';
 import { Plans, ClientsSubscriptions, BillingDashboard, Invoices } from './pages/billing';
 
 function App() {
@@ -32,6 +33,9 @@ function App() {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/cap-table" element={<CapTable />} />
         <Route path="/partners" element={<Partners />} />
+        
+        {/* Settings Routes */}
+        <Route path="/settings/users" element={<Users />} />
         
         {/* Billing Routes */}
         <Route path="/billing" element={<BillingDashboard />} />

@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("PartnershipManager.Domain")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+07924dcada18b8e4a760239da0964bf8143f9f3b")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+7a57ea6e9241195fab5dfdaec87ef4e978bd758c")]
 [assembly: System.Reflection.AssemblyProductAttribute("PartnershipManager.Domain")]
 [assembly: System.Reflection.AssemblyTitleAttribute("PartnershipManager.Domain")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

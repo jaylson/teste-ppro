@@ -7,8 +7,6 @@ import { plansApi, type Plan } from '@/services/api';
 
 export default function Plans() {
   const [plans, setPlans] = useState<Plan[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [editingPlan, setEditingPlan] = useState<Plan | null>(null);
   
@@ -38,13 +36,10 @@ export default function Plans() {
 
   const loadPlans = async () => {
     try {
-      setLoading(true);
-      setError(null);
       const data = await plansApi.getAll();
       setPlans(data);
     } catch (err: any) {
       console.error('Erro ao carregar planos:', err);
-      setError(err.response?.data?.message || err.message || 'Erro ao carregar planos');
       // Dados mockados em caso de erro
       setPlans([
         {
@@ -60,8 +55,6 @@ export default function Plans() {
           createdAt: '2025-01-01',
         },
       ]);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -70,7 +63,8 @@ export default function Plans() {
     setShowModal(true);
   };
 
-  const handleDelete = async (planId: string) => {
+  const handleDelete = async (planId?: string) => {
+    if (!planId) return;
     const plan = plans.find(p => p.id === planId);
     
     setConfirmDialog({
@@ -96,7 +90,8 @@ export default function Plans() {
     });
   };
 
-  const handleToggleStatus = async (planId: string) => {
+  const handleToggleStatus = async (planId?: string) => {
+    if (!planId) return;
     const plan = plans.find(p => p.id === planId);
     const newStatus = !plan?.isActive;
     
@@ -224,7 +219,7 @@ export default function Plans() {
 
             <div className="space-y-2 mb-6">
               <div className="text-sm font-semibold text-muted-foreground mb-2">Recursos:</div>
-              {plan.features.map((feature, index) => (
+              {(plan.features ?? []).map((feature, index) => (
                 <div key={index} className="flex items-center gap-2 text-sm">
                   <Check className="w-4 h-4 text-green-500" />
                   <span>{feature}</span>
@@ -249,7 +244,7 @@ export default function Plans() {
 
             <div className="flex gap-2 mt-6">
               <Button
-                variant="outline"
+                variant="secondary"
                 size="sm"
                 className="flex-1"
                 onClick={() => handleEdit(plan)}
@@ -258,14 +253,14 @@ export default function Plans() {
                 Editar
               </Button>
               <Button
-                variant="outline"
+                variant="secondary"
                 size="sm"
                 onClick={() => handleToggleStatus(plan.id)}
               >
                 {plan.isActive ? <X className="w-4 h-4" /> : <Check className="w-4 h-4" />}
               </Button>
               <Button
-                variant="outline"
+                variant="secondary"
                 size="sm"
                 onClick={() => handleDelete(plan.id)}
               >
@@ -288,7 +283,7 @@ export default function Plans() {
       />
       
       {/* Sistema de Alertas */}
-      <AlertContainer alerts={alerts} onClose={removeAlert} />
+      <AlertContainer alerts={alerts} onRemove={removeAlert} />
       
       {/* Modal de Confirmação */}
       <ConfirmDialog
@@ -299,7 +294,7 @@ export default function Plans() {
         confirmVariant={confirmDialog.confirmVariant}
         onConfirm={confirmDialog.onConfirm}
         onCancel={() => setConfirmDialog((prev) => ({ ...prev, isOpen: false }))}
-        loading={confirmLoading}
+        isLoading={confirmLoading}
       />
     </div>
   );

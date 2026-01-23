@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { X } from 'lucide-react';
 import { Button } from '@/components/ui';
@@ -9,7 +9,7 @@ interface Plan {
   description: string;
   price: number;
   billingCycle: 'monthly' | 'yearly';
-  features: string[];
+  features?: string[];
   maxCompanies: number;
   maxUsers: number;
   isActive: boolean;
@@ -243,7 +243,7 @@ export default function PlanModal({ isOpen, onClose, onSave, plan }: PlanModalPr
 
           {/* Ações */}
           <div className="flex gap-3 pt-4">
-            <Button type="button" variant="outline" onClick={onClose} className="flex-1">
+            <Button type="button" variant="secondary" onClick={onClose} className="flex-1">
               Cancelar
             </Button>
             <Button type="submit" className="flex-1">

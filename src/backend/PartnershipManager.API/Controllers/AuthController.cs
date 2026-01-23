@@ -20,15 +20,18 @@ public class AuthController : ControllerBase
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IAuthService _authService;
+    private readonly IConfiguration _configuration;
     private readonly ILogger<AuthController> _logger;
     
     public AuthController(
         IUnitOfWork unitOfWork,
         IAuthService authService,
+        IConfiguration configuration,
         ILogger<AuthController> logger)
     {
         _unitOfWork = unitOfWork;
         _authService = authService;
+        _configuration = configuration;
         _logger = logger;
     }
     
@@ -130,6 +133,66 @@ public class AuthController : ControllerBase
     }
     
     /// <summary>
+    /// Renova o token de acesso usando refresh token
+    /// </summary>
+    [HttpPost("refresh")]
+    [AllowAnonymous]
+    [ProducesResponseType(typeof(ApiResponse<AuthResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenRequest request)
+    {
+        if (string.IsNullOrEmpty(request.RefreshToken))
+        {
+            throw new UnauthorizedException(ErrorMessages.InvalidCredentials);
+        }
+        
+        // Buscar usuário pelo refresh token
+        var user = await _unitOfWork.Users.GetByRefreshTokenAsync(request.RefreshToken);
+        
+        if (user == null)
+        {
+            throw new UnauthorizedException(ErrorMessages.InvalidCredentials);
+        }
+        
+        // Gerar novos tokens
+        var roles = await _unitOfWork.UserRoles.GetRoleNamesByUserIdAsync(user.Id);
+        var newAccessToken = _authService.GenerateJwtToken(user, roles);
+        var newRefreshToken = _authService.GenerateRefreshToken();
+        
+        // Atualizar refresh token no banco
+        var refreshTokenExpirationDays = int.Parse(_configuration["Jwt:RefreshTokenExpirationDays"] ?? "7");
+        await _unitOfWork.Users.UpdateRefreshTokenAsync(
+            user.Id, 
+            newRefreshToken, 
+            DateTime.UtcNow.AddDays(refreshTokenExpirationDays));
+        
+        var company = await _unitOfWork.Companies.GetByIdAsync(user.CompanyId);
+        
+        var response = new AuthResponse
+        {
+            AccessToken = newAccessToken,
+            RefreshToken = newRefreshToken,
+            ExpiresAt = DateTime.UtcNow.AddHours(
+                int.Parse(_configuration["Jwt:ExpirationHours"] ?? "24")),
+            User = new UserInfo
+            {
+                Id = user.Id,
+                Email = user.Email,
+                Name = user.Name,
+                AvatarUrl = user.AvatarUrl,
+                CompanyId = user.CompanyId,
+                CompanyName = company?.Name ?? string.Empty,
+                Roles = roles.ToList(),
+                Language = user.Language.ToString().ToLower()
+            }
+        };
+        
+        _logger.LogInformation("Token renovado para usuário: {UserId}", user.Id);
+        
+        return Ok(ApiResponse<AuthResponse>.Ok(response));
+    }
+    
+    /// <summary>
     /// Retorna informações do usuário autenticado
     /// </summary>
     [HttpGet("me")]
@@ -144,6 +207,7 @@ public class AuthController : ControllerBase
         {
             throw new UnauthorizedException();
         }
+        
         
         var user = await _unitOfWork.Users.GetByIdAsync(id);
         if (user == null)

@@ -236,6 +236,18 @@ public class UserRepository : BaseRepository<User>, IUserRepository
         }
     }
 
+    public async Task<User?> GetByRefreshTokenAsync(string refreshToken)
+    {
+        var sql = $@"SELECT {SelectColumns} 
+                     FROM users 
+                     WHERE refresh_token = @RefreshToken 
+                       AND refresh_token_expiry > UTC_TIMESTAMP() 
+                       AND is_deleted = 0";
+        
+        return await Connection.QueryFirstOrDefaultAsync<User>(sql, 
+            new { RefreshToken = refreshToken }, Transaction);
+    }
+
     public async Task DeleteAsync(Guid id)
     {
         await SoftDeleteAsync(id);

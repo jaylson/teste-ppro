@@ -19,6 +19,11 @@
             Realiza logout do sistema
             </summary>
         </member>
+        <member name="M:PartnershipManager.API.Controllers.AuthController.RefreshToken(PartnershipManager.Application.Features.Auth.DTOs.RefreshTokenRequest)">
+            <summary>
+            Renova o token de acesso usando refresh token
+            </summary>
+        </member>
         <member name="M:PartnershipManager.API.Controllers.AuthController.GetCurrentUser">
             <summary>
             Retorna informações do usuário autenticado
@@ -38,6 +43,13 @@
             <param name="startDate">Data inicial do período (opcional)</param>
             <param name="endDate">Data final do período (opcional)</param>
             <param name="planId">ID do plano (opcional)</param>
+            <param name="cancellationToken">Token de cancelamento</param>
+        </member>
+        <member name="M:PartnershipManager.API.Controllers.Billing.InvoicesController.GetMrrData(System.Int32,System.Threading.CancellationToken)">
+            <summary>
+            Obtém dados de MRR (Monthly Recurring Revenue) dos últimos N meses
+            </summary>
+            <param name="months">Número de meses a buscar (padrão: 12)</param>
             <param name="cancellationToken">Token de cancelamento</param>
         </member>
         <member name="M:PartnershipManager.API.Controllers.Billing.InvoicesController.GetById(System.Guid,System.Threading.CancellationToken)">
@@ -60,7 +72,7 @@
             Atualiza uma fatura existente
             </summary>
         </member>
-        <member name="M:PartnershipManager.API.Controllers.Billing.InvoicesController.MarkAsPaid(System.Guid,System.Threading.CancellationToken)">
+        <member name="M:PartnershipManager.API.Controllers.Billing.InvoicesController.MarkAsPaid(System.Guid,PartnershipManager.API.Controllers.Billing.InvoicesController.MarkAsPaidRequest,System.Threading.CancellationToken)">
             <summary>
             Marca uma fatura como paga
             </summary>
@@ -80,10 +92,14 @@
             Gera o PDF da fatura
             </summary>
         </member>
-        <member name="M:PartnershipManager.API.Controllers.Billing.InvoicesController.GenerateMonthly(System.Threading.CancellationToken)">
+        <member name="M:PartnershipManager.API.Controllers.Billing.InvoicesController.GenerateMonthly(PartnershipManager.Infrastructure.Jobs.IBackgroundJobs,System.Nullable{System.Int32},System.Nullable{System.Int32},System.Threading.CancellationToken)">
             <summary>
             Gera faturas mensais para todas as assinaturas ativas
             </summary>
+            <param name="backgroundJobs">Serviço de jobs em background</param>
+            <param name="month">Mês de referência (1-12)</param>
+            <param name="year">Ano de referência</param>
+            <param name="cancellationToken">Token de cancelamento</param>
         </member>
         <member name="M:PartnershipManager.API.Controllers.Billing.InvoicesController.GetStatistics(System.Nullable{System.Guid},System.Nullable{System.DateTime},System.Nullable{System.DateTime},System.Threading.CancellationToken)">
             <summary>

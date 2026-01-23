@@ -187,7 +187,7 @@ export default function Invoices() {
     setConfirmLoading(true);
     setGenerating(true);
     try {
-      const result = await invoicesApi.generateMonthly(generateMonth, generateYear);
+      await invoicesApi.generateMonthly(generateMonth, generateYear);
       const monthName = new Date(generateYear, generateMonth - 1).toLocaleString('pt-BR', { month: 'long' });
       showSuccess(`Faturas de ${monthName}/${generateYear} geradas com sucesso!`);
       setGenerateModalOpen(false);
@@ -496,7 +496,7 @@ export default function Invoices() {
           <Button onClick={handleApplyFilters} className="bg-blue-600 hover:bg-blue-700 text-white">
             Aplicar Filtros
           </Button>
-          <Button onClick={handleClearFilters} variant="outline">
+          <Button onClick={handleClearFilters} variant="secondary">
             Limpar Filtros
           </Button>
         </div>
@@ -770,7 +770,7 @@ export default function Invoices() {
                 </Button>
                 <Button
                   onClick={() => setViewingInvoice(null)}
-                  variant="outline"
+                  variant="secondary"
                 >
                   Fechar
                 </Button>
@@ -845,7 +845,7 @@ export default function Invoices() {
                   setPaymentModalInvoice(null);
                   setPaymentDate('');
                 }}
-                variant="outline"
+                variant="secondary"
               >
                 Cancelar
               </Button>

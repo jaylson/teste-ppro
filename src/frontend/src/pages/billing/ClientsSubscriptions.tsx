@@ -1,22 +1,27 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Plus, Search, Eye, Edit, Ban, CheckCircle, Calendar, DollarSign } from 'lucide-react';
+import { Plus, Search, Eye, Edit, Ban, CheckCircle, Calendar } from 'lucide-react';
 import { Button, AlertContainer, useAlerts, ConfirmDialog } from '@/components/ui';
 import { ClientModal, SubscriptionModal } from '@/components/modals';
-import { clientsApi, subscriptionsApi, plansApi, type Client as ApiClient, type ClientListItem, type SubscriptionListItem, type Plan } from '@/services/api';
+import { clientsApi, subscriptionsApi, plansApi, type Plan } from '@/services/api';
 
 interface Client {
-  id: string;
+  id?: string;
   name: string;
   email: string;
   document: string;
   type: 'individual' | 'company';
   status: 'active' | 'suspended' | 'cancelled';
-  createdAt: string;
+  createdAt?: string;
+  phone?: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  zipCode?: string;
 }
 
 interface Subscription {
-  id: string;
+  id?: string;
   clientId: string;
   clientName: string;
   planId: string;
@@ -29,6 +34,8 @@ interface Subscription {
   autoRenew: boolean;
   companiesCount: number;
   usersCount: number;
+  dueDay?: number;
+  paymentMethod?: string;
 }
 
 export default function ClientsSubscriptions() {
@@ -41,7 +48,6 @@ export default function ClientsSubscriptions() {
   const [clients, setClients] = useState<Client[]>([]);
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
   const [plans, setPlans] = useState<Plan[]>([]);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [viewingClient, setViewingClient] = useState<Client | null>(null);
   const [viewingSubscription, setViewingSubscription] = useState<Subscription | null>(null);
@@ -74,7 +80,6 @@ export default function ClientsSubscriptions() {
 
   const loadClients = async () => {
     try {
-      setLoading(true);
       setError(null);
       const data = await clientsApi.getAll();
       setClients(data.map(item => ({
@@ -124,14 +129,11 @@ export default function ClientsSubscriptions() {
       createdAt: '2024-12-20',
     },
       ]);
-    } finally {
-      setLoading(false);
     }
   };
 
   const loadSubscriptions = async () => {
     try {
-      setLoading(true);
       setError(null);
       const data = await subscriptionsApi.getAll();
       setSubscriptions(data.map(item => ({
@@ -147,7 +149,9 @@ export default function ClientsSubscriptions() {
         billingCycle: item.billingCycle,
         autoRenew: item.autoRenew,
         companiesCount: item.companiesCount,
-        usersCount: item.usersCount
+        usersCount: item.usersCount,
+        dueDay: item.dueDay ?? 1,
+        paymentMethod: item.paymentMethod ?? 'pix'
       })));
     } catch (err: any) {
       console.error('Erro ao carregar assinaturas:', err);
@@ -167,10 +171,10 @@ export default function ClientsSubscriptions() {
           autoRenew: true,
           companiesCount: 2,
           usersCount: 12,
+          dueDay: 10,
+          paymentMethod: 'pix'
         },
       ]);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -229,6 +233,8 @@ export default function ClientsSubscriptions() {
   const handleSaveSubscription = async (subscription: Subscription) => {
     try {
       console.log('Salvando assinatura:', subscription);
+      const dueDay = subscription.dueDay ?? 1;
+      const paymentMethod = subscription.paymentMethod ?? 'pix';
       if (subscription.id) {
         // Atualizar
         const updateData = {
@@ -238,8 +244,8 @@ export default function ClientsSubscriptions() {
           usersCount: subscription.usersCount,
           startDate: subscription.startDate,
           endDate: subscription.endDate || undefined,
-          dueDay: subscription.dueDay,
-          paymentMethod: subscription.paymentMethod
+          dueDay,
+          paymentMethod
         };
         console.log('Dados de atualização:', updateData);
         await subscriptionsApi.update(subscription.id, updateData);
@@ -250,8 +256,8 @@ export default function ClientsSubscriptions() {
           clientId: subscription.clientId,
           planId: subscription.planId,
           autoRenew: subscription.autoRenew,
-          dueDay: subscription.dueDay,
-          paymentMethod: subscription.paymentMethod
+          dueDay,
+          paymentMethod
         });
         showSuccess('Assinatura criada com sucesso!');
       }
@@ -301,7 +307,8 @@ export default function ClientsSubscriptions() {
     setViewingSubscription(subscription);
   };
 
-  const handleSuspendSubscription = async (subscriptionId: string) => {
+  const handleSuspendSubscription = async (subscriptionId?: string) => {
+    if (!subscriptionId) return;
     const subscription = subscriptions.find(s => s.id === subscriptionId);
     
     setConfirmDialog({
@@ -327,7 +334,8 @@ export default function ClientsSubscriptions() {
     });
   };
 
-  const handleActivateSubscription = async (subscriptionId: string) => {
+  const handleActivateSubscription = async (subscriptionId?: string) => {
+    if (!subscriptionId) return;
     const subscription = subscriptions.find(s => s.id === subscriptionId);
     
     setConfirmDialog({
@@ -500,7 +508,7 @@ export default function ClientsSubscriptions() {
                       </span>
                     </td>
                     <td className="font-mono text-sm">{client.document}</td>
-                    <td>{new Date(client.createdAt).toLocaleDateString('pt-BR')}</td>
+                    <td>{client.createdAt ? new Date(client.createdAt).toLocaleDateString('pt-BR') : '-'}</td>
                     <td>{getStatusBadge(client.status)}</td>
                     <td className="text-right">
                       <div className="flex justify-end gap-2">
@@ -622,7 +630,7 @@ export default function ClientsSubscriptions() {
         }}
         onSave={handleSaveSubscription}
         subscription={editingSubscription}
-        clients={clients.map(c => ({ id: c.id, name: c.name }))}
+        clients={clients.filter((c) => c.id).map(c => ({ id: c.id as string, name: c.name }))}
         plans={plans}
       />
 
@@ -689,7 +697,7 @@ export default function ClientsSubscriptions() {
               </div>
             </div>
             <div className="p-6 border-t border-border flex justify-end gap-2">
-              <Button variant="outline" onClick={() => setViewingClient(null)}>
+              <Button variant="secondary" onClick={() => setViewingClient(null)}>
                 Fechar
               </Button>
               <Button onClick={() => {
@@ -762,7 +770,7 @@ export default function ClientsSubscriptions() {
               </div>
             </div>
             <div className="p-6 border-t border-border flex justify-end gap-2">
-              <Button variant="outline" onClick={() => setViewingSubscription(null)}>
+              <Button variant="secondary" onClick={() => setViewingSubscription(null)}>
                 Fechar
               </Button>
               <Button onClick={() => {
@@ -779,7 +787,7 @@ export default function ClientsSubscriptions() {
       )}
       
       {/* Sistema de Alertas */}
-      <AlertContainer alerts={alerts} onClose={removeAlert} />
+      <AlertContainer alerts={alerts} onRemove={removeAlert} />
       
       {/* Modal de Confirmação */}
       <ConfirmDialog
@@ -790,7 +798,7 @@ export default function ClientsSubscriptions() {
         confirmVariant={confirmDialog.confirmVariant}
         onConfirm={confirmDialog.onConfirm}
         onCancel={() => setConfirmDialog((prev) => ({ ...prev, isOpen: false }))}
-        loading={confirmLoading}
+        isLoading={confirmLoading}
       />
     </div>
   );

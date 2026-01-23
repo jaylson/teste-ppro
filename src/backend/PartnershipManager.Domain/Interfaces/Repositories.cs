@@ -46,6 +46,7 @@ public interface IUserRepository
 {
     Task<User?> GetByIdAsync(Guid id);
     Task<User?> GetByEmailAsync(string email, Guid companyId);
+    Task<User?> GetByRefreshTokenAsync(string refreshToken);
     Task<bool> EmailExistsAsync(string email, Guid companyId, Guid? excludeId = null);
     Task<IEnumerable<User>> GetByCompanyAsync(Guid companyId);
     Task<IEnumerable<User>> GetActiveUsersByCompanyAsync(Guid companyId);

@@ -7,7 +7,7 @@ import {
   TrendingUp,
   Calculator,
 } from 'lucide-react';
-import { Button, Card, StatCard, Badge, Avatar, ProgressBar, Input } from '@/components/ui';
+import { Button, Card, StatCard, Badge, Avatar, ProgressBar } from '@/components/ui';
 
 // Mock data
 const shareholders = [

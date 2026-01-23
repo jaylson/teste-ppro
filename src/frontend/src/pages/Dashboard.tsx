@@ -4,11 +4,10 @@ import {
   AlertCircle,
   FileText,
   ArrowUpRight,
-  ArrowDownRight,
   Plus,
   Download,
 } from 'lucide-react';
-import { Button, Card, StatCard, Badge, Avatar, ProgressBar } from '@/components/ui';
+import { Button, Card, StatCard, Badge, Avatar } from '@/components/ui';
 import { useAuthStore } from '@/stores/authStore';
 
 // Mock data

@@ -5,17 +5,14 @@ import {
   TrendingUp,
   TrendingDown,
   FileText,
-  CheckCircle,
   Clock,
   AlertCircle,
   Download,
-  Eye,
-  Calendar,
   CreditCard,
   Users,
   Package,
 } from 'lucide-react';
-import { LineChart, Line, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { Button } from '@/components/ui';
 import { invoicesApi } from '@/services/api';
 
@@ -107,7 +104,7 @@ export default function BillingDashboard() {
           <p className="page-subtitle">Gestão de assinaturas, planos e faturamento</p>
         </div>
         <div className="flex gap-3">
-          <Button variant="outline">
+          <Button variant="secondary">
             <Download className="w-4 h-4 mr-2" />
             Exportar
           </Button>

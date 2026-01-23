@@ -6,6 +6,7 @@ import { z } from 'zod';
 import { Eye, EyeOff, LogIn } from 'lucide-react';
 import { Button, Input } from '@/components/ui';
 import { useAuthStore } from '@/stores/authStore';
+import { authService } from '@/services/authService';
 import toast from 'react-hot-toast';
 
 const loginSchema = z.object({
@@ -33,25 +34,26 @@ export default function Login() {
     setLoading(true);
 
     try {
-      // Simular login (substituir por chamada real à API)
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      // Mock de resposta
-      const mockUser = {
-        id: 'f1e2d3c4-b5a6-7890-abcd-ef1234567890',
+      // CompanyId fixo para demo - em produção, seria selecionado
+      const companyId = import.meta.env.VITE_DEFAULT_COMPANY_ID || 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
+      
+      const response = await authService.login({
         email: data.email,
-        name: 'Administrador',
-        companyId: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
-        companyName: 'Demo Corp',
-        roles: ['Admin'],
-        language: 'pt',
-      };
+        password: data.password,
+        companyId,
+      });
 
-      setAuth(mockUser, 'mock-access-token', 'mock-refresh-token');
+      setAuth(
+        response.user,
+        response.accessToken,
+        response.refreshToken
+      );
+      
       toast.success('Login realizado com sucesso!');
       navigate('/dashboard');
-    } catch (error) {
-      toast.error('Credenciais inválidas');
+    } catch (error: any) {
+      const message = error.response?.data?.message || 'Credenciais inválidas';
+      toast.error(message);
     } finally {
       setLoading(false);
     }

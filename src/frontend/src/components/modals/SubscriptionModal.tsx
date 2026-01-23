@@ -1,7 +1,7 @@
 import { useForm } from 'react-hook-form';
 import { X } from 'lucide-react';
 import { Button } from '@/components/ui';
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 
 interface Subscription {
   id?: string;
@@ -17,8 +17,8 @@ interface Subscription {
   autoRenew: boolean;
   companiesCount: number;
   usersCount: number;
-  dueDay: number;
-  paymentMethod: string;
+  dueDay?: number;
+  paymentMethod?: string;
 }
 
 interface Client {
@@ -27,7 +27,7 @@ interface Client {
 }
 
 interface Plan {
-  id: string;
+  id?: string;
   name: string;
   price: number;
   billingCycle: 'monthly' | 'yearly';
@@ -344,7 +344,7 @@ export default function SubscriptionModal({
 
           {/* Ações */}
           <div className="flex gap-3 pt-4">
-            <Button type="button" variant="outline" onClick={onClose} className="flex-1">
+            <Button type="button" variant="secondary" onClick={onClose} className="flex-1">
               Cancelar
             </Button>
             <Button type="submit" className="flex-1">

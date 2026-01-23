@@ -262,7 +262,7 @@ export default function ClientModal({ isOpen, onClose, onSave, client }: ClientM
 
           {/* Ações */}
           <div className="flex gap-3 pt-4">
-            <Button type="button" variant="outline" onClick={onClose} className="flex-1">
+            <Button type="button" variant="secondary" onClick={onClose} className="flex-1">
               Cancelar
             </Button>
             <Button type="submit" className="flex-1">
