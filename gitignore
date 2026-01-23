@@ -1,0 +1,423 @@
+# ==============================================================================
+# Partnership Manager - .gitignore
+# Stack: .NET 9 | React 18 | TypeScript | Vite | MySQL 8.0 | Docker | Redis
+# ==============================================================================
+
+# ==============================================================================
+# BACKEND - .NET / C#
+# ==============================================================================
+
+## Build results
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+[Ww][Ii][Nn]32/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+
+## Visual Studio
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.rsuser
+*.userprefs
+*.csproj.user
+*.vspx
+*.vsix
+*.nupkg
+*.snupkg
+*.snk
+*.pfx
+
+## MSBuild
+*.log
+msbuild.wrappercache
+[Dd]ebugPS/
+
+## NuGet
+**/[Pp]ackages/*
+!**/[Pp]ackages/build/
+*.nuget.props
+*.nuget.targets
+project.lock.json
+project.fragment.lock.json
+
+## .NET Core
+project.assets.json
+*.globalconfig
+
+## Test Results
+[Tt]est[Rr]esult*/
+[Bb]uild[Ll]og.*
+TestResult.xml
+nunit-*.xml
+coverage*.json
+coverage*.xml
+coverage*.info
+*.coverage
+*.coveragexml
+
+## NCrunch
+*.ncrunch*
+_NCrunch_*
+.*crunch*.local.xml
+nCrunchTemp_*
+
+## Code Coverage
+*.lcov
+coverage/
+coveragereport/
+
+## Rider
+.idea/
+*.sln.iml
+
+## ASP.NET Scaffolding
+ScaffoldingReadMe.txt
+
+## Windows Azure
+csx/
+*.build.csdef
+
+## Publish
+publish/
+*.publish.xml
+*.azurePubxml
+*.pubxml
+*.pubxml.user
+
+## dotnet ef migrations
+**/Migrations/*_snapshot.cs
+
+## User secrets
+secrets.json
+appsettings.*.local.json
+appsettings.Local.json
+appsettings.Development.local.json
+
+## Hangfire
+Hangfire-*.db
+Hangfire-*.db-journal
+
+# ==============================================================================
+# FRONTEND - Node.js / React / TypeScript / Vite
+# ==============================================================================
+
+## Dependencies
+node_modules/
+.pnp/
+.pnp.js
+.yarn/install-state.gz
+
+## Build outputs
+dist/
+dist-ssr/
+build/
+.next/
+out/
+*.tsbuildinfo
+
+## Vite
+*.local
+vite.config.js.timestamp-*
+vite.config.ts.timestamp-*
+
+## Cache
+.cache/
+.parcel-cache/
+.turbo/
+.eslintcache
+.stylelintcache
+*.tscache
+
+## TypeScript
+*.tsbuildinfo
+tsconfig.tsbuildinfo
+
+## Testing
+coverage/
+.nyc_output/
+jest-coverage/
+
+## Storybook
+storybook-static/
+
+## PWA
+sw.js
+workbox-*
+
+## Misc
+.DS_Store
+*.pem
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.pnpm-debug.log*
+lerna-debug.log*
+
+## Vercel
+.vercel
+
+## Lock files (optional - descomente se preferir não versionar)
+# package-lock.json
+# yarn.lock
+# pnpm-lock.yaml
+
+# ==============================================================================
+# DOCKER
+# ==============================================================================
+
+## Docker Compose override (local configurations)
+docker-compose.override.yml
+docker-compose.override.yaml
+docker-compose.local.yml
+docker-compose.local.yaml
+
+## Docker environment files
+.env.docker
+.env.docker.local
+
+## Docker volumes (if mounted locally)
+.docker-data/
+docker/mysql/data/
+docker/redis/data/
+docker/volumes/
+
+# ==============================================================================
+# DATABASE - MySQL
+# ==============================================================================
+
+## MySQL data directory
+mysql-data/
+*.sql.gz
+*.sql.bak
+
+## MySQL logs
+*.err
+*.slow.log
+*.log.*.gz
+
+## Database dumps (keep only if needed)
+# *.sql
+*.dump
+
+# ==============================================================================
+# REDIS
+# ==============================================================================
+
+## Redis data
+redis-data/
+dump.rdb
+appendonly.aof
+*.rdb
+
+# ==============================================================================
+# ENVIRONMENT & SECRETS
+# ==============================================================================
+
+## Environment files
+.env
+.env.*
+!.env.example
+!.env.sample
+!.env.template
+
+## Firebase
+firebase-debug.log
+firebase-debug.*.log
+.firebase/
+firebase-service-account.json
+*-firebase-adminsdk-*.json
+
+## SSL Certificates
+*.pem
+*.key
+*.crt
+*.cer
+*.p12
+*.pfx
+
+## API Keys and Secrets
+secrets/
+.secrets/
+credentials.json
+service-account.json
+
+# ==============================================================================
+# IDE & EDITORS
+# ==============================================================================
+
+## Visual Studio Code
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+!.vscode/*.code-snippets
+.history/
+*.vsix
+
+## JetBrains (IntelliJ, WebStorm, Rider)
+.idea/
+*.iml
+*.ipr
+*.iws
+out/
+.idea_modules/
+atlassian-ide-plugin.xml
+
+## Sublime Text
+*.sublime-workspace
+*.sublime-project
+
+## Vim
+*.swp
+*.swo
+*.swn
+*~
+.netrwhist
+
+## Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+auto-save-list
+tramp
+.\#*
+
+# ==============================================================================
+# OPERATING SYSTEM
+# ==============================================================================
+
+## macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+
+## Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+Desktop.ini
+$RECYCLE.BIN/
+*.stackdump
+[Dd]esktop.ini
+*.lnk
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+
+## Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+# ==============================================================================
+# LOGS & TEMPORARY FILES
+# ==============================================================================
+
+## Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+## Temporary files
+tmp/
+temp/
+*.tmp
+*.temp
+*.bak
+*.backup
+
+## Cache
+.cache/
+*.cache
+
+# ==============================================================================
+# MISCELLANEOUS
+# ==============================================================================
+
+## Archives (usually shouldn't be in repo)
+*.zip
+*.tar.gz
+*.rar
+*.7z
+
+## Large binary files
+*.exe
+*.dll
+*.so
+*.dylib
+
+## Office files (temporary)
+~$*.doc*
+~$*.xls*
+~$*.ppt*
+*.~*
+
+## Sensitive data patterns
+*password*
+*secret*
+!*password*.example
+!*secret*.example
+
+## Backup files
+*.orig
+*.rej
+
+# ==============================================================================
+# PROJECT SPECIFIC
+# ==============================================================================
+
+## Documentation builds
+docs/_build/
+docs/.vuepress/dist/
+
+## Scripts output
+scripts/output/
+scripts/*.generated.*
+
+## Local development
+.local/
+local/
+*.local.*
+
+## Performance testing
+benchmark-results/
+load-test-results/
+
+## Feature flags (local overrides)
+feature-flags.local.json
