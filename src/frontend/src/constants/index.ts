@@ -114,7 +114,7 @@ export const Routes = {
   // Privadas
   DASHBOARD: '/dashboard',
   CAP_TABLE: '/cap-table',
-  PARTNERS: '/partners',
+  PARTNERS: '/shareholders',
   APPROVALS: '/approvals',
   CONTRACTS: '/contracts',
   VESTING: '/vesting',

@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("PartnershipManager.Application")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+c7424b5188e3515cd7acba0906d2c0590eec7c93")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+d8be75e7604b2bb974436ac25975a6773fe5af20")]
 [assembly: System.Reflection.AssemblyProductAttribute("PartnershipManager.Application")]
 [assembly: System.Reflection.AssemblyTitleAttribute("PartnershipManager.Application")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

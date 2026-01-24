@@ -46,7 +46,9 @@ export interface ClientListResponse {
 export interface ClientCompany {
   id: string;
   name: string;
-  cnpj: string;
-  status: number;
-  createdAt: string;
+  cnpj?: string;
+  cnpjFormatted?: string;
+  valuation?: number;
+  status: string | number;
+  createdAt?: string;
 }

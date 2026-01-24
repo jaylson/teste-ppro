@@ -87,6 +87,12 @@ public class ExceptionHandlingMiddleware
                 errorResponse.Message = domainEx.Message;
                 _logger.LogWarning("Erro de domínio: {Message}", domainEx.Message);
                 break;
+
+            case ArgumentException argumentEx:
+                response.StatusCode = (int)HttpStatusCode.BadRequest;
+                errorResponse.Message = argumentEx.Message;
+                _logger.LogWarning("Argumento inválido: {Message}", argumentEx.Message);
+                break;
                 
             default:
                 response.StatusCode = (int)HttpStatusCode.InternalServerError;

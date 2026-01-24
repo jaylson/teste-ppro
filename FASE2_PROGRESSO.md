@@ -1,8 +1,8 @@
 # Fase 2 - CapTable: Controle de Progresso
 
 **Início:** 23/01/2026  
-**Última Atualização:** 24/01/2026 - Checkpoints Semana 1 e 2 concluídos  
-**Status Geral:** 🟢 Semana 1 e 2 concluídas (Backend 100%, Frontend 100%, API testada)
+**Última Atualização:** 24/01/2026 - Semana 3 concluída  
+**Status Geral:** 🟢 Semanas 1, 2 e 3 concluídas (Shareholders Frontend + Share Classes Backend)
 
 ---
 
@@ -180,6 +180,86 @@
 
 ---
 
+## SEMANA 3: Shareholders Frontend + Share Classes Backend
+
+### Frontend Shareholders
+- [x] **F2-SHR-FE-001** - Type: Shareholder TypeScript interfaces
+  - Início: 24/01/2026
+  - Fim: 24/01/2026
+  - Observações: ✅ shareholder.types.ts com enums, interfaces e tipos de request/response
+- [x] **F2-SHR-FE-002** - Service: shareholderService.ts
+  - Início: 24/01/2026
+  - Fim: 24/01/2026
+  - Observações: ✅ CRUD completo, paginação e filtros
+- [x] **F2-SHR-FE-003/004** - Hooks: useShareholders (queries + mutations)
+  - Início: 24/01/2026
+  - Fim: 24/01/2026
+  - Observações: ✅ React Query hooks para listagem, detalhe, create, update, delete
+- [x] **F2-SHR-FE-005** - Componente: ShareholderCard
+  - Início: 24/01/2026
+  - Fim: 24/01/2026
+  - Observações: ✅ Card com avatar, tipo, status, documento e ações
+- [x] **F2-SHR-FE-006** - Componente: ShareholderBadge (Type + Status)
+  - Início: 24/01/2026
+  - Fim: 24/01/2026
+  - Observações: ✅ TypeBadge (Individual/Company/Investment Fund) e StatusBadge (Active/Inactive/Pending)
+- [x] **F2-SHR-FE-007** - Componente: ShareholderFilters
+  - Início: 24/01/2026
+  - Fim: 24/01/2026
+  - Observações: ✅ Busca por nome, filtros de tipo e status, botão limpar
+- [x] **F2-SHR-FE-008** - Página: ShareholdersListPage
+  - Início: 24/01/2026
+  - Fim: 24/01/2026
+  - Observações: ✅ Grid de cards, paginação, filtros, modal de criação
+- [x] **F2-SHR-FE-009** - Modal: ShareholderFormModal
+  - Início: 24/01/2026
+  - Fim: 24/01/2026
+  - Observações: ✅ Form completo com validação, modo create/edit
+- [x] **F2-SHR-FE-010** - Página: ShareholderDetailPage
+  - Início: 24/01/2026
+  - Fim: 24/01/2026
+  - Observações: ✅ Detalhes completos, tabs futuras preparadas, edição e exclusão
+
+### Database Share Classes
+- [x] **F2-SHC-DB-001** - Criar tabela `share_classes`
+  - Início: 24/01/2026
+  - Fim: 24/01/2026
+  - Observações: ✅ Migration 009_create_share_classes_table.sql com voting rights, liquidation, conversion, anti-dilution
+
+### Backend Share Classes
+- [x] **F2-SHC-BE-001** - Entidade ShareClass.cs
+  - Início: 24/01/2026
+  - Fim: 24/01/2026
+  - Observações: ✅ Agregado com preferências, conversão, anti-diluição, triggers de atualização
+- [x] **F2-SHC-BE-002** - DTOs: ShareClassRequest/Response
+  - Início: 24/01/2026
+  - Fim: 24/01/2026
+  - Observações: ✅ ShareClassResponse, CreateShareClassRequest, UpdateShareClassRequest, ShareClassSummaryDto
+- [x] **F2-SHC-BE-003** - Validator: ShareClassValidator
+  - Início: 24/01/2026
+  - Fim: 24/01/2026
+  - Observações: ✅ FluentValidation para nome, seniority, prices, authorized shares
+- [x] **F2-SHC-BE-004** - Repository: ShareClassRepository
+  - Início: 24/01/2026
+  - Fim: 24/01/2026
+  - Observações: ✅ Dapper CRUD com filtros, paginação, busca por nome, company_id
+- [x] **F2-SHC-BE-005** - Controller: ShareClassesController
+  - Início: 24/01/2026
+  - Fim: 24/01/2026
+  - Observações: ✅ Endpoints REST /api/share-classes, ShareClassService com regras de negócio, DI registrado
+
+### Checkpoint Semana 3
+- [x] Build backend sem erros
+  - Build succeeded with 2 warning(s) - warnings em BackgroundJobs e ClientsController
+- [x] Build frontend sem erros
+  - Compilado com warning de chunk size (912 kB)
+- [x] Rotas /shareholders configuradas
+  - Rotas /shareholders e /shareholders/:id adicionadas ao App.tsx
+- [x] Componentes visuais funcionais
+  - Cards, Badges, Filtros, Modal e Páginas implementados
+
+---
+
 ## Correções Aplicadas (24/01/2026)
 
 ### Banco de Dados
@@ -193,6 +273,13 @@
 - [x] UserRepository.cs: Adicionado `client_id AS ClientId` no SelectColumns
 - [x] ClientContextMiddleware.cs: Busca claim `clientId` (minúsculo) primeiro
 - [x] ShareholderRepository.cs: ParseGuid para suportar Guid e string do Dapper
+- [x] CompanyRepository.cs: Adicionado `client_id AS ClientId` em todas as queries SELECT
+
+### Semana 3 - Correções Adicionais
+- [x] Migration 009: Corrigido INSERT de share class convertível (is_convertible = 0 no INSERT, depois UPDATE)
+- [x] BusinessException: Adicionada classe em DomainExceptions.cs
+- [x] TypeScript: Corrigido DocumentType re-export em shareholder.types.ts
+- [x] TypeScript: Corrigido confirmVariant vs variant em confirmações
 
 ---
 

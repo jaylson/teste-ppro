@@ -7,7 +7,7 @@ public record LoginRequest
 {
     public string Email { get; init; } = string.Empty;
     public string Password { get; init; } = string.Empty;
-    public Guid CompanyId { get; init; }
+    public Guid? CompanyId { get; init; }
 }
 
 /// <summary>

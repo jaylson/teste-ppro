@@ -3,7 +3,7 @@
 export interface LoginRequest {
   email: string;
   password: string;
-  companyId: string;
+  companyId?: string;
 }
 
 export interface AuthResponse {

@@ -48,13 +48,27 @@ public class UserRepository : BaseRepository<User>, IUserRepository
         return await Connection.QueryFirstOrDefaultAsync<User>(sql, new { Id = id.ToString() }, Transaction);
     }
 
-    public async Task<User?> GetByEmailAsync(string email, Guid companyId)
+    public async Task<User?> GetByEmailAsync(string email, Guid? companyId = null)
     {
-        var sql = $@"SELECT {SelectColumns} 
+        string sql;
+        object parameters;
+        
+        if (companyId.HasValue && companyId.Value != Guid.Empty)
+        {
+            sql = $@"SELECT {SelectColumns} 
                      FROM users 
                      WHERE LOWER(email) = LOWER(@Email) AND company_id = @CompanyId AND is_deleted = 0";
-        return await Connection.QueryFirstOrDefaultAsync<User>(sql, 
-            new { Email = email, CompanyId = companyId.ToString() }, Transaction);
+            parameters = new { Email = email, CompanyId = companyId.Value.ToString() };
+        }
+        else
+        {
+            sql = $@"SELECT {SelectColumns} 
+                     FROM users 
+                     WHERE LOWER(email) = LOWER(@Email) AND is_deleted = 0";
+            parameters = new { Email = email };
+        }
+        
+        return await Connection.QueryFirstOrDefaultAsync<User>(sql, parameters, Transaction);
     }
 
     public async Task<bool> EmailExistsAsync(string email, Guid companyId, Guid? excludeId = null)

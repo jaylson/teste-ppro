@@ -2,6 +2,7 @@
 export * from './auth.types';
 export * from './user.types';
 export * from './client.types';
+export * from './shareholder.types';
 
 // Common types
 export interface ApiResponse<T> {

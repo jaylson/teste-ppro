@@ -56,6 +56,7 @@ public static class InfrastructureServiceExtensions
         services.AddScoped<ICoreClientRepository, CoreClientRepository>();
         services.AddScoped<ICompanyRepository, CompanyRepository>();
         services.AddScoped<IShareholderRepository, ShareholderRepository>();
+        services.AddScoped<IShareClassRepository, ShareClassRepository>();
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IUserRoleRepository, UserRoleRepository>();
         services.AddScoped<IAuditLogRepository, AuditLogRepository>();
@@ -70,6 +71,7 @@ public static class InfrastructureServiceExtensions
         // Auth Service
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IShareholderService, ShareholderService>();
+        services.AddScoped<IShareClassService, ShareClassService>();
         
         // PDF Generator Service  
         services.AddScoped<IPdfGeneratorService, PdfGeneratorService>();

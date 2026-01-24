@@ -73,6 +73,7 @@ public class CompanyRepository : BaseRepository<Company>, ICompanyRepository
     {
         var sql = @"SELECT 
                         id AS Id,
+                        client_id AS ClientId,
                         name AS Name,
                         trading_name AS TradingName,
                         cnpj AS Cnpj,
@@ -102,6 +103,7 @@ public class CompanyRepository : BaseRepository<Company>, ICompanyRepository
         
         var sql = @"SELECT 
                         id AS Id,
+                        client_id AS ClientId,
                         name AS Name,
                         trading_name AS TradingName,
                         cnpj AS Cnpj,
@@ -153,6 +155,7 @@ public class CompanyRepository : BaseRepository<Company>, ICompanyRepository
         var countSql = $"SELECT COUNT(*) FROM companies {whereClause}";
         var dataSql = $@"SELECT 
                             id AS Id,
+                            client_id AS ClientId,
                             name AS Name,
                             trading_name AS TradingName,
                             cnpj AS Cnpj,
@@ -180,17 +183,18 @@ public class CompanyRepository : BaseRepository<Company>, ICompanyRepository
     public async Task AddAsync(Company company)
     {
         var sql = @"INSERT INTO companies 
-                    (id, name, trading_name, cnpj, legal_form, foundation_date, 
+                    (id, client_id, name, trading_name, cnpj, legal_form, foundation_date, 
                      total_shares, share_price, currency, logo_url, settings, status,
                      created_at, updated_at, created_by)
                     VALUES 
-                    (@Id, @Name, @TradingName, @Cnpj, @LegalForm, @FoundationDate,
+                    (@Id, @ClientId, @Name, @TradingName, @Cnpj, @LegalForm, @FoundationDate,
                      @TotalShares, @SharePrice, @Currency, @LogoUrl, @Settings, @Status,
                      @CreatedAt, @UpdatedAt, @CreatedBy)";
 
         await Connection.ExecuteAsync(sql, new
         {
             Id = company.Id.ToString(),
+            ClientId = company.ClientId.ToString(),
             company.Name,
             company.TradingName,
             company.Cnpj,

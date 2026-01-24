@@ -85,12 +85,36 @@ public interface IShareholderRepository
 }
 
 /// <summary>
+/// Repositório de classes de ações
+/// </summary>
+public interface IShareClassRepository
+{
+    Task<(IEnumerable<ShareClass> Items, int Total)> GetPagedAsync(
+        Guid clientId,
+        Guid? companyId,
+        int page,
+        int pageSize,
+        string? search = null,
+        string? status = null);
+
+    Task<IEnumerable<ShareClass>> GetByCompanyAsync(Guid clientId, Guid companyId);
+    Task<ShareClass?> GetByIdAsync(Guid id, Guid clientId);
+    Task<ShareClass?> GetByCodeAsync(Guid clientId, Guid companyId, string code);
+    Task<bool> CodeExistsAsync(Guid clientId, Guid companyId, string code, Guid? excludeId = null);
+    Task AddAsync(ShareClass shareClass);
+    Task UpdateAsync(ShareClass shareClass);
+    Task SoftDeleteAsync(Guid id, Guid clientId, Guid? deletedBy = null);
+    Task<bool> ExistsAsync(Guid id, Guid clientId);
+    Task<bool> HasSharesAsync(Guid id);
+}
+
+/// <summary>
 /// Repositório de usuários
 /// </summary>
 public interface IUserRepository
 {
     Task<User?> GetByIdAsync(Guid id);
-    Task<User?> GetByEmailAsync(string email, Guid companyId);
+    Task<User?> GetByEmailAsync(string email, Guid? companyId = null);
     Task<User?> GetByRefreshTokenAsync(string refreshToken);
     Task<bool> EmailExistsAsync(string email, Guid companyId, Guid? excludeId = null);
     Task<IEnumerable<User>> GetByCompanyAsync(Guid companyId);

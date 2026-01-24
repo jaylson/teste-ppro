@@ -316,6 +316,41 @@
             Exclui uma empresa (soft delete)
             </summary>
         </member>
+        <member name="T:PartnershipManager.API.Controllers.ShareClassesController">
+            <summary>
+            CRUD de classes de ações
+            </summary>
+        </member>
+        <member name="M:PartnershipManager.API.Controllers.ShareClassesController.GetAll(System.Nullable{System.Guid},System.Int32,System.Int32,System.String,System.String)">
+            <summary>
+            Lista classes de ações com filtros e paginação
+            </summary>
+        </member>
+        <member name="M:PartnershipManager.API.Controllers.ShareClassesController.GetByCompany(System.Guid)">
+            <summary>
+            Lista classes de ações de uma empresa específica (resumido)
+            </summary>
+        </member>
+        <member name="M:PartnershipManager.API.Controllers.ShareClassesController.GetById(System.Guid)">
+            <summary>
+            Obtém classe de ações por ID
+            </summary>
+        </member>
+        <member name="M:PartnershipManager.API.Controllers.ShareClassesController.Create(PartnershipManager.Application.Features.ShareClasses.DTOs.CreateShareClassRequest)">
+            <summary>
+            Cria nova classe de ações
+            </summary>
+        </member>
+        <member name="M:PartnershipManager.API.Controllers.ShareClassesController.Update(System.Guid,PartnershipManager.Application.Features.ShareClasses.DTOs.UpdateShareClassRequest)">
+            <summary>
+            Atualiza uma classe de ações
+            </summary>
+        </member>
+        <member name="M:PartnershipManager.API.Controllers.ShareClassesController.Delete(System.Guid)">
+            <summary>
+            Remove (soft delete) uma classe de ações
+            </summary>
+        </member>
         <member name="T:PartnershipManager.API.Controllers.ShareholdersController">
             <summary>
             CRUD de sócios/acionistas

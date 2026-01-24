@@ -20,7 +20,7 @@ import { cn } from '@/utils/cn';
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { name: 'Cap Table', href: '/cap-table', icon: PieChart },
-  { name: 'Sócios', href: '/partners', icon: Users },
+  { name: 'Sócios', href: '/shareholders', icon: Users },
   { name: 'Aprovações', href: '/approvals', icon: CheckSquare },
   { name: 'Contratos', href: '/contracts', icon: FileText },
   { name: 'Vesting & Metas', href: '/vesting', icon: Target },

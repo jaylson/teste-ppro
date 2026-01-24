@@ -122,3 +122,16 @@ public enum AuditAction
     PasswordChange = 6,
     StatusChange = 7
 }
+
+public enum ShareClassStatus
+{
+    Active = 1,
+    Inactive = 2
+}
+
+public enum AntiDilutionType
+{
+    None = 0,
+    FullRatchet = 1,
+    WeightedAverage = 2
+}

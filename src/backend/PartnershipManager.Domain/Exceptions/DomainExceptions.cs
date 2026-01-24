@@ -59,6 +59,11 @@ public class ForbiddenException : DomainException
     public ForbiddenException(string message) : base(message) { }
 }
 
+public class BusinessException : DomainException
+{
+    public BusinessException(string message) : base(message) { }
+}
+
 public class BusinessRuleException : DomainException
 {
     public string RuleName { get; }
