@@ -26,12 +26,12 @@ const navigation = [
   { name: 'Vesting & Metas', href: '/vesting', icon: Target },
   { name: 'Valuation', href: '/valuation', icon: TrendingUp },
   { name: 'Financeiro', href: '/financial', icon: DollarSign },
-  { name: 'Billing', href: '/billing', icon: CreditCard },
   { name: 'Portal Investidor', href: '/investor', icon: Briefcase },
 ];
 
 const settingsNavigation = [
   { name: 'Usuários', href: '/settings/users', icon: Users },
+  { name: 'Billing', href: '/billing', icon: CreditCard },
 ];
 
 const languages = [
@@ -85,7 +85,7 @@ export default function Sidebar() {
         {/* Settings Section */}
         <div className="mt-6 pt-6 border-t border-white/10">
           <div className="px-4 py-2 text-xs font-semibold text-white/60 uppercase tracking-wider">
-            Configurações
+            Administração
           </div>
           <ul className="space-y-1">
             {settingsNavigation.map((item) => (
@@ -120,21 +120,6 @@ export default function Sidebar() {
               </option>
             ))}
           </select>
-        </div>
-
-        {/* User Info */}
-        <div className="flex items-center gap-3 px-4 py-2">
-          <div className="avatar avatar-sm bg-white/20 text-white">
-            {user?.name?.charAt(0) || 'U'}
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-white truncate">
-              {user?.name || 'Usuário'}
-            </p>
-            <p className="text-xs text-white/60 truncate">
-              {user?.companyName || 'Empresa'}
-            </p>
-          </div>
         </div>
 
         {/* Actions */}
