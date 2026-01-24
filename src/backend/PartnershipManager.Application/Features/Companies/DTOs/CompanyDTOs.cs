@@ -19,6 +19,16 @@ public record CompanyResponse
     public string Currency { get; init; } = "BRL";
     public decimal Valuation { get; init; }
     public string? LogoUrl { get; init; }
+    
+    // Address fields
+    public string? Cep { get; init; }
+    public string? Street { get; init; }
+    public string? Number { get; init; }
+    public string? Complement { get; init; }
+    public string? Neighborhood { get; init; }
+    public string? City { get; init; }
+    public string? State { get; init; }
+    
     public string Status { get; init; } = string.Empty;
     public DateTime CreatedAt { get; init; }
     public DateTime UpdatedAt { get; init; }
@@ -47,6 +57,15 @@ public record UpdateCompanyRequest
     public string Name { get; init; } = string.Empty;
     public string? TradingName { get; init; }
     public string? LogoUrl { get; init; }
+    
+    // Address fields
+    public string? Cep { get; init; }
+    public string? Street { get; init; }
+    public string? Number { get; init; }
+    public string? Complement { get; init; }
+    public string? Neighborhood { get; init; }
+    public string? City { get; init; }
+    public string? State { get; init; }
 }
 
 /// <summary>

@@ -19,6 +19,15 @@ public class Company : BaseEntity
     public string? Settings { get; private set; }
     public CompanyStatus Status { get; private set; }
     
+    // Address fields
+    public string? Cep { get; private set; }
+    public string? Street { get; private set; }
+    public string? Number { get; private set; }
+    public string? Complement { get; private set; }
+    public string? Neighborhood { get; private set; }
+    public string? City { get; private set; }
+    public string? State { get; private set; }
+    
     // Navigation properties
     public Client? Client { get; private set; }
     
@@ -68,6 +77,18 @@ public class Company : BaseEntity
         Name = name.Trim();
         TradingName = tradingName?.Trim();
         LogoUrl = logoUrl;
+        UpdatedAt = DateTime.UtcNow;
+    }
+    
+    public void UpdateAddress(string? cep, string? street, string? number, string? complement, string? neighborhood, string? city, string? state)
+    {
+        Cep = cep?.Trim();
+        Street = street?.Trim();
+        Number = number?.Trim();
+        Complement = complement?.Trim();
+        Neighborhood = neighborhood?.Trim();
+        City = city?.Trim();
+        State = state?.Trim()?.ToUpperInvariant();
         UpdatedAt = DateTime.UtcNow;
     }
     

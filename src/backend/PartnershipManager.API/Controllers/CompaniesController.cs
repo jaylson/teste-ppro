@@ -130,6 +130,7 @@ public class CompaniesController : ControllerBase
         }
         
         company.UpdateBasicInfo(request.Name, request.TradingName, request.LogoUrl);
+        company.UpdateAddress(request.Cep, request.Street, request.Number, request.Complement, request.Neighborhood, request.City, request.State);
         await _unitOfWork.Companies.UpdateAsync(company);
         
         // Invalidar cache
@@ -260,6 +261,13 @@ public class CompaniesController : ControllerBase
             Currency = company.Currency,
             Valuation = company.Valuation,
             LogoUrl = company.LogoUrl,
+            Cep = company.Cep,
+            Street = company.Street,
+            Number = company.Number,
+            Complement = company.Complement,
+            Neighborhood = company.Neighborhood,
+            City = company.City,
+            State = company.State,
             Status = company.Status.ToString(),
             CreatedAt = company.CreatedAt,
             UpdatedAt = company.UpdatedAt

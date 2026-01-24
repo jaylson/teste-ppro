@@ -13,12 +13,14 @@ import {
   LogOut,
   Globe,
   CreditCard,
+  Building2,
 } from 'lucide-react';
 import { useAuthStore } from '@/stores/authStore';
 import { cn } from '@/utils/cn';
 
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+  { name: 'Empresas', href: '/companies', icon: Building2 },
   { name: 'Cap Table', href: '/cap-table', icon: PieChart },
   { name: 'Sócios', href: '/shareholders', icon: Users },
   { name: 'Aprovações', href: '/approvals', icon: CheckSquare },
