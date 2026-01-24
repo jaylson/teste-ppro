@@ -109,6 +109,57 @@ public interface IShareClassRepository
 }
 
 /// <summary>
+/// Repositório de ações/participações
+/// </summary>
+public interface IShareRepository
+{
+    Task<(IEnumerable<Share> Items, int Total, decimal TotalShares, decimal TotalValue)> GetPagedAsync(
+        Guid clientId,
+        Guid? companyId,
+        int page,
+        int pageSize,
+        Guid? shareholderId = null,
+        Guid? shareClassId = null,
+        string? status = null);
+
+    Task<IEnumerable<Share>> GetByShareholderAsync(Guid clientId, Guid shareholderId);
+    Task<IEnumerable<Share>> GetByShareClassAsync(Guid clientId, Guid shareClassId);
+    Task<IEnumerable<Share>> GetActiveByCompanyAsync(Guid clientId, Guid companyId);
+    Task<Share?> GetByIdAsync(Guid id, Guid clientId);
+    Task<decimal> GetShareholderBalanceAsync(Guid clientId, Guid shareholderId, Guid shareClassId);
+    Task<decimal> GetTotalSharesByCompanyAsync(Guid clientId, Guid companyId);
+    Task<decimal> GetTotalSharesByClassAsync(Guid clientId, Guid shareClassId);
+    Task AddAsync(Share share);
+    Task UpdateAsync(Share share);
+    Task SoftDeleteAsync(Guid id, Guid clientId, Guid? deletedBy = null);
+    Task<bool> ExistsAsync(Guid id, Guid clientId);
+}
+
+/// <summary>
+/// Repositório de transações de ações (ledger imutável)
+/// </summary>
+public interface IShareTransactionRepository
+{
+    Task<(IEnumerable<ShareTransaction> Items, int Total, decimal TotalQuantity, decimal TotalValue)> GetPagedAsync(
+        Guid clientId,
+        Guid? companyId,
+        int page,
+        int pageSize,
+        string? transactionType = null,
+        Guid? shareholderId = null,
+        Guid? shareClassId = null,
+        DateTime? fromDate = null,
+        DateTime? toDate = null);
+
+    Task<IEnumerable<ShareTransaction>> GetByShareAsync(Guid clientId, Guid shareId);
+    Task<IEnumerable<ShareTransaction>> GetByShareholderAsync(Guid clientId, Guid shareholderId);
+    Task<ShareTransaction?> GetByIdAsync(Guid id, Guid clientId);
+    Task<string> GetNextTransactionNumberAsync(Guid companyId);
+    Task AddAsync(ShareTransaction transaction);
+    Task<bool> ExistsAsync(Guid id, Guid clientId);
+}
+
+/// <summary>
 /// Repositório de usuários
 /// </summary>
 public interface IUserRepository

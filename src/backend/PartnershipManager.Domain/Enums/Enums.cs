@@ -152,3 +152,29 @@ public enum AntiDilutionType
     FullRatchet = 1,
     WeightedAverage = 2
 }
+
+public enum ShareOrigin
+{
+    Issue = 1,
+    Transfer = 2,
+    Conversion = 3,
+    Grant = 4
+}
+
+public enum ShareStatus
+{
+    Active = 1,
+    Cancelled = 2,
+    Converted = 3,
+    Transferred = 4
+}
+
+public enum TransactionType
+{
+    Issue = 1,
+    Transfer = 2,
+    Cancel = 3,
+    Convert = 4,
+    Split = 5,
+    ReverseSplit = 6
+}

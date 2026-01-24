@@ -211,6 +211,28 @@
             Deleta uma assinatura
             </summary>
         </member>
+        <member name="T:PartnershipManager.API.Controllers.CapTableController">
+            <summary>
+            Visualização do Cap Table (quadro societário)
+            </summary>
+        </member>
+        <member name="M:PartnershipManager.API.Controllers.CapTableController.GetCapTable(System.Guid)">
+            <summary>
+            Obtém o Cap Table de uma empresa
+            </summary>
+            <param name="companyId">ID da empresa</param>
+            <returns>Cap Table com lista de sócios, ações e percentuais</returns>
+        </member>
+        <member name="M:PartnershipManager.API.Controllers.CapTableController.GetSummaryByType(System.Guid)">
+            <summary>
+            Obtém o resumo do Cap Table por tipo de sócio
+            </summary>
+        </member>
+        <member name="M:PartnershipManager.API.Controllers.CapTableController.GetSummaryByClass(System.Guid)">
+            <summary>
+            Obtém o resumo do Cap Table por classe de ações
+            </summary>
+        </member>
         <member name="T:PartnershipManager.API.Controllers.ClientsController">
             <summary>
             Controller de clientes (entidade raiz do multi-tenancy)
@@ -379,6 +401,61 @@
         <member name="M:PartnershipManager.API.Controllers.ShareholdersController.Delete(System.Guid)">
             <summary>
             Remove (soft delete) um shareholder
+            </summary>
+        </member>
+        <member name="T:PartnershipManager.API.Controllers.SharesController">
+            <summary>
+            Gestão de ações/participações e transações
+            </summary>
+        </member>
+        <member name="M:PartnershipManager.API.Controllers.SharesController.GetAllShares(System.Nullable{System.Guid},System.Nullable{System.Guid},System.Nullable{System.Guid},System.String,System.Int32,System.Int32)">
+            <summary>
+            Lista ações/participações com filtros e paginação
+            </summary>
+        </member>
+        <member name="M:PartnershipManager.API.Controllers.SharesController.GetShareById(System.Guid)">
+            <summary>
+            Obtém uma participação por ID
+            </summary>
+        </member>
+        <member name="M:PartnershipManager.API.Controllers.SharesController.GetByShareholderShares(System.Guid)">
+            <summary>
+            Lista participações de um sócio específico
+            </summary>
+        </member>
+        <member name="M:PartnershipManager.API.Controllers.SharesController.GetShareholderBalance(System.Guid,System.Guid)">
+            <summary>
+            Consulta saldo de ações de um sócio em uma classe específica
+            </summary>
+        </member>
+        <member name="M:PartnershipManager.API.Controllers.SharesController.GetAllTransactions(System.Nullable{System.Guid},System.String,System.Nullable{System.Guid},System.Nullable{System.Guid},System.Nullable{System.DateTime},System.Nullable{System.DateTime},System.Int32,System.Int32)">
+            <summary>
+            Lista transações de ações com filtros e paginação
+            </summary>
+        </member>
+        <member name="M:PartnershipManager.API.Controllers.SharesController.GetTransactionById(System.Guid)">
+            <summary>
+            Obtém uma transação por ID
+            </summary>
+        </member>
+        <member name="M:PartnershipManager.API.Controllers.SharesController.GetTransactionsByShareholder(System.Guid)">
+            <summary>
+            Lista transações de um sócio específico
+            </summary>
+        </member>
+        <member name="M:PartnershipManager.API.Controllers.SharesController.IssueShares(PartnershipManager.Application.Features.Shares.DTOs.IssueSharesRequest)">
+            <summary>
+            Emite novas ações para um sócio
+            </summary>
+        </member>
+        <member name="M:PartnershipManager.API.Controllers.SharesController.TransferShares(PartnershipManager.Application.Features.Shares.DTOs.TransferSharesRequest)">
+            <summary>
+            Transfere ações entre sócios
+            </summary>
+        </member>
+        <member name="M:PartnershipManager.API.Controllers.SharesController.CancelShares(PartnershipManager.Application.Features.Shares.DTOs.CancelSharesRequest)">
+            <summary>
+            Cancela ações de um sócio
             </summary>
         </member>
         <member name="T:PartnershipManager.API.Controllers.UsersController">

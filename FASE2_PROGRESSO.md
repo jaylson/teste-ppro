@@ -1,8 +1,8 @@
 # Fase 2 - CapTable: Controle de Progresso
 
 **Início:** 23/01/2026  
-**Última Atualização:** 24/01/2026 - Semana 3 concluída  
-**Status Geral:** 🟢 Semanas 1, 2 e 3 concluídas (Shareholders Frontend + Share Classes Backend)
+**Última Atualização:** 24/01/2026 - Semana 4 em andamento (Shares + Ledger + Cap Table Backend)
+**Status Geral:** 🟢 Semanas 1, 2, 3 concluídas | Semana 4 iniciada
 
 ---
 
@@ -260,6 +260,83 @@
 
 ---
 
+## SEMANA 4: Shares + Ledger + Cap Table View
+
+### Database
+- [x] **F2-SHA-DB-001** - Criar tabela `shares`
+  - Início: 24/01/2026
+  - Fim: 24/01/2026
+  - Observações: ✅ Migration 013_create_shares_table.sql com campos completos
+- [x] **F2-SHA-DB-002** - Criar tabela `share_transactions`
+  - Início: 24/01/2026
+  - Fim: 24/01/2026
+  - Observações: ✅ Ledger imutável com triggers para impedir UPDATE/DELETE
+- [x] **F2-SHA-DB-003** - Trigger: Impedir UPDATE/DELETE em transactions
+  - Início: 24/01/2026
+  - Fim: 24/01/2026
+  - Observações: ✅ Triggers criados: trg_share_transactions_no_update, trg_share_transactions_no_delete
+
+### Backend
+- [x] **F2-SHA-BE-001** - Entidade `Share.cs`
+  - Início: 24/01/2026
+  - Fim: 24/01/2026
+  - Observações: ✅ Entidade com status, origin, navigation properties
+- [x] **F2-SHA-BE-002** - Entidade `ShareTransaction.cs`
+  - Início: 24/01/2026
+  - Fim: 24/01/2026
+  - Observações: ✅ Imutável, factory methods para Issue/Transfer/Cancel/Convert
+- [x] **F2-SHA-BE-003** - Enums ShareOrigin, ShareStatus, TransactionType
+  - Início: 24/01/2026
+  - Fim: 24/01/2026
+  - Observações: ✅ Adicionados em Enums.cs
+- [x] **F2-SHA-BE-004** - DTOs de Shares e Transactions
+  - Início: 24/01/2026
+  - Fim: 24/01/2026
+  - Observações: ✅ ShareDTOs.cs com Request/Response completos + CapTable DTOs
+- [x] **F2-SHA-BE-005** - Validators ShareValidators
+  - Início: 24/01/2026
+  - Fim: 24/01/2026
+  - Observações: ✅ FluentValidation para Issue/Transfer/Cancel/Convert
+- [x] **F2-SHA-BE-006** - Repository: ShareRepository
+  - Início: 24/01/2026
+  - Fim: 24/01/2026
+  - Observações: ✅ CRUD, paginação, balance queries
+- [x] **F2-SHA-BE-007** - Repository: ShareTransactionRepository
+  - Início: 24/01/2026
+  - Fim: 24/01/2026
+  - Observações: ✅ Append-only, transaction number generation
+- [x] **F2-SHA-BE-008** - Service: ShareService
+  - Início: 24/01/2026
+  - Fim: 24/01/2026
+  - Observações: ✅ IssueShares, TransferShares, CancelShares, GetCapTable
+- [x] **F2-SHA-BE-009** - Controller: SharesController
+  - Início: 24/01/2026
+  - Fim: 24/01/2026
+  - Observações: ✅ Endpoints REST para shares, transactions, balance
+- [x] **F2-CAP-BE-001** - Controller: CapTableController
+  - Início: 24/01/2026
+  - Fim: 24/01/2026
+  - Observações: ✅ GET cap-table/{companyId}, summary-by-type, summary-by-class
+
+### Testes
+- [x] **F2-SHA-TST-001** - Testes via API
+  - Início: 24/01/2026
+  - Fim: 24/01/2026
+  - Observações: ✅ Endpoints testados: GET /shares, GET /transactions, GET /cap-table
+
+### Checkpoint Semana 4
+- [x] Build backend sem erros
+  - Build succeeded with 2 warning(s)
+- [x] Endpoints Shares funcionando
+  - GET /api/shares ✅
+  - GET /api/shares/transactions ✅
+  - GET /api/shares/balance ✅
+- [x] Cap Table funcionando
+  - GET /api/cap-table/{companyId} ✅
+  - Retorna entries, summaryByType, summaryByClass
+
+---
+
 ## Correções Aplicadas (24/01/2026)
 
 ### Banco de Dados
@@ -278,6 +355,10 @@
 ### Semana 3 - Correções Adicionais
 - [x] Migration 009: Corrigido INSERT de share class convertível (is_convertible = 0 no INSERT, depois UPDATE)
 - [x] BusinessException: Adicionada classe em DomainExceptions.cs
+
+### Semana 4 - Correções Adicionais
+- [x] Share.cs: Substituído MarkAsUpdated() por UpdatedAt = DateTime.UtcNow
+- [x] ShareRepository.cs: Adicionado método ParseBool para converter TINYINT → bool
 - [x] TypeScript: Corrigido DocumentType re-export em shareholder.types.ts
 - [x] TypeScript: Corrigido confirmVariant vs variant em confirmações
 

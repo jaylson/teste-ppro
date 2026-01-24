@@ -72,6 +72,11 @@ public static class InfrastructureServiceExtensions
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IShareholderService, ShareholderService>();
         services.AddScoped<IShareClassService, ShareClassService>();
+        services.AddScoped<IShareService, ShareService>();
+        
+        // Repositories - Shares
+        services.AddScoped<IShareRepository, ShareRepository>();
+        services.AddScoped<IShareTransactionRepository, ShareTransactionRepository>();
         
         // PDF Generator Service  
         services.AddScoped<IPdfGeneratorService, PdfGeneratorService>();
