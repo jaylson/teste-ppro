@@ -61,9 +61,9 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:5000
-      - ConnectionStrings__MySQL=Server=mysql;Port=3306;Database=${MYSQL_DATABASE:-partnership_manager};User=${MYSQL_USER:-pm_user};Password=${MYSQL_PASSWORD:-Pm@2025};
+      - ConnectionStrings__MySQL=Server=mysql;Port=3306;Database=${MYSQL_DATABASE:-partnership_manager};User=${MYSQL_USER:-pm_user};Password=${MYSQL_PASSWORD:-Pm@2025};CharSet=utf8mb4;AllowUserVariables=True;
       - ConnectionStrings__Redis=redis:6379
-      - ConnectionStrings__Hangfire=Server=mysql;Port=3306;Database=hangfire;User=${MYSQL_USER:-pm_user};Password=${MYSQL_PASSWORD:-Pm@2025};
+      - ConnectionStrings__Hangfire=Server=mysql;Port=3306;Database=hangfire;User=${MYSQL_USER:-pm_user};Password=${MYSQL_PASSWORD:-Pm@2025};CharSet=utf8mb4;AllowUserVariables=True;
       - Jwt__Secret=${JWT_SECRET:-PartnershipManager_SecretKey_2025_Min32Chars!}
       - Jwt__Issuer=${JWT_ISSUER:-PartnershipManager}
       - Jwt__Audience=${JWT_AUDIENCE:-PartnershipManagerApp}
