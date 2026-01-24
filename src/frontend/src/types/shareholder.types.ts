@@ -4,17 +4,34 @@
 export { DocumentType } from './client.types';
 
 export enum ShareholderType {
-  Founder = 0,
-  Investor = 1,
-  Employee = 2,
-  Advisor = 3,
-  Other = 4,
+  Founder = 1,
+  Investor = 2,
+  Employee = 3,
+  Advisor = 4,
+  ESOP = 5,
+  Other = 99,
 }
 
 export enum ShareholderStatus {
-  Active = 0,
-  Inactive = 1,
-  Pending = 2,
+  Active = 1,
+  Inactive = 2,
+  Pending = 3,
+  Exited = 4,
+}
+
+export enum Gender {
+  Male = 1,
+  Female = 2,
+  Other = 3,
+  NotInformed = 4,
+}
+
+export enum MaritalStatus {
+  Single = 1,
+  Married = 2,
+  StableUnion = 3,
+  Divorced = 4,
+  Widowed = 5,
 }
 
 // Import DocumentType for local use
@@ -34,6 +51,15 @@ export interface Shareholder {
   type: ShareholderType;
   status: ShareholderStatus;
   notes?: string;
+  addressStreet?: string;
+  addressNumber?: string;
+  addressComplement?: string;
+  addressZipCode?: string;
+  addressCity?: string;
+  addressState?: string;
+  maritalStatus?: MaritalStatus;
+  gender?: Gender;
+  birthDate?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -57,6 +83,15 @@ export interface CreateShareholderRequest {
   email?: string;
   phone?: string;
   notes?: string;
+  addressStreet?: string;
+  addressNumber?: string;
+  addressComplement?: string;
+  addressZipCode?: string;
+  addressCity?: string;
+  addressState?: string;
+  maritalStatus?: MaritalStatus;
+  gender?: Gender;
+  birthDate?: string;
 }
 
 export interface UpdateShareholderRequest {
@@ -69,6 +104,15 @@ export interface UpdateShareholderRequest {
   email?: string;
   phone?: string;
   notes?: string;
+  addressStreet?: string;
+  addressNumber?: string;
+  addressComplement?: string;
+  addressZipCode?: string;
+  addressCity?: string;
+  addressState?: string;
+  maritalStatus?: MaritalStatus;
+  gender?: Gender;
+  birthDate?: string;
 }
 
 export interface ShareholderFilters {
@@ -86,6 +130,7 @@ export const shareholderTypeLabels: Record<ShareholderType, string> = {
   [ShareholderType.Investor]: 'Investidor',
   [ShareholderType.Employee]: 'Funcionário',
   [ShareholderType.Advisor]: 'Advisor',
+  [ShareholderType.ESOP]: 'ESOP',
   [ShareholderType.Other]: 'Outro',
 };
 
@@ -93,6 +138,22 @@ export const shareholderStatusLabels: Record<ShareholderStatus, string> = {
   [ShareholderStatus.Active]: 'Ativo',
   [ShareholderStatus.Inactive]: 'Inativo',
   [ShareholderStatus.Pending]: 'Pendente',
+  [ShareholderStatus.Exited]: 'Saída',
+};
+
+export const genderLabels: Record<Gender, string> = {
+  [Gender.Male]: 'Masculino',
+  [Gender.Female]: 'Feminino',
+  [Gender.Other]: 'Outro',
+  [Gender.NotInformed]: 'Não informado',
+};
+
+export const maritalStatusLabels: Record<MaritalStatus, string> = {
+  [MaritalStatus.Single]: 'Solteiro(a)',
+  [MaritalStatus.Married]: 'Casado(a)',
+  [MaritalStatus.StableUnion]: 'União estável',
+  [MaritalStatus.Divorced]: 'Divorciado(a)',
+  [MaritalStatus.Widowed]: 'Viúvo(a)',
 };
 
 export const documentTypeLabels: Record<DocumentType, string> = {

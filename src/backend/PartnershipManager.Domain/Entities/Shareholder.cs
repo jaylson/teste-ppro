@@ -15,6 +15,15 @@ public class Shareholder : BaseEntity
     public ShareholderStatus Status { get; private set; }
     public string? Notes { get; private set; }
     public string? CompanyName { get; private set; }
+    public string? AddressStreet { get; private set; }
+    public string? AddressNumber { get; private set; }
+    public string? AddressComplement { get; private set; }
+    public string? AddressZipCode { get; private set; }
+    public string? AddressCity { get; private set; }
+    public string? AddressState { get; private set; }
+    public MaritalStatus? MaritalStatus { get; private set; }
+    public Gender? Gender { get; private set; }
+    public DateTime? BirthDate { get; private set; }
 
     public string DocumentFormatted => DocumentType == DocumentType.Cnpj
         ? Convert.ToUInt64(Document).ToString(@"00\.000\.000\/0000\-00")
@@ -33,6 +42,15 @@ public class Shareholder : BaseEntity
         string? phone = null,
         ShareholderStatus status = ShareholderStatus.Active,
         string? notes = null,
+        string? addressStreet = null,
+        string? addressNumber = null,
+        string? addressComplement = null,
+        string? addressZipCode = null,
+        string? addressCity = null,
+        string? addressState = null,
+        MaritalStatus? maritalStatus = null,
+        Gender? gender = null,
+        DateTime? birthDate = null,
         Guid? createdBy = null)
     {
         var normalizedDocument = NormalizeDocument(document);
@@ -50,10 +68,19 @@ public class Shareholder : BaseEntity
             Document = normalizedDocument,
             DocumentType = documentType,
             Type = type,
-            Email = email?.Trim(),
-            Phone = phone?.Trim(),
+            Email = NormalizeOptionalString(email),
+            Phone = NormalizeOptionalString(phone),
             Status = status,
-            Notes = notes?.Trim(),
+            Notes = NormalizeOptionalString(notes),
+            AddressStreet = NormalizeOptionalString(addressStreet),
+            AddressNumber = NormalizeOptionalString(addressNumber),
+            AddressComplement = NormalizeOptionalString(addressComplement),
+            AddressZipCode = NormalizeZipCode(addressZipCode),
+            AddressCity = NormalizeOptionalString(addressCity),
+            AddressState = NormalizeState(addressState),
+            MaritalStatus = maritalStatus,
+            Gender = gender,
+            BirthDate = birthDate,
             CompanyName = null,
             CreatedBy = createdBy,
             UpdatedBy = createdBy
@@ -67,14 +94,32 @@ public class Shareholder : BaseEntity
         ShareholderType type,
         ShareholderStatus status,
         string? notes,
+        string? addressStreet,
+        string? addressNumber,
+        string? addressComplement,
+        string? addressZipCode,
+        string? addressCity,
+        string? addressState,
+        MaritalStatus? maritalStatus,
+        Gender? gender,
+        DateTime? birthDate,
         Guid? updatedBy = null)
     {
         Name = name.Trim();
-        Email = email?.Trim();
-        Phone = phone?.Trim();
+        Email = NormalizeOptionalString(email);
+        Phone = NormalizeOptionalString(phone);
         Type = type;
         Status = status;
-        Notes = notes?.Trim();
+        Notes = NormalizeOptionalString(notes);
+        AddressStreet = NormalizeOptionalString(addressStreet);
+        AddressNumber = NormalizeOptionalString(addressNumber);
+        AddressComplement = NormalizeOptionalString(addressComplement);
+        AddressZipCode = NormalizeZipCode(addressZipCode);
+        AddressCity = NormalizeOptionalString(addressCity);
+        AddressState = NormalizeState(addressState);
+        MaritalStatus = maritalStatus;
+        Gender = gender;
+        BirthDate = birthDate;
         UpdatedBy = updatedBy;
         UpdatedAt = DateTime.UtcNow;
     }
@@ -110,6 +155,22 @@ public class Shareholder : BaseEntity
     private static string NormalizeDocument(string document)
     {
         return new string(document.Where(char.IsDigit).ToArray());
+    }
+
+    private static string? NormalizeOptionalString(string? value)
+    {
+        return string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+    }
+
+    private static string? NormalizeZipCode(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value)) return null;
+        return new string(value.Where(char.IsDigit).ToArray());
+    }
+
+    private static string? NormalizeState(string? value)
+    {
+        return string.IsNullOrWhiteSpace(value) ? null : value.Trim().ToUpperInvariant();
     }
 
     private static bool IsValidDocument(string document, DocumentType type)

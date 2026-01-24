@@ -71,6 +71,15 @@ public class ShareholderService : IShareholderService
             request.Phone,
             ShareholderStatus.Active,
             request.Notes,
+            request.AddressStreet,
+            request.AddressNumber,
+            request.AddressComplement,
+            request.AddressZipCode,
+            request.AddressCity,
+            request.AddressState,
+            request.MaritalStatus,
+            request.Gender,
+            request.BirthDate,
             userId);
 
         shareholder.SetCompanyName(company.Name);
@@ -110,11 +119,20 @@ public class ShareholderService : IShareholderService
 
         shareholder.UpdateInfo(
             request.Name,
-            request.Email,
-            request.Phone,
+            request.Email ?? shareholder.Email,
+            request.Phone ?? shareholder.Phone,
             request.Type,
             request.Status,
-            request.Notes,
+            request.Notes ?? shareholder.Notes,
+            request.AddressStreet ?? shareholder.AddressStreet,
+            request.AddressNumber ?? shareholder.AddressNumber,
+            request.AddressComplement ?? shareholder.AddressComplement,
+            request.AddressZipCode ?? shareholder.AddressZipCode,
+            request.AddressCity ?? shareholder.AddressCity,
+            request.AddressState ?? shareholder.AddressState,
+            request.MaritalStatus ?? shareholder.MaritalStatus,
+            request.Gender ?? shareholder.Gender,
+            request.BirthDate ?? shareholder.BirthDate,
             userId);
 
         await _shareholderRepository.UpdateAsync(shareholder);
@@ -149,6 +167,15 @@ public class ShareholderService : IShareholderService
             Type = shareholder.Type,
             Status = shareholder.Status,
             Notes = shareholder.Notes,
+            AddressStreet = shareholder.AddressStreet,
+            AddressNumber = shareholder.AddressNumber,
+            AddressComplement = shareholder.AddressComplement,
+            AddressZipCode = shareholder.AddressZipCode,
+            AddressCity = shareholder.AddressCity,
+            AddressState = shareholder.AddressState,
+            MaritalStatus = shareholder.MaritalStatus,
+            Gender = shareholder.Gender,
+            BirthDate = shareholder.BirthDate,
             CreatedAt = shareholder.CreatedAt,
             UpdatedAt = shareholder.UpdatedAt
         };

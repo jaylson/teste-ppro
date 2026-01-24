@@ -1,12 +1,12 @@
 export enum DocumentType {
-  Cpf = 0,
-  Cnpj = 1,
+  Cpf = 1,
+  Cnpj = 2,
 }
 
 export enum ClientStatus {
-  Active = 0,
-  Inactive = 1,
-  Suspended = 2,
+  Active = 1,
+  Inactive = 2,
+  Suspended = 3,
 }
 
 export interface Client {

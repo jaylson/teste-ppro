@@ -31,6 +31,28 @@ public class CreateShareholderValidator : AbstractValidator<CreateShareholderReq
         RuleFor(x => x.Phone)
             .MaximumLength(20)
             .When(x => !string.IsNullOrWhiteSpace(x.Phone));
+
+        RuleFor(x => x.AddressZipCode)
+            .Must(ValidateCep)
+            .When(x => !string.IsNullOrWhiteSpace(x.AddressZipCode))
+            .WithMessage("CEP inválido");
+
+        RuleFor(x => x.AddressState)
+            .Length(2)
+            .When(x => !string.IsNullOrWhiteSpace(x.AddressState));
+
+        RuleFor(x => x.BirthDate)
+            .LessThanOrEqualTo(DateTime.UtcNow.Date)
+            .When(x => x.BirthDate.HasValue)
+            .WithMessage("Data de nascimento inválida");
+
+        RuleFor(x => x.Gender)
+            .IsInEnum()
+            .When(x => x.Gender.HasValue);
+
+        RuleFor(x => x.MaritalStatus)
+            .IsInEnum()
+            .When(x => x.MaritalStatus.HasValue);
     }
 
     private static bool ValidateDocument(string document, DocumentType type)
@@ -42,6 +64,12 @@ public class CreateShareholderValidator : AbstractValidator<CreateShareholderReq
             DocumentType.Cnpj => clean.Length == SystemConstants.CnpjLength,
             _ => false
         };
+    }
+
+    private static bool ValidateCep(string? cep)
+    {
+        var clean = new string((cep ?? string.Empty).Where(char.IsDigit).ToArray());
+        return clean.Length == 8;
     }
 }
 
@@ -60,6 +88,28 @@ public class UpdateShareholderValidator : AbstractValidator<UpdateShareholderReq
         RuleFor(x => x.Phone)
             .MaximumLength(20)
             .When(x => !string.IsNullOrWhiteSpace(x.Phone));
+
+        RuleFor(x => x.AddressZipCode)
+            .Must(ValidateCep)
+            .When(x => !string.IsNullOrWhiteSpace(x.AddressZipCode))
+            .WithMessage("CEP inválido");
+
+        RuleFor(x => x.AddressState)
+            .Length(2)
+            .When(x => !string.IsNullOrWhiteSpace(x.AddressState));
+
+        RuleFor(x => x.BirthDate)
+            .LessThanOrEqualTo(DateTime.UtcNow.Date)
+            .When(x => x.BirthDate.HasValue)
+            .WithMessage("Data de nascimento inválida");
+
+        RuleFor(x => x.Gender)
+            .IsInEnum()
+            .When(x => x.Gender.HasValue);
+
+        RuleFor(x => x.MaritalStatus)
+            .IsInEnum()
+            .When(x => x.MaritalStatus.HasValue);
 
         When(x => !string.IsNullOrWhiteSpace(x.Document) || x.DocumentType.HasValue, () =>
         {
@@ -84,5 +134,11 @@ public class UpdateShareholderValidator : AbstractValidator<UpdateShareholderReq
             DocumentType.Cnpj => clean.Length == SystemConstants.CnpjLength,
             _ => false
         };
+    }
+
+    private static bool ValidateCep(string? cep)
+    {
+        var clean = new string((cep ?? string.Empty).Where(char.IsDigit).ToArray());
+        return clean.Length == 8;
     }
 }

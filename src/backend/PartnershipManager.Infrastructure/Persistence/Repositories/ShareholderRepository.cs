@@ -79,6 +79,15 @@ public class ShareholderRepository : IShareholderRepository
                         sh.type AS Type,
                         sh.status AS Status,
                         sh.notes AS Notes,
+                        sh.address_street AS AddressStreet,
+                        sh.address_number AS AddressNumber,
+                        sh.address_complement AS AddressComplement,
+                        sh.address_zip_code AS AddressZipCode,
+                        sh.address_city AS AddressCity,
+                        sh.address_state AS AddressState,
+                        sh.marital_status AS MaritalStatus,
+                        sh.gender AS Gender,
+                        sh.birth_date AS BirthDate,
                         sh.created_at AS CreatedAt,
                         sh.updated_at AS UpdatedAt,
                         sh.created_by AS CreatedBy,
@@ -108,6 +117,15 @@ public class ShareholderRepository : IShareholderRepository
                         sh.type AS Type,
                         sh.status AS Status,
                         sh.notes AS Notes,
+                        sh.address_street AS AddressStreet,
+                        sh.address_number AS AddressNumber,
+                        sh.address_complement AS AddressComplement,
+                        sh.address_zip_code AS AddressZipCode,
+                        sh.address_city AS AddressCity,
+                        sh.address_state AS AddressState,
+                        sh.marital_status AS MaritalStatus,
+                        sh.gender AS Gender,
+                        sh.birth_date AS BirthDate,
                         sh.created_at AS CreatedAt,
                         sh.updated_at AS UpdatedAt,
                         sh.created_by AS CreatedBy,
@@ -144,6 +162,15 @@ public class ShareholderRepository : IShareholderRepository
                         sh.type AS Type,
                         sh.status AS Status,
                         sh.notes AS Notes,
+                        sh.address_street AS AddressStreet,
+                        sh.address_number AS AddressNumber,
+                        sh.address_complement AS AddressComplement,
+                        sh.address_zip_code AS AddressZipCode,
+                        sh.address_city AS AddressCity,
+                        sh.address_state AS AddressState,
+                        sh.marital_status AS MaritalStatus,
+                        sh.gender AS Gender,
+                        sh.birth_date AS BirthDate,
                         sh.created_at AS CreatedAt,
                         sh.updated_at AS UpdatedAt,
                         sh.created_by AS CreatedBy,
@@ -189,9 +216,13 @@ public class ShareholderRepository : IShareholderRepository
     public async Task AddAsync(Shareholder shareholder)
     {
         var sql = @"INSERT INTO shareholders
-                    (id, client_id, company_id, name, document, document_type, email, phone, type, status, notes, created_at, updated_at, created_by, updated_by, is_deleted)
-                    VALUES
-                    (@Id, @ClientId, @CompanyId, @Name, @Document, @DocumentType, @Email, @Phone, @Type, @Status, @Notes, @CreatedAt, @UpdatedAt, @CreatedBy, @UpdatedBy, @IsDeleted)";
+                (id, client_id, company_id, name, document, document_type, email, phone, type, status, notes,
+                 address_street, address_number, address_complement, address_zip_code, address_city, address_state,
+                 marital_status, gender, birth_date, created_at, updated_at, created_by, updated_by, is_deleted)
+                VALUES
+                (@Id, @ClientId, @CompanyId, @Name, @Document, @DocumentType, @Email, @Phone, @Type, @Status, @Notes,
+                 @AddressStreet, @AddressNumber, @AddressComplement, @AddressZipCode, @AddressCity, @AddressState,
+                 @MaritalStatus, @Gender, @BirthDate, @CreatedAt, @UpdatedAt, @CreatedBy, @UpdatedBy, @IsDeleted)";
 
         await Connection.ExecuteAsync(sql, new
         {
@@ -206,6 +237,15 @@ public class ShareholderRepository : IShareholderRepository
             Type = shareholder.Type.ToString(),
             Status = shareholder.Status.ToString(),
             shareholder.Notes,
+            shareholder.AddressStreet,
+            shareholder.AddressNumber,
+            shareholder.AddressComplement,
+            AddressZipCode = shareholder.AddressZipCode,
+            AddressCity = shareholder.AddressCity,
+            AddressState = shareholder.AddressState,
+            MaritalStatus = shareholder.MaritalStatus?.ToString(),
+            Gender = shareholder.Gender?.ToString(),
+            BirthDate = shareholder.BirthDate,
             shareholder.CreatedAt,
             shareholder.UpdatedAt,
             CreatedBy = shareholder.CreatedBy?.ToString(),
@@ -226,6 +266,15 @@ public class ShareholderRepository : IShareholderRepository
                         type = @Type,
                         status = @Status,
                         notes = @Notes,
+                        address_street = @AddressStreet,
+                        address_number = @AddressNumber,
+                        address_complement = @AddressComplement,
+                        address_zip_code = @AddressZipCode,
+                        address_city = @AddressCity,
+                        address_state = @AddressState,
+                        marital_status = @MaritalStatus,
+                        gender = @Gender,
+                        birth_date = @BirthDate,
                         updated_at = @UpdatedAt,
                         updated_by = @UpdatedBy
                     WHERE id = @Id AND client_id = @ClientId";
@@ -243,6 +292,15 @@ public class ShareholderRepository : IShareholderRepository
             Type = shareholder.Type.ToString(),
             Status = shareholder.Status.ToString(),
             shareholder.Notes,
+            shareholder.AddressStreet,
+            shareholder.AddressNumber,
+            shareholder.AddressComplement,
+            AddressZipCode = shareholder.AddressZipCode,
+            AddressCity = shareholder.AddressCity,
+            AddressState = shareholder.AddressState,
+            MaritalStatus = shareholder.MaritalStatus?.ToString(),
+            Gender = shareholder.Gender?.ToString(),
+            BirthDate = shareholder.BirthDate,
             shareholder.UpdatedAt,
             UpdatedBy = shareholder.UpdatedBy?.ToString()
         }, Transaction);
@@ -296,6 +354,15 @@ public class ShareholderRepository : IShareholderRepository
             (string?)row.Phone,
             Enum.Parse<ShareholderStatus>((string)row.Status, true),
             (string?)row.Notes,
+            (string?)row.AddressStreet,
+            (string?)row.AddressNumber,
+            (string?)row.AddressComplement,
+            (string?)row.AddressZipCode,
+            (string?)row.AddressCity,
+            (string?)row.AddressState,
+            row.MaritalStatus == null ? null : Enum.Parse<MaritalStatus>((string)row.MaritalStatus, true),
+            row.Gender == null ? null : Enum.Parse<Gender>((string)row.Gender, true),
+            row.BirthDate as DateTime?,
             ParseNullableGuid(row.CreatedBy));
 
         shareholder.Id = ParseGuid(row.Id);

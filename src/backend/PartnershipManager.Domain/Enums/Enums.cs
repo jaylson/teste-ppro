@@ -77,6 +77,23 @@ public enum ShareholderStatus
     Exited = 4
 }
 
+public enum Gender
+{
+    Male = 1,
+    Female = 2,
+    Other = 3,
+    NotInformed = 4
+}
+
+public enum MaritalStatus
+{
+    Single = 1,
+    Married = 2,
+    StableUnion = 3,
+    Divorced = 4,
+    Widowed = 5
+}
+
 public enum ContractStatus
 {
     Draft = 1,

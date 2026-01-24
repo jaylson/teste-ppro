@@ -18,6 +18,15 @@ public record ShareholderResponse
     public ShareholderType Type { get; init; }
     public ShareholderStatus Status { get; init; }
     public string? Notes { get; init; }
+    public string? AddressStreet { get; init; }
+    public string? AddressNumber { get; init; }
+    public string? AddressComplement { get; init; }
+    public string? AddressZipCode { get; init; }
+    public string? AddressCity { get; init; }
+    public string? AddressState { get; init; }
+    public MaritalStatus? MaritalStatus { get; init; }
+    public Gender? Gender { get; init; }
+    public DateTime? BirthDate { get; init; }
     public DateTime CreatedAt { get; init; }
     public DateTime UpdatedAt { get; init; }
 }
@@ -40,6 +49,15 @@ public record CreateShareholderRequest
     public string? Email { get; init; }
     public string? Phone { get; init; }
     public string? Notes { get; init; }
+    public string? AddressStreet { get; init; }
+    public string? AddressNumber { get; init; }
+    public string? AddressComplement { get; init; }
+    public string? AddressZipCode { get; init; }
+    public string? AddressCity { get; init; }
+    public string? AddressState { get; init; }
+    public MaritalStatus? MaritalStatus { get; init; }
+    public Gender? Gender { get; init; }
+    public DateTime? BirthDate { get; init; }
 }
 
 public record UpdateShareholderRequest
@@ -53,4 +71,13 @@ public record UpdateShareholderRequest
     public string? Document { get; init; }
     public DocumentType? DocumentType { get; init; }
     public string? Notes { get; init; }
+    public string? AddressStreet { get; init; }
+    public string? AddressNumber { get; init; }
+    public string? AddressComplement { get; init; }
+    public string? AddressZipCode { get; init; }
+    public string? AddressCity { get; init; }
+    public string? AddressState { get; init; }
+    public MaritalStatus? MaritalStatus { get; init; }
+    public Gender? Gender { get; init; }
+    public DateTime? BirthDate { get; init; }
 }
