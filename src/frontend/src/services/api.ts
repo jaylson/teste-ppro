@@ -144,33 +144,33 @@ export interface ClientListItem {
 }
 
 export const clientsApi = {
-  // Listar todos os clientes
+  // Listar todos os clientes (billing clients)
   getAll: async (): Promise<ClientListItem[]> => {
-    const response = await api.get<ClientListItem[]>('/clients');
+    const response = await api.get<ClientListItem[]>('/billing/clients');
     return response.data;
   },
 
   // Buscar cliente por ID
   getById: async (id: string): Promise<Client> => {
-    const response = await api.get<Client>(`/clients/${id}`);
+    const response = await api.get<Client>(`/billing/clients/${id}`);
     return response.data;
   },
 
   // Criar novo cliente
   create: async (client: Omit<Client, 'id' | 'createdAt' | 'subscriptionsCount'>): Promise<Client> => {
-    const response = await api.post<Client>('/clients', client);
+    const response = await api.post<Client>('/billing/clients', client);
     return response.data;
   },
 
   // Atualizar cliente
   update: async (id: string, client: Omit<Client, 'id' | 'createdAt' | 'subscriptionsCount'>): Promise<Client> => {
-    const response = await api.put<Client>(`/clients/${id}`, client);
+    const response = await api.put<Client>(`/billing/clients/${id}`, client);
     return response.data;
   },
 
   // Deletar cliente
   delete: async (id: string): Promise<void> => {
-    await api.delete(`/clients/${id}`);
+    await api.delete(`/billing/clients/${id}`);
   },
 };
 

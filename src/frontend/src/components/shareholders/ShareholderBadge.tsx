@@ -16,6 +16,7 @@ const typeColors: Record<ShareholderType, string> = {
   [ShareholderType.Investor]: 'bg-blue-100 text-blue-700 border-blue-200',
   [ShareholderType.Employee]: 'bg-green-100 text-green-700 border-green-200',
   [ShareholderType.Advisor]: 'bg-amber-100 text-amber-700 border-amber-200',
+  [ShareholderType.ESOP]: 'bg-cyan-100 text-cyan-700 border-cyan-200',
   [ShareholderType.Other]: 'bg-gray-100 text-gray-700 border-gray-200',
 };
 
@@ -23,6 +24,7 @@ const statusColors: Record<ShareholderStatus, string> = {
   [ShareholderStatus.Active]: 'bg-success-100 text-success-700 border-success-200',
   [ShareholderStatus.Inactive]: 'bg-gray-100 text-gray-600 border-gray-200',
   [ShareholderStatus.Pending]: 'bg-warning-100 text-warning-700 border-warning-200',
+  [ShareholderStatus.Exited]: 'bg-red-100 text-red-600 border-red-200',
 };
 
 export function ShareholderTypeBadge({ type, className }: ShareholderTypeBadgeProps) {
