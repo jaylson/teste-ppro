@@ -8,6 +8,19 @@ public enum UserStatus
     Blocked = 4
 }
 
+public enum ClientStatus
+{
+    Active = 1,
+    Inactive = 2,
+    Suspended = 3
+}
+
+public enum DocumentType
+{
+    Cpf = 1,
+    Cnpj = 2
+}
+
 public enum CompanyStatus
 {
     Active = 1,

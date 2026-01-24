@@ -15,6 +15,7 @@ public class UserRepository : BaseRepository<User>, IUserRepository
 
     private const string SelectColumns = @"
         id AS Id,
+        client_id AS ClientId,
         company_id AS CompanyId,
         email AS Email,
         name AS Name,

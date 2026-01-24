@@ -34,6 +34,31 @@
             Altera a senha do usuário autenticado
             </summary>
         </member>
+        <member name="M:PartnershipManager.API.Controllers.BillingClientsController.GetAll(System.Threading.CancellationToken)">
+            <summary>
+            Lista todos os clientes
+            </summary>
+        </member>
+        <member name="M:PartnershipManager.API.Controllers.BillingClientsController.GetById(System.Guid,System.Threading.CancellationToken)">
+            <summary>
+            Busca cliente por ID
+            </summary>
+        </member>
+        <member name="M:PartnershipManager.API.Controllers.BillingClientsController.Create(PartnershipManager.Application.Features.Billing.DTOs.ClientCreateDto,System.Threading.CancellationToken)">
+            <summary>
+            Cria um novo cliente
+            </summary>
+        </member>
+        <member name="M:PartnershipManager.API.Controllers.BillingClientsController.Update(System.Guid,PartnershipManager.Application.Features.Billing.DTOs.ClientUpdateDto,System.Threading.CancellationToken)">
+            <summary>
+            Atualiza um cliente
+            </summary>
+        </member>
+        <member name="M:PartnershipManager.API.Controllers.BillingClientsController.Delete(System.Guid,System.Threading.CancellationToken)">
+            <summary>
+            Remove um cliente (soft delete)
+            </summary>
+        </member>
         <member name="M:PartnershipManager.API.Controllers.Billing.InvoicesController.GetAll(System.Nullable{System.Guid},System.String,System.Nullable{System.DateTime},System.Nullable{System.DateTime},System.Nullable{System.Guid},System.Threading.CancellationToken)">
             <summary>
             Lista todas as faturas com filtros opcionais
@@ -186,29 +211,64 @@
             Deleta uma assinatura
             </summary>
         </member>
-        <member name="M:PartnershipManager.API.Controllers.ClientsController.GetAll(System.Threading.CancellationToken)">
+        <member name="T:PartnershipManager.API.Controllers.ClientsController">
             <summary>
-            Lista todos os clientes
+            Controller de clientes (entidade raiz do multi-tenancy)
             </summary>
         </member>
-        <member name="M:PartnershipManager.API.Controllers.ClientsController.GetById(System.Guid,System.Threading.CancellationToken)">
+        <member name="M:PartnershipManager.API.Controllers.ClientsController.GetAll(System.Int32,System.Int32,System.String,System.String)">
             <summary>
-            Busca cliente por ID
+            Lista todos os clientes com paginação
             </summary>
         </member>
-        <member name="M:PartnershipManager.API.Controllers.ClientsController.Create(PartnershipManager.Application.Features.Billing.DTOs.ClientCreateDto,System.Threading.CancellationToken)">
+        <member name="M:PartnershipManager.API.Controllers.ClientsController.GetById(System.Guid)">
+            <summary>
+            Obtém um cliente por ID
+            </summary>
+        </member>
+        <member name="M:PartnershipManager.API.Controllers.ClientsController.GetClientCompanies(System.Guid)">
+            <summary>
+            Obtém as companies de um client
+            </summary>
+        </member>
+        <member name="M:PartnershipManager.API.Controllers.ClientsController.Create(PartnershipManager.Application.Features.Clients.DTOs.CreateClientRequest)">
             <summary>
             Cria um novo cliente
             </summary>
         </member>
-        <member name="M:PartnershipManager.API.Controllers.ClientsController.Update(System.Guid,PartnershipManager.Application.Features.Billing.DTOs.ClientUpdateDto,System.Threading.CancellationToken)">
+        <member name="M:PartnershipManager.API.Controllers.ClientsController.Update(System.Guid,PartnershipManager.Application.Features.Clients.DTOs.UpdateClientRequest)">
             <summary>
             Atualiza um cliente
             </summary>
         </member>
-        <member name="M:PartnershipManager.API.Controllers.ClientsController.Delete(System.Guid,System.Threading.CancellationToken)">
+        <member name="M:PartnershipManager.API.Controllers.ClientsController.UpdateEmail(System.Guid,PartnershipManager.Application.Features.Clients.DTOs.UpdateClientEmailRequest)">
             <summary>
-            Remove um cliente (soft delete)
+            Atualiza o email do cliente
+            </summary>
+        </member>
+        <member name="M:PartnershipManager.API.Controllers.ClientsController.UpdateSettings(System.Guid,PartnershipManager.Application.Features.Clients.DTOs.UpdateClientSettingsRequest)">
+            <summary>
+            Atualiza as configurações do cliente
+            </summary>
+        </member>
+        <member name="M:PartnershipManager.API.Controllers.ClientsController.Activate(System.Guid)">
+            <summary>
+            Ativa um cliente
+            </summary>
+        </member>
+        <member name="M:PartnershipManager.API.Controllers.ClientsController.Suspend(System.Guid)">
+            <summary>
+            Suspende um cliente
+            </summary>
+        </member>
+        <member name="M:PartnershipManager.API.Controllers.ClientsController.Deactivate(System.Guid)">
+            <summary>
+            Desativa um cliente
+            </summary>
+        </member>
+        <member name="M:PartnershipManager.API.Controllers.ClientsController.Delete(System.Guid)">
+            <summary>
+            Exclui um cliente (soft delete)
             </summary>
         </member>
         <member name="T:PartnershipManager.API.Controllers.CompaniesController">
@@ -254,6 +314,36 @@
         <member name="M:PartnershipManager.API.Controllers.CompaniesController.Delete(System.Guid)">
             <summary>
             Exclui uma empresa (soft delete)
+            </summary>
+        </member>
+        <member name="T:PartnershipManager.API.Controllers.ShareholdersController">
+            <summary>
+            CRUD de sócios/acionistas
+            </summary>
+        </member>
+        <member name="M:PartnershipManager.API.Controllers.ShareholdersController.GetAll(System.Nullable{System.Guid},System.Int32,System.Int32,System.String,System.String,System.String)">
+            <summary>
+            Lista shareholders com filtros
+            </summary>
+        </member>
+        <member name="M:PartnershipManager.API.Controllers.ShareholdersController.GetById(System.Guid)">
+            <summary>
+            Obtém shareholder por id
+            </summary>
+        </member>
+        <member name="M:PartnershipManager.API.Controllers.ShareholdersController.Create(PartnershipManager.Application.Features.Shareholders.DTOs.CreateShareholderRequest)">
+            <summary>
+            Cria novo shareholder
+            </summary>
+        </member>
+        <member name="M:PartnershipManager.API.Controllers.ShareholdersController.Update(System.Guid,PartnershipManager.Application.Features.Shareholders.DTOs.UpdateShareholderRequest)">
+            <summary>
+            Atualiza um shareholder
+            </summary>
+        </member>
+        <member name="M:PartnershipManager.API.Controllers.ShareholdersController.Delete(System.Guid)">
+            <summary>
+            Remove (soft delete) um shareholder
             </summary>
         </member>
         <member name="T:PartnershipManager.API.Controllers.UsersController">
@@ -329,6 +419,37 @@
         <member name="T:PartnershipManager.API.Extensions.CurrentUserService">
             <summary>
             Serviço para obter informações do usuário atual
+            </summary>
+        </member>
+        <member name="T:PartnershipManager.API.Middlewares.ClientContextMiddleware">
+            <summary>
+            Middleware para extrair e validar o contexto do Client a partir do token JWT
+            </summary>
+        </member>
+        <member name="T:PartnershipManager.API.Middlewares.ClientContextMiddlewareExtensions">
+            <summary>
+            Extensão para facilitar o uso do ClientContextMiddleware
+            </summary>
+        </member>
+        <member name="T:PartnershipManager.API.Middlewares.HttpContextClientExtensions">
+            <summary>
+            Extensões para acessar o contexto do Client
+            </summary>
+        </member>
+        <member name="T:PartnershipManager.API.Middlewares.CompanyContextMiddleware">
+            <summary>
+            Middleware para extrair e validar o contexto da Company a partir do header ou query
+            Valida se o usuário tem acesso à company através da tabela user_companies
+            </summary>
+        </member>
+        <member name="T:PartnershipManager.API.Middlewares.CompanyContextMiddlewareExtensions">
+            <summary>
+            Extensão para facilitar o uso do CompanyContextMiddleware
+            </summary>
+        </member>
+        <member name="T:PartnershipManager.API.Middlewares.HttpContextCompanyExtensions">
+            <summary>
+            Extensões para acessar o contexto da Company
             </summary>
         </member>
         <member name="T:PartnershipManager.API.Middlewares.ExceptionHandlingMiddleware">

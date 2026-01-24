@@ -68,7 +68,8 @@ public class AuthService : IAuthService
             new(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
             new(JwtRegisteredClaimNames.Email, user.Email),
             new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-            new("companyId", user.CompanyId.ToString()),
+            new("clientId", user.ClientId.ToString()),
+            new("companyId", user.CompanyId?.ToString() ?? string.Empty),
             new("name", user.Name)
         };
 

@@ -7,7 +7,8 @@ namespace PartnershipManager.Domain.Entities;
 
 public partial class User : BaseEntity
 {
-    public Guid CompanyId { get; private set; }
+    public Guid ClientId { get; private set; }
+    public Guid? CompanyId { get; private set; }
     public string Email { get; private set; } = string.Empty;
     public string Name { get; private set; } = string.Empty;
     public string PasswordHash { get; private set; } = string.Empty;
@@ -25,22 +26,31 @@ public partial class User : BaseEntity
     public string? RefreshToken { get; private set; }
     public DateTime? RefreshTokenExpiry { get; private set; }
     
+    // Navigation properties
+    public Client? Client { get; private set; }
+    public Company? Company { get; private set; }
+    
     public bool IsLockedOut => LockoutEnd.HasValue && LockoutEnd > DateTime.UtcNow;
     
     private User() { }
     
     public static User Create(
-        Guid companyId,
+        Guid clientId,
         string email,
         string name,
         string passwordHash,
+        Guid? companyId = null,
         Language language = Language.Portuguese)
     {
+        if (clientId == Guid.Empty)
+            throw new DomainException("ClientId is required");
+            
         ValidateEmail(email);
         ValidateName(name);
         
         return new User
         {
+            ClientId = clientId,
             CompanyId = companyId,
             Email = email.Trim().ToLowerInvariant(),
             Name = name.Trim(),

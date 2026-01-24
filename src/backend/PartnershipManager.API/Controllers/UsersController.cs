@@ -274,9 +274,9 @@ public class UsersController : ControllerBase
         }
         
         // Não permitir remover o último admin
-        if (role == "Admin")
+        if (role == "Admin" && user.CompanyId.HasValue)
         {
-            var admins = await _unitOfWork.Users.GetActiveUsersByCompanyAsync(user.CompanyId);
+            var admins = await _unitOfWork.Users.GetActiveUsersByCompanyAsync(user.CompanyId.Value);
             var adminCount = 0;
             foreach (var admin in admins)
             {
@@ -393,7 +393,7 @@ public class UsersController : ControllerBase
         return new UserResponse
         {
             Id = user.Id,
-            CompanyId = user.CompanyId,
+            CompanyId = user.CompanyId ?? Guid.Empty,
             Email = user.Email,
             Name = user.Name,
             AvatarUrl = user.AvatarUrl,

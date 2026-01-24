@@ -58,6 +58,10 @@ app.UseCors("DefaultPolicy");
 app.UseAuthentication();
 app.UseAuthorization();
 
+// Client and Company Context (após autenticação)
+app.UseClientContext();
+app.UseCompanyContext();
+
 // Health Checks
 app.MapHealthChecks("/health", new HealthCheckOptions
 {

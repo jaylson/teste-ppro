@@ -6,6 +6,7 @@ namespace PartnershipManager.Domain.Entities;
 
 public class Company : BaseEntity
 {
+    public Guid ClientId { get; private set; }
     public string Name { get; private set; } = string.Empty;
     public string? TradingName { get; private set; }
     public string Cnpj { get; private set; } = string.Empty;
@@ -18,6 +19,9 @@ public class Company : BaseEntity
     public string? Settings { get; private set; }
     public CompanyStatus Status { get; private set; }
     
+    // Navigation properties
+    public Client? Client { get; private set; }
+    
     // Calculated
     public decimal Valuation => TotalShares * SharePrice;
     public string CnpjFormatted => FormatCnpj(Cnpj);
@@ -25,6 +29,7 @@ public class Company : BaseEntity
     private Company() { }
     
     public static Company Create(
+        Guid clientId,
         string name,
         string cnpj,
         LegalForm legalForm,
@@ -34,6 +39,9 @@ public class Company : BaseEntity
         string? tradingName = null,
         string currency = "BRL")
     {
+        if (clientId == Guid.Empty)
+            throw new DomainException("ClientId is required");
+            
         ValidateName(name);
         ValidateCnpj(cnpj);
         ValidateFoundationDate(foundationDate);
@@ -41,6 +49,7 @@ public class Company : BaseEntity
         
         return new Company
         {
+            ClientId = clientId,
             Name = name.Trim(),
             TradingName = tradingName?.Trim(),
             Cnpj = NormalizeCnpj(cnpj),

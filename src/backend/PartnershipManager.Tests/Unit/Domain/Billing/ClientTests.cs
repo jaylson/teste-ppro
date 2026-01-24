@@ -1,4 +1,5 @@
 using PartnershipManager.Domain.Entities.Billing;
+using BillingClient = PartnershipManager.Domain.Entities.Billing.Client;
 
 namespace PartnershipManager.Tests.Unit.Domain.Billing;
 
@@ -8,7 +9,7 @@ public class ClientTests
     public void Client_ShouldInitializeWithDefaultValues()
     {
         // Arrange & Act
-        var client = new Client
+        var client = new BillingClient
         {
             Name = "TechStartup Ltda",
             Email = "contato@techstartup.com",
@@ -31,7 +32,7 @@ public class ClientTests
     public void Client_ShouldAcceptValidTypes(ClientType type)
     {
         // Arrange & Act
-        var client = new Client
+        var client = new BillingClient
         {
             Name = "Test Client",
             Email = "test@email.com",
@@ -51,7 +52,7 @@ public class ClientTests
     public void Client_ShouldAcceptValidStatuses(ClientStatus status)
     {
         // Arrange & Act
-        var client = new Client
+        var client = new BillingClient
         {
             Name = "Test Client",
             Email = "test@email.com",
@@ -68,7 +69,7 @@ public class ClientTests
     public void Client_ShouldStoreContactInformation()
     {
         // Arrange & Act
-        var client = new Client
+        var client = new BillingClient
         {
             Name = "João Silva",
             Email = "joao@email.com",

@@ -80,7 +80,8 @@ public class AuthController : ControllerBase
         await _unitOfWork.Users.UpdateLoginInfoAsync(user.Id, true);
         
         var roles = await _unitOfWork.UserRoles.GetRoleNamesByUserIdAsync(user.Id);
-        var company = await _unitOfWork.Companies.GetByIdAsync(user.CompanyId);
+        var companyId = user.CompanyId;
+        var company = companyId.HasValue ? await _unitOfWork.Companies.GetByIdAsync(companyId.Value) : null;
         
         var accessToken = _authService.GenerateJwtToken(user, roles);
         var refreshToken = _authService.GenerateRefreshToken();
@@ -100,10 +101,11 @@ public class AuthController : ControllerBase
             User = new UserInfo
             {
                 Id = user.Id,
+                ClientId = user.ClientId,
                 Email = user.Email,
                 Name = user.Name,
                 AvatarUrl = user.AvatarUrl,
-                CompanyId = user.CompanyId,
+                CompanyId = companyId ?? Guid.Empty,
                 CompanyName = company?.Name ?? string.Empty,
                 Roles = roles.ToList(),
                 Language = user.Language.ToString().ToLower()
@@ -166,7 +168,8 @@ public class AuthController : ControllerBase
             newRefreshToken, 
             DateTime.UtcNow.AddDays(refreshTokenExpirationDays));
         
-        var company = await _unitOfWork.Companies.GetByIdAsync(user.CompanyId);
+        var companyId = user.CompanyId;
+        var company = companyId.HasValue ? await _unitOfWork.Companies.GetByIdAsync(companyId.Value) : null;
         
         var response = new AuthResponse
         {
@@ -177,10 +180,11 @@ public class AuthController : ControllerBase
             User = new UserInfo
             {
                 Id = user.Id,
+                ClientId = user.ClientId,
                 Email = user.Email,
                 Name = user.Name,
                 AvatarUrl = user.AvatarUrl,
-                CompanyId = user.CompanyId,
+                CompanyId = companyId ?? Guid.Empty,
                 CompanyName = company?.Name ?? string.Empty,
                 Roles = roles.ToList(),
                 Language = user.Language.ToString().ToLower()
@@ -216,15 +220,17 @@ public class AuthController : ControllerBase
         }
         
         var roles = await _unitOfWork.UserRoles.GetRoleNamesByUserIdAsync(user.Id);
-        var company = await _unitOfWork.Companies.GetByIdAsync(user.CompanyId);
+        var companyId = user.CompanyId;
+        var company = companyId.HasValue ? await _unitOfWork.Companies.GetByIdAsync(companyId.Value) : null;
         
         var userInfo = new UserInfo
         {
             Id = user.Id,
+            ClientId = user.ClientId,
             Email = user.Email,
             Name = user.Name,
             AvatarUrl = user.AvatarUrl,
-            CompanyId = user.CompanyId,
+            CompanyId = companyId ?? Guid.Empty,
             CompanyName = company?.Name ?? string.Empty,
             Roles = roles.ToList(),
             Language = user.Language.ToString().ToLower()

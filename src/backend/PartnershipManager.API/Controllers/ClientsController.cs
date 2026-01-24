@@ -1,302 +1,387 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using PartnershipManager.Application.Features.Billing.DTOs;
-using PartnershipManager.Domain.Entities.Billing;
-using PartnershipManager.Domain.Interfaces.Billing;
+using PartnershipManager.Application.Common.Models;
+using PartnershipManager.Application.Features.Clients.DTOs;
+using PartnershipManager.Domain.Constants;
+using PartnershipManager.Domain.Entities;
+using PartnershipManager.Domain.Exceptions;
+using PartnershipManager.Domain.Interfaces;
 
 namespace PartnershipManager.API.Controllers;
 
-// [Authorize] // Temporariamente desabilitado para testes
+/// <summary>
+/// Controller de clientes (entidade raiz do multi-tenancy)
+/// </summary>
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
+[Produces("application/json")]
 public class ClientsController : ControllerBase
 {
-    private readonly IClientRepository _clientRepository;
+    private readonly ICoreClientRepository _clientRepository;
+    private readonly ICacheService _cacheService;
     private readonly ILogger<ClientsController> _logger;
-
+    
     public ClientsController(
-        IClientRepository clientRepository,
+        ICoreClientRepository clientRepository,
+        ICacheService cacheService,
         ILogger<ClientsController> logger)
     {
         _clientRepository = clientRepository;
+        _cacheService = cacheService;
         _logger = logger;
     }
-
+    
     /// <summary>
-    /// Lista todos os clientes
+    /// Lista todos os clientes com paginação
     /// </summary>
     [HttpGet]
-    [ProducesResponseType(typeof(IEnumerable<ClientListResponseDto>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<IEnumerable<ClientListResponseDto>>> GetAll(CancellationToken cancellationToken)
+    [Authorize(Roles = "SuperAdmin")]
+    [ProducesResponseType(typeof(ApiResponse<PagedResult<ClientSummaryResponse>>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetAll(
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 10,
+        [FromQuery] string? search = null,
+        [FromQuery] string? status = null)
     {
-        try
+        pageSize = Math.Min(pageSize, SystemConstants.MaxPageSize);
+        
+        var (clients, total) = await _clientRepository.GetPagedAsync(page, pageSize, search, status);
+        
+        var items = new List<ClientSummaryResponse>();
+        foreach (var client in clients)
         {
-            var clients = await _clientRepository.GetAllAsync(cancellationToken);
+            var companiesCount = await _clientRepository.GetClientCompaniesCountAsync(client.Id);
+            var usersCount = await _clientRepository.GetClientUsersCountAsync(client.Id);
             
-            var response = new List<ClientListResponseDto>();
-            foreach (var client in clients)
-            {
-                var subscriptionsCount = await _clientRepository.GetSubscriptionsCountAsync(client.Id, cancellationToken);
-                
-                response.Add(new ClientListResponseDto
-                {
-                    Id = client.Id,
-                    Name = client.Name,
-                    Email = client.Email,
-                    Document = client.Document,
-                    Type = client.Type.ToString().ToLower(),
-                    Status = MapStatus(client.Status),
-                    CreatedAt = client.CreatedAt,
-                    SubscriptionsCount = subscriptionsCount
-                });
-            }
-
-            return Ok(response);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Erro ao buscar clientes");
-            return StatusCode(500, new { message = "Erro ao buscar clientes" });
-        }
-    }
-
-    /// <summary>
-    /// Busca cliente por ID
-    /// </summary>
-    [HttpGet("{id:guid}")]
-    [ProducesResponseType(typeof(ClientResponseDto), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<ClientResponseDto>> GetById(Guid id, CancellationToken cancellationToken)
-    {
-        try
-        {
-            var client = await _clientRepository.GetByIdAsync(id, cancellationToken);
-            
-            if (client == null)
-                return NotFound(new { message = "Cliente não encontrado" });
-
-            var subscriptionsCount = await _clientRepository.GetSubscriptionsCountAsync(client.Id, cancellationToken);
-
-            var response = new ClientResponseDto
+            items.Add(new ClientSummaryResponse
             {
                 Id = client.Id,
                 Name = client.Name,
+                TradingName = client.TradingName,
+                DocumentFormatted = client.DocumentFormatted,
                 Email = client.Email,
-                Document = client.Document,
-                Type = client.Type.ToString().ToLower(),
-                Status = MapStatus(client.Status),
-                Phone = client.Phone,
-                Address = client.Address,
-                City = client.City,
-                State = client.State,
-                ZipCode = client.ZipCode,
-                Country = client.Country,
-                CreatedAt = client.CreatedAt,
-                UpdatedAt = client.UpdatedAt,
-                SubscriptionsCount = subscriptionsCount
-            };
-
-            return Ok(response);
+                Status = client.Status.ToString(),
+                TotalCompanies = companiesCount,
+                TotalUsers = usersCount
+            });
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Erro ao buscar cliente {ClientId}", id);
-            return StatusCode(500, new { message = "Erro ao buscar cliente" });
-        }
+        
+        var pagedResult = new PagedResult<ClientSummaryResponse>(items, total, page, pageSize);
+        
+        return Ok(ApiResponse<PagedResult<ClientSummaryResponse>>.Ok(pagedResult));
     }
-
+    
+    /// <summary>
+    /// Obtém um cliente por ID
+    /// </summary>
+    [HttpGet("{id:guid}")]
+    [ProducesResponseType(typeof(ApiResponse<ClientResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetById(Guid id)
+    {
+        var cacheKey = $"client:{id}";
+        
+        var client = await _cacheService.GetOrSetAsync(
+            cacheKey,
+            async () => await _clientRepository.GetByIdAsync(id),
+            TimeSpan.FromMinutes(SystemConstants.CacheExpirationMinutes));
+        
+        if (client == null)
+        {
+            throw new NotFoundException("Cliente", id);
+        }
+        
+        var response = await MapToResponseAsync(client);
+        
+        return Ok(ApiResponse<ClientResponse>.Ok(response));
+    }
+    
+    /// <summary>
+    /// Obtém as companies de um client
+    /// </summary>
+    [HttpGet("{id:guid}/companies")]
+    [ProducesResponseType(typeof(ApiResponse<IEnumerable<ClientCompanyResponse>>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetClientCompanies(Guid id)
+    {
+        if (!await _clientRepository.ExistsAsync(id))
+        {
+            throw new NotFoundException("Cliente", id);
+        }
+        
+        var companies = await _clientRepository.GetClientCompaniesAsync(id);
+        
+        var response = companies.Select(c => new ClientCompanyResponse
+        {
+            Id = c.Id,
+            Name = c.Name,
+            CnpjFormatted = c.CnpjFormatted,
+            Valuation = c.Valuation,
+            Status = c.Status.ToString()
+        });
+        
+        return Ok(ApiResponse<IEnumerable<ClientCompanyResponse>>.Ok(response));
+    }
+    
     /// <summary>
     /// Cria um novo cliente
     /// </summary>
     [HttpPost]
-    [ProducesResponseType(typeof(ClientResponseDto), StatusCodes.Status201Created)]
+    [Authorize(Roles = "SuperAdmin")]
+    [ProducesResponseType(typeof(ApiResponse<ClientResponse>), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<ClientResponseDto>> Create(
-        [FromBody] ClientCreateDto dto,
-        CancellationToken cancellationToken)
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<IActionResult> Create([FromBody] CreateClientRequest request)
     {
-        try
+        // Verificar se documento já existe
+        if (await _clientRepository.DocumentExistsAsync(request.Document))
         {
-            // Validar se email já existe
-            var existingEmail = await _clientRepository.GetByEmailAsync(dto.Email, cancellationToken);
-            if (existingEmail != null)
-                return BadRequest(new { message = "Email já cadastrado" });
-
-            // Validar se documento já existe
-            var existingDocument = await _clientRepository.GetByDocumentAsync(dto.Document, cancellationToken);
-            if (existingDocument != null)
-                return BadRequest(new { message = "Documento já cadastrado" });
-
-            var client = new Client
-            {
-                Name = dto.Name,
-                Email = dto.Email,
-                Document = dto.Document,
-                Type = dto.Type.ToLower() == "individual" ? ClientType.Individual : ClientType.Company,
-                Status = ClientStatus.Active,
-                Phone = dto.Phone,
-                Address = dto.Address,
-                City = dto.City,
-                State = dto.State,
-                ZipCode = dto.ZipCode,
-                Country = dto.Country ?? "Brasil"
-            };
-
-            var clientId = await _clientRepository.CreateAsync(client, cancellationToken);
-            var createdClient = await _clientRepository.GetByIdAsync(clientId, cancellationToken);
-
-            if (createdClient == null)
-                return StatusCode(500, new { message = "Erro ao criar cliente" });
-
-            var response = new ClientResponseDto
-            {
-                Id = createdClient.Id,
-                Name = createdClient.Name,
-                Email = createdClient.Email,
-                Document = createdClient.Document,
-                Type = createdClient.Type.ToString().ToLower(),
-                Status = MapStatus(createdClient.Status),
-                Phone = createdClient.Phone,
-                Address = createdClient.Address,
-                City = createdClient.City,
-                State = createdClient.State,
-                ZipCode = createdClient.ZipCode,
-                Country = createdClient.Country,
-                CreatedAt = createdClient.CreatedAt,
-                UpdatedAt = createdClient.UpdatedAt,
-                SubscriptionsCount = 0
-            };
-
-            return CreatedAtAction(nameof(GetById), new { id = response.Id }, response);
+            throw new ConflictException("Documento já cadastrado");
         }
-        catch (Exception ex)
+        
+        // Verificar se email já existe
+        if (await _clientRepository.EmailExistsAsync(request.Email))
         {
-            _logger.LogError(ex, "Erro ao criar cliente");
-            return StatusCode(500, new { message = "Erro ao criar cliente" });
+            throw new ConflictException("Email já cadastrado");
         }
+        
+        var client = Client.Create(
+            request.Name,
+            request.Document,
+            request.DocumentType,
+            request.Email,
+            request.TradingName,
+            request.Phone);
+        
+        await _clientRepository.AddAsync(client);
+        
+        _logger.LogInformation("Cliente criado: {ClientId} - {Name}", client.Id, client.Name);
+        
+        var response = await MapToResponseAsync(client);
+        return CreatedAtAction(nameof(GetById), new { id = client.Id }, 
+            ApiResponse<ClientResponse>.Ok(response, "Cliente criado com sucesso"));
     }
-
+    
     /// <summary>
     /// Atualiza um cliente
     /// </summary>
     [HttpPut("{id:guid}")]
-    [ProducesResponseType(typeof(ClientResponseDto), StatusCodes.Status200OK)]
+    [Authorize(Roles = "SuperAdmin,Admin")]
+    [ProducesResponseType(typeof(ApiResponse<ClientResponse>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<ClientResponseDto>> Update(
-        Guid id,
-        [FromBody] ClientUpdateDto dto,
-        CancellationToken cancellationToken)
+    public async Task<IActionResult> Update(Guid id, [FromBody] UpdateClientRequest request)
     {
-        try
+        var client = await _clientRepository.GetByIdAsync(id);
+        if (client == null)
         {
-            var existingClient = await _clientRepository.GetByIdAsync(id, cancellationToken);
-            if (existingClient == null)
-                return NotFound(new { message = "Cliente não encontrado" });
-
-            // Validar se email já existe em outro cliente
-            var existingEmail = await _clientRepository.GetByEmailAsync(dto.Email, cancellationToken);
-            if (existingEmail != null && existingEmail.Id != id)
-                return BadRequest(new { message = "Email já cadastrado" });
-
-            // Validar se documento já existe em outro cliente
-            var existingDocument = await _clientRepository.GetByDocumentAsync(dto.Document, cancellationToken);
-            if (existingDocument != null && existingDocument.Id != id)
-                return BadRequest(new { message = "Documento já cadastrado" });
-
-            existingClient.Name = dto.Name;
-            existingClient.Email = dto.Email;
-            existingClient.Document = dto.Document;
-            existingClient.Type = dto.Type.ToLower() == "individual" ? ClientType.Individual : ClientType.Company;
-            existingClient.Status = MapStatusFromString(dto.Status);
-            existingClient.Phone = dto.Phone;
-            existingClient.Address = dto.Address;
-            existingClient.City = dto.City;
-            existingClient.State = dto.State;
-            existingClient.ZipCode = dto.ZipCode;
-            existingClient.Country = dto.Country ?? "Brasil";
-
-            var updated = await _clientRepository.UpdateAsync(existingClient, cancellationToken);
-            if (!updated)
-                return StatusCode(500, new { message = "Erro ao atualizar cliente" });
-
-            var updatedClient = await _clientRepository.GetByIdAsync(id, cancellationToken);
-            var subscriptionsCount = await _clientRepository.GetSubscriptionsCountAsync(id, cancellationToken);
-
-            var response = new ClientResponseDto
-            {
-                Id = updatedClient!.Id,
-                Name = updatedClient.Name,
-                Email = updatedClient.Email,
-                Document = updatedClient.Document,
-                Type = updatedClient.Type.ToString().ToLower(),
-                Status = MapStatus(updatedClient.Status),
-                Phone = updatedClient.Phone,
-                Address = updatedClient.Address,
-                City = updatedClient.City,
-                State = updatedClient.State,
-                ZipCode = updatedClient.ZipCode,
-                Country = updatedClient.Country,
-                CreatedAt = updatedClient.CreatedAt,
-                UpdatedAt = updatedClient.UpdatedAt,
-                SubscriptionsCount = subscriptionsCount
-            };
-
-            return Ok(response);
+            throw new NotFoundException("Cliente", id);
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Erro ao atualizar cliente {ClientId}", id);
-            return StatusCode(500, new { message = "Erro ao atualizar cliente" });
-        }
+        
+        client.UpdateBasicInfo(request.Name, request.TradingName, request.Phone, request.LogoUrl);
+        
+        await _clientRepository.UpdateAsync(client);
+        
+        // Invalidar cache
+        await _cacheService.RemoveAsync($"client:{id}");
+        
+        _logger.LogInformation("Cliente atualizado: {ClientId}", id);
+        
+        var response = await MapToResponseAsync(client);
+        return Ok(ApiResponse<ClientResponse>.Ok(response, "Cliente atualizado com sucesso"));
     }
-
+    
     /// <summary>
-    /// Remove um cliente (soft delete)
+    /// Atualiza o email do cliente
+    /// </summary>
+    [HttpPatch("{id:guid}/email")]
+    [Authorize(Roles = "SuperAdmin")]
+    [ProducesResponseType(typeof(ApiResponse<ClientResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<IActionResult> UpdateEmail(Guid id, [FromBody] UpdateClientEmailRequest request)
+    {
+        var client = await _clientRepository.GetByIdAsync(id);
+        if (client == null)
+        {
+            throw new NotFoundException("Cliente", id);
+        }
+        
+        // Verificar se email já existe
+        if (await _clientRepository.EmailExistsAsync(request.Email, id))
+        {
+            throw new ConflictException("Email já cadastrado");
+        }
+        
+        client.UpdateEmail(request.Email);
+        
+        await _clientRepository.UpdateAsync(client);
+        
+        // Invalidar cache
+        await _cacheService.RemoveAsync($"client:{id}");
+        
+        _logger.LogInformation("Email do cliente atualizado: {ClientId}", id);
+        
+        var response = await MapToResponseAsync(client);
+        return Ok(ApiResponse<ClientResponse>.Ok(response, "Email atualizado com sucesso"));
+    }
+    
+    /// <summary>
+    /// Atualiza as configurações do cliente
+    /// </summary>
+    [HttpPatch("{id:guid}/settings")]
+    [Authorize(Roles = "SuperAdmin,Admin")]
+    [ProducesResponseType(typeof(ApiResponse<ClientResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> UpdateSettings(Guid id, [FromBody] UpdateClientSettingsRequest request)
+    {
+        var client = await _clientRepository.GetByIdAsync(id);
+        if (client == null)
+        {
+            throw new NotFoundException("Cliente", id);
+        }
+        
+        client.UpdateSettings(request.Settings);
+        
+        await _clientRepository.UpdateAsync(client);
+        
+        // Invalidar cache
+        await _cacheService.RemoveAsync($"client:{id}");
+        
+        _logger.LogInformation("Configurações do cliente atualizadas: {ClientId}", id);
+        
+        var response = await MapToResponseAsync(client);
+        return Ok(ApiResponse<ClientResponse>.Ok(response, "Configurações atualizadas com sucesso"));
+    }
+    
+    /// <summary>
+    /// Ativa um cliente
+    /// </summary>
+    [HttpPost("{id:guid}/activate")]
+    [Authorize(Roles = "SuperAdmin")]
+    [ProducesResponseType(typeof(ApiResponse<ClientResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> Activate(Guid id)
+    {
+        var client = await _clientRepository.GetByIdAsync(id);
+        if (client == null)
+        {
+            throw new NotFoundException("Cliente", id);
+        }
+        
+        client.Activate();
+        await _clientRepository.UpdateAsync(client);
+        
+        // Invalidar cache
+        await _cacheService.RemoveAsync($"client:{id}");
+        
+        _logger.LogInformation("Cliente ativado: {ClientId}", id);
+        
+        var response = await MapToResponseAsync(client);
+        return Ok(ApiResponse<ClientResponse>.Ok(response, "Cliente ativado com sucesso"));
+    }
+    
+    /// <summary>
+    /// Suspende um cliente
+    /// </summary>
+    [HttpPost("{id:guid}/suspend")]
+    [Authorize(Roles = "SuperAdmin")]
+    [ProducesResponseType(typeof(ApiResponse<ClientResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> Suspend(Guid id)
+    {
+        var client = await _clientRepository.GetByIdAsync(id);
+        if (client == null)
+        {
+            throw new NotFoundException("Cliente", id);
+        }
+        
+        client.Suspend();
+        await _clientRepository.UpdateAsync(client);
+        
+        // Invalidar cache
+        await _cacheService.RemoveAsync($"client:{id}");
+        
+        _logger.LogInformation("Cliente suspenso: {ClientId}", id);
+        
+        var response = await MapToResponseAsync(client);
+        return Ok(ApiResponse<ClientResponse>.Ok(response, "Cliente suspenso com sucesso"));
+    }
+    
+    /// <summary>
+    /// Desativa um cliente
+    /// </summary>
+    [HttpPost("{id:guid}/deactivate")]
+    [Authorize(Roles = "SuperAdmin")]
+    [ProducesResponseType(typeof(ApiResponse<ClientResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> Deactivate(Guid id)
+    {
+        var client = await _clientRepository.GetByIdAsync(id);
+        if (client == null)
+        {
+            throw new NotFoundException("Cliente", id);
+        }
+        
+        client.Deactivate();
+        await _clientRepository.UpdateAsync(client);
+        
+        // Invalidar cache
+        await _cacheService.RemoveAsync($"client:{id}");
+        
+        _logger.LogInformation("Cliente desativado: {ClientId}", id);
+        
+        var response = await MapToResponseAsync(client);
+        return Ok(ApiResponse<ClientResponse>.Ok(response, "Cliente desativado com sucesso"));
+    }
+    
+    /// <summary>
+    /// Exclui um cliente (soft delete)
     /// </summary>
     [HttpDelete("{id:guid}")]
-    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [Authorize(Roles = "SuperAdmin")]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
+    public async Task<IActionResult> Delete(Guid id)
     {
-        try
+        if (!await _clientRepository.ExistsAsync(id))
         {
-            var client = await _clientRepository.GetByIdAsync(id, cancellationToken);
-            if (client == null)
-                return NotFound(new { message = "Cliente não encontrado" });
-
-            var deleted = await _clientRepository.DeleteAsync(id, cancellationToken);
-            if (!deleted)
-                return StatusCode(500, new { message = "Erro ao deletar cliente" });
-
-            return NoContent();
+            throw new NotFoundException("Cliente", id);
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Erro ao deletar cliente {ClientId}", id);
-            return StatusCode(500, new { message = "Erro ao deletar cliente" });
-        }
+        
+        await _clientRepository.SoftDeleteAsync(id);
+        
+        // Invalidar cache
+        await _cacheService.RemoveAsync($"client:{id}");
+        
+        _logger.LogInformation("Cliente excluído: {ClientId}", id);
+        
+        return Ok(ApiResponse<object>.Ok(null, "Cliente excluído com sucesso"));
     }
-
-    private static string MapStatus(ClientStatus status)
+    
+    // Helper Methods
+    private async Task<ClientResponse> MapToResponseAsync(Client client)
     {
-        return status switch
+        var companiesCount = await _clientRepository.GetClientCompaniesCountAsync(client.Id);
+        var usersCount = await _clientRepository.GetClientUsersCountAsync(client.Id);
+        
+        return new ClientResponse
         {
-            ClientStatus.Active => "active",
-            ClientStatus.Suspended => "suspended",
-            ClientStatus.Cancelled => "cancelled",
-            _ => "active"
-        };
-    }
-
-    private static ClientStatus MapStatusFromString(string status)
-    {
-        return status.ToLower() switch
-        {
-            "active" => ClientStatus.Active,
-            "suspended" => ClientStatus.Suspended,
-            "cancelled" => ClientStatus.Cancelled,
-            _ => ClientStatus.Active
+            Id = client.Id,
+            Name = client.Name,
+            TradingName = client.TradingName,
+            Document = client.Document,
+            DocumentFormatted = client.DocumentFormatted,
+            DocumentType = client.DocumentType.ToString(),
+            Email = client.Email,
+            Phone = client.Phone,
+            LogoUrl = client.LogoUrl,
+            Settings = client.Settings,
+            Status = client.Status.ToString(),
+            TotalCompanies = companiesCount,
+            TotalUsers = usersCount,
+            CreatedAt = client.CreatedAt,
+            UpdatedAt = client.UpdatedAt
         };
     }
 }

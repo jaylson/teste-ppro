@@ -23,6 +23,28 @@ public interface IRepository<T> where T : BaseEntity
 }
 
 /// <summary>
+/// Repositório de clientes (entidade raiz - Core Module)
+/// </summary>
+public interface ICoreClientRepository
+{
+    Task<Client?> GetByIdAsync(Guid id);
+    Task<Client?> GetByDocumentAsync(string document);
+    Task<Client?> GetByEmailAsync(string email);
+    Task<bool> DocumentExistsAsync(string document, Guid? excludeId = null);
+    Task<bool> EmailExistsAsync(string email, Guid? excludeId = null);
+    Task<IEnumerable<Client>> GetActiveClientsAsync();
+    Task<(IEnumerable<Client> Items, int Total)> GetPagedAsync(int page, int pageSize, string? search = null, string? status = null);
+    Task<IEnumerable<Company>> GetClientCompaniesAsync(Guid clientId);
+    Task<int> GetClientCompaniesCountAsync(Guid clientId);
+    Task<int> GetClientUsersCountAsync(Guid clientId);
+    Task AddAsync(Client client);
+    Task UpdateAsync(Client client);
+    Task DeleteAsync(Guid id);
+    Task SoftDeleteAsync(Guid id, Guid? deletedBy = null);
+    Task<bool> ExistsAsync(Guid id);
+}
+
+/// <summary>
 /// Repositório de empresas
 /// </summary>
 public interface ICompanyRepository
@@ -37,6 +59,29 @@ public interface ICompanyRepository
     Task DeleteAsync(Guid id);
     Task SoftDeleteAsync(Guid id, Guid? deletedBy = null);
     Task<bool> ExistsAsync(Guid id);
+}
+
+/// <summary>
+/// Repositório de sócios/acionistas
+/// </summary>
+public interface IShareholderRepository
+{
+    Task<(IEnumerable<Shareholder> Items, int Total)> GetPagedAsync(
+        Guid clientId,
+        Guid? companyId,
+        int page,
+        int pageSize,
+        string? search = null,
+        string? type = null,
+        string? status = null);
+
+    Task<Shareholder?> GetByIdAsync(Guid id, Guid clientId);
+    Task<Shareholder?> GetByDocumentAsync(Guid clientId, string document);
+    Task<bool> DocumentExistsAsync(Guid clientId, string document, Guid? excludeId = null);
+    Task AddAsync(Shareholder shareholder);
+    Task UpdateAsync(Shareholder shareholder);
+    Task SoftDeleteAsync(Guid id, Guid clientId, Guid? deletedBy = null);
+    Task<bool> ExistsAsync(Guid id, Guid clientId);
 }
 
 /// <summary>

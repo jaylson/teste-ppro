@@ -3,6 +3,7 @@ import axios, {
   InternalAxiosRequestConfig,
 } from 'axios';
 import { useAuthStore } from '@/stores/authStore';
+import { useClientStore } from '@/stores/clientStore';
 
 const API_URL = import.meta.env.VITE_API_URL || '/api';
 // Removed unused import_meta_env declaration
@@ -36,8 +37,12 @@ const processQueue = (error: Error | null, token: string | null = null) => {
 api.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     const { accessToken } = useAuthStore.getState();
+    const { selectedCompanyId } = useClientStore.getState();
     if (accessToken) {
       config.headers.Authorization = `Bearer ${accessToken}`;
+    }
+    if (selectedCompanyId) {
+      config.headers['X-Company-Id'] = selectedCompanyId;
     }
     return config;
   },

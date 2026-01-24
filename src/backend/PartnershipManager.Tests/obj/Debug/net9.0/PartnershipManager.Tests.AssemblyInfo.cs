@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("PartnershipManager.Tests")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+7a57ea6e9241195fab5dfdaec87ef4e978bd758c")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+c7424b5188e3515cd7acba0906d2c0590eec7c93")]
 [assembly: System.Reflection.AssemblyProductAttribute("PartnershipManager.Tests")]
 [assembly: System.Reflection.AssemblyTitleAttribute("PartnershipManager.Tests")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

@@ -6,6 +6,7 @@ using PartnershipManager.Domain.Constants;
 using PartnershipManager.Domain.Entities;
 using PartnershipManager.Domain.Exceptions;
 using PartnershipManager.Domain.Interfaces;
+using PartnershipManager.API.Middlewares;
 
 namespace PartnershipManager.API.Controllers;
 
@@ -85,6 +86,7 @@ public class CompaniesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<IActionResult> Create([FromBody] CreateCompanyRequest request)
     {
+        var clientId = HttpContext.GetRequiredClientId();
         // Verificar se CNPJ já existe
         if (await _unitOfWork.Companies.CnpjExistsAsync(request.Cnpj))
         {
@@ -92,6 +94,7 @@ public class CompaniesController : ControllerBase
         }
         
         var company = Company.Create(
+            clientId,
             request.Name,
             request.Cnpj,
             request.LegalForm,
