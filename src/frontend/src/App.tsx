@@ -8,7 +8,7 @@ import AuthLayout from './components/layout/AuthLayout';
 // Pages
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
-import CapTable from './pages/CapTable';
+import { CapTablePage } from './pages/captable';
 import Companies from './pages/Companies';
 import Users from './pages/settings/Users';
 import { Plans, ClientsSubscriptions, BillingDashboard, Invoices } from './pages/billing';
@@ -32,7 +32,7 @@ function App() {
       >
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
         <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/cap-table" element={<CapTable />} />
+        <Route path="/cap-table" element={<CapTablePage />} />
         <Route path="/companies" element={<Companies />} />
         <Route path="/partners" element={<Navigate to="/shareholders" replace />} />
         

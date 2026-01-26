@@ -1,8 +1,8 @@
 # Fase 2 - CapTable: Controle de Progresso
 
 **Início:** 23/01/2026  
-**Última Atualização:** 24/01/2026 - Semana 4 em andamento (Shares + Ledger + Cap Table Backend)
-**Status Geral:** 🟢 Semanas 1, 2, 3 concluídas | Semana 4 iniciada
+**Última Atualização:** 26/01/2026 - Semana 5 iniciada (Frontend Cap Table)
+**Status Geral:** 🟢 Semanas 1-4 concluídas | Semana 5 em andamento
 
 ---
 
@@ -334,6 +334,91 @@
 - [x] Cap Table funcionando
   - GET /api/cap-table/{companyId} ✅
   - Retorna entries, summaryByType, summaryByClass
+
+---
+
+## SEMANA 5: Frontend Cap Table + Simulador + Documentação
+
+### Frontend Cap Table
+- [x] **F2-CAP-FE-001** - Types: Share, Transaction, CapTable
+  - Início: 26/01/2026
+  - Fim: 26/01/2026
+  - Observações: ✅ share.types.ts com enums (ShareOrigin, ShareStatus, TransactionType), interfaces e helpers
+- [x] **F2-CAP-FE-002** - Service: shareService.ts
+  - Início: 26/01/2026
+  - Fim: 26/01/2026
+  - Observações: ✅ CRUD shares, transactions, operações (issue, transfer, cancel)
+- [x] **F2-CAP-FE-003** - Service: capTableService.ts
+  - Início: 26/01/2026
+  - Fim: 26/01/2026
+  - Observações: ✅ getCapTable, getSummaryByType, getSummaryByClass
+- [x] **F2-CAP-FE-004** - Hook: useCapTable
+  - Início: 26/01/2026
+  - Fim: 26/01/2026
+  - Observações: ✅ useCapTable, useShares, useTransactions, useIssueShares, useTransferShares, useCancelShares
+- [x] **F2-CAP-FE-005** - Componente: CapTableStats
+  - Início: 26/01/2026
+  - Fim: 26/01/2026
+  - Observações: ✅ 4 StatCards (Total Ações, Valor Total, Acionistas, Classes), loading skeleton, utils/format.ts criado 
+- [x] **F2-CAP-FE-006** - Componente: CapTableChart
+  - Início: 26/01/2026
+  - Fim: 26/01/2026
+  - Observações: ✅ Gráfico donut Recharts com view type/class, tooltip customizado, paleta de 10 cores, loading skeleton
+- [x] **F2-CAP-FE-007** - Componente: CapTableTable
+  - Início: 26/01/2026
+  - Fim: 26/01/2026
+  - Observações: ✅ Tabela com sort em 5 colunas, busca por acionista/classe, barra de progresso %, avatar inicial, loading skeleton
+- [x] **F2-CAP-FE-008** - Página: CapTablePage
+  - Início: 26/01/2026
+  - Fim: 26/01/2026
+  - Observações: ✅ Página completa integrando Stats, Chart (toggle type/class), Table, resumo por classe, data de referência, botões refresh/export 
+
+### Simulador
+- [ ] **F2-SIM-BE-001** - Service RoundSimulatorService
+  - Início: 
+  - Fim: 
+  - Observações: 
+- [ ] **F2-SIM-BE-002** - DTOs Simulation
+  - Início: 
+  - Fim: 
+  - Observações: 
+- [ ] **F2-SIM-BE-003** - Controller SimulatorController
+  - Início: 
+  - Fim: 
+  - Observações: 
+- [ ] **F2-SIM-FE-001** - Modal: RoundSimulatorModal
+  - Início: 
+  - Fim: 
+  - Observações: 
+- [ ] **F2-SIM-FE-002** - Componente: SimulationResults
+  - Início: 
+  - Fim: 
+  - Observações: 
+
+### Documentação
+- [ ] **F2-DOC-001** - Atualizar DATABASE_DOCUMENTATION.md
+  - Início: 
+  - Fim: 
+  - Observações: 
+- [ ] **F2-DOC-002** - Atualizar MER
+  - Início: 
+  - Fim: 
+  - Observações: 
+- [ ] **F2-DOC-003** - Atualizar DOCUMENTACAO_FUNCIONAL.md
+  - Início: 
+  - Fim: 
+  - Observações: 
+
+### Testes
+- [ ] **F2-TST-001** - Testes E2E críticos
+  - Início: 
+  - Fim: 
+  - Observações: 
+
+### Checkpoint Semana 5
+- [ ] Todos os builds passando
+- [ ] Documentação atualizada
+- [ ] Demo completa funcionando
 
 ---
 
