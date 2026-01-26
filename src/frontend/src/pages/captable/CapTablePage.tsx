@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { Download, RefreshCw, Calendar, PieChart, BarChart3 } from 'lucide-react';
+import { Download, RefreshCw, Calendar, PieChart, BarChart3, Calculator } from 'lucide-react';
 import { Button, Card } from '@/components/ui';
-import { CapTableStats, CapTableChart, CapTableTable } from '@/components/captable';
+import { CapTableStats, CapTableChart, CapTableTable, RoundSimulatorModal } from '@/components/captable';
 import { useCapTable } from '@/hooks';
 import { useClientStore } from '@/stores/clientStore';
 
@@ -11,6 +11,7 @@ export default function CapTablePage() {
   const { selectedCompanyId } = useClientStore();
   const [chartView, setChartView] = useState<ChartView>('type');
   const [asOfDate, setAsOfDate] = useState<string>(new Date().toISOString().split('T')[0]);
+  const [showSimulator, setShowSimulator] = useState(false);
 
   const { data, isLoading, isError, refetch, isFetching } = useCapTable(selectedCompanyId ?? undefined);
 
@@ -71,6 +72,14 @@ export default function CapTablePage() {
               className="text-sm border-none focus:ring-0 p-0"
             />
           </div>
+
+          <Button
+            variant="primary"
+            onClick={() => setShowSimulator(true)}
+            icon={<Calculator className="w-4 h-4" />}
+          >
+            Simular Rodada
+          </Button>
 
           <Button
             variant="secondary"
@@ -175,6 +184,17 @@ export default function CapTablePage() {
         <h2 className="text-lg font-semibold text-gray-900 mb-4">Detalhamento por Acionista</h2>
         <CapTableTable entries={data?.entries} isLoading={isLoading} />
       </div>
+
+      {/* Round Simulator Modal */}
+      <RoundSimulatorModal
+        isOpen={showSimulator}
+        onClose={() => setShowSimulator(false)}
+        companyId={selectedCompanyId ?? undefined}
+        onSimulationComplete={() => {
+          // Optionally refresh cap table after simulation
+          // refetch();
+        }}
+      />
     </div>
   );
 }

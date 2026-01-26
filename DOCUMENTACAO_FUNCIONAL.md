@@ -1,9 +1,9 @@
 # 📘 Documentação Funcional do Sistema
 ## Partnership Manager - Plataforma de Gestão Societária e Faturamento
 
-**Versão:** 1.0.0  
-**Data de Atualização:** 23 de Janeiro de 2026  
-**Status:** Em Desenvolvimento
+**Versão:** 2.0.0  
+**Data de Atualização:** 26 de Janeiro de 2026  
+**Status:** Fase 2 Concluída
 
 ---
 
@@ -56,19 +56,24 @@ O **Partnership Manager** é uma plataforma SaaS desenvolvida para empresas que 
 
 | Módulo | Status | Completude |
 |--------|--------|------------|
+| **Core - Clients** | ✅ Implementado | 100% |
 | **Core - Empresas** | ✅ Implementado | 100% |
 | **Core - Usuários** | ✅ Implementado | 100% |
+| **Core - Multi-Empresa** | ✅ Implementado | 100% |
 | **Autenticação** | ✅ Implementado | 100% |
+| **Cap Table - Sócios** | ✅ Implementado | 100% |
+| **Cap Table - Classes de Ações** | ✅ Implementado | 100% |
+| **Cap Table - Participações** | ✅ Implementado | 100% |
+| **Cap Table - Transações** | ✅ Implementado | 100% |
+| **Cap Table - Simulador** | ✅ Implementado | 100% |
 | **Billing - Clientes** | ✅ Implementado | 100% |
 | **Billing - Planos** | ✅ Implementado | 100% |
 | **Billing - Assinaturas** | ✅ Implementado | 100% |
 | **Billing - Faturas** | ✅ Implementado | 90% |
 | **Auditoria** | ✅ Implementado | 100% |
-| **Sócios/Acionistas** | 🚧 Planejado | 0% |
-| **Cap Table** | 🚧 Planejado | 0% |
-| **Vesting** | 🚧 Planejado | 0% |
-| **Contratos** | 🚧 Planejado | 0% |
-| **Portal do Investidor** | 🚧 Planejado | 0% |
+| **Vesting** | 🚧 Planejado (Fase 3) | 0% |
+| **Contratos** | 🚧 Planejado (Fase 4) | 0% |
+| **Portal do Investidor** | 🚧 Planejado (Fase 5) | 0% |
 
 ---
 
@@ -484,7 +489,183 @@ Armazenadas em JSON:
 
 ---
 
-### 💰 Módulo Billing - Clientes
+### � Módulo Cap Table
+
+#### Visão Geral
+
+O módulo Cap Table permite gerenciar toda a estrutura societária das empresas, incluindo sócios, classes de ações, participações e transações. Também oferece simulação de rodadas de investimento.
+
+#### Funcionalidades
+
+##### 1. Gestão de Sócios (Shareholders)
+
+**Campos Obrigatórios:**
+- Nome
+- Documento (CPF ou CNPJ)
+- Tipo (Individual, Company, InvestmentFund)
+- Empresa associada
+
+**Campos Opcionais:**
+- E-mail
+- Telefone
+- Endereço completo
+- Gênero (PF)
+- Estado Civil (PF)
+- Data de Nascimento (PF)
+- Notas
+
+**Validações:**
+- CPF/CNPJ válido e único por empresa
+- E-mail válido (quando informado)
+
+**Status de Sócios:**
+| Status | Descrição |
+|--------|-----------|
+| **Active** | Sócio ativo com participações |
+| **Inactive** | Sócio inativo (ex-sócio) |
+| **Pending** | Aguardando aprovação/documentação |
+
+**Ações Disponíveis:**
+- ➕ Adicionar sócio
+- ✏️ Editar informações
+- 🗑️ Remover (soft delete)
+- 📊 Ver participações
+
+##### 2. Classes de Ações (Share Classes)
+
+**Objetivo:** Definir os diferentes tipos de ações da empresa
+
+**Campos Principais:**
+- Nome (ex: Ordinárias, Preferenciais Série A)
+- Código (ex: ON, PN-A)
+- Senioridade (ordem de prioridade)
+- Ações Autorizadas
+- Ações Emitidas
+- Valor Nominal
+
+**Direitos de Voto:**
+- Tem direito a voto? (Sim/Não)
+- Votos por ação
+
+**Preferências:**
+- Preferência em dividendos
+- Taxa de dividendo (%)
+- Múltiplo de liquidação
+- Participação (Full Ratchet)
+
+**Conversão:**
+- É conversível?
+- Taxa de conversão
+- Classe destino
+
+**Proteção Anti-Diluição:**
+| Tipo | Descrição |
+|------|-----------|
+| **None** | Sem proteção |
+| **Broad-Based** | Proteção ampla (weighted average) |
+| **Full-Ratchet** | Proteção total (ajuste completo) |
+
+##### 3. Participações (Shares)
+
+**Objetivo:** Registrar as ações detidas por cada sócio
+
+**Campos:**
+- Sócio
+- Classe de Ação
+- Quantidade
+- Preço de Aquisição
+- Data de Aquisição
+- Origem (Issue, Transfer, Conversion, Grant)
+- Número do Certificado (opcional)
+
+**Status de Ações:**
+| Status | Descrição |
+|--------|-----------|
+| **Active** | Ação em posse do sócio |
+| **Transferred** | Transferida para outro sócio |
+| **Cancelled** | Cancelada |
+| **Converted** | Convertida para outra classe |
+
+##### 4. Transações (Share Transactions)
+
+**Objetivo:** Ledger imutável de todas as operações societárias
+
+**Tipos de Transação:**
+| Tipo | Descrição |
+|------|-----------|
+| **Issue** | Emissão de novas ações |
+| **Transfer** | Transferência entre sócios |
+| **Cancel** | Cancelamento de ações |
+| **Convert** | Conversão de classe |
+| **Split** | Desdobramento |
+| **Reverse_Split** | Grupamento |
+
+**Campos:**
+- Tipo de transação
+- Data de referência
+- Classe de ação
+- Quantidade
+- Preço por ação
+- Sócio origem (quando aplicável)
+- Sócio destino (quando aplicável)
+- Motivo
+- Referência documental
+- Aprovador
+
+**Características:**
+- ⚠️ Transações são IMUTÁVEIS (não podem ser editadas ou excluídas)
+- ✅ Garante rastreabilidade completa
+- ✅ Compliance para auditorias
+
+##### 5. Visualização do Cap Table
+
+**Dashboard do Cap Table:**
+- Total de ações emitidas
+- Valor total do cap table
+- Número de acionistas
+- Número de classes de ações
+
+**Gráficos:**
+- Distribuição por tipo de sócio (Individual, Company, Fund)
+- Distribuição por classe de ação
+
+**Tabela Detalhada:**
+- Lista de sócios com participações
+- Ordenação por nome, ações, percentual
+- Busca por nome ou classe
+- Barra de progresso visual do percentual
+
+##### 6. Simulador de Rodadas
+
+**Objetivo:** Simular impacto de novas rodadas de investimento
+
+**Parâmetros de Entrada:**
+- Nome da rodada (Seed, Series A, etc.)
+- Tipo (Equity, Convertible Note, SAFE)
+- Valuation Pre-Money
+- Valor do investimento
+- Lista de novos investidores
+
+**Pool de Opções (opcional):**
+- Percentual do pool
+- Momento (Pre-Money ou Post-Money)
+
+**Resultados da Simulação:**
+- Valuation Post-Money
+- Preço por ação
+- Novas ações emitidas
+- Diluição total (%)
+- Cap Table antes/depois
+- Participação de cada novo investidor
+
+**Uso:**
+- Negociação com investidores
+- Planejamento estratégico
+- Análise de cenários (comparar múltiplas rodadas)
+
+---
+
+### �💰 Módulo Billing - Clientes
 
 #### Funcionalidades
 

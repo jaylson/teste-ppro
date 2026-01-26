@@ -5,6 +5,7 @@ export * from './client.types';
 export * from './company.types';
 export * from './shareholder.types';
 export * from './share.types';
+export * from './simulation.types';
 
 // Common types
 export interface ApiResponse<T> {
