@@ -73,6 +73,7 @@ public static class InfrastructureServiceExtensions
         services.AddScoped<IShareholderService, ShareholderService>();
         services.AddScoped<IShareClassService, ShareClassService>();
         services.AddScoped<IShareService, ShareService>();
+        services.AddScoped<IRoundSimulatorService, RoundSimulatorService>();
         
         // Repositories - Shares
         services.AddScoped<IShareRepository, ShareRepository>();

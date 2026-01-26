@@ -374,18 +374,18 @@
   - Observações: ✅ Página completa integrando Stats, Chart (toggle type/class), Table, resumo por classe, data de referência, botões refresh/export 
 
 ### Simulador
-- [ ] **F2-SIM-BE-001** - Service RoundSimulatorService
-  - Início: 
-  - Fim: 
-  - Observações: 
-- [ ] **F2-SIM-BE-002** - DTOs Simulation
-  - Início: 
-  - Fim: 
-  - Observações: 
-- [ ] **F2-SIM-BE-003** - Controller SimulatorController
-  - Início: 
-  - Fim: 
-  - Observações: 
+- [x] **F2-SIM-BE-001** - Service RoundSimulatorService
+  - Início: 26/01/2026
+  - Fim: 26/01/2026
+  - Observações: ✅ SimulateRoundAsync com cálculos de diluição, cap table before/after, pool de opções pre/post-money
+- [x] **F2-SIM-BE-002** - DTOs Simulation
+  - Início: 26/01/2026
+  - Fim: 26/01/2026
+  - Observações: ✅ RoundSimulationRequest/Response, NewInvestorRequest, SimulatedShareholderEntry, OptionPoolInfo
+- [x] **F2-SIM-BE-003** - Controller SimulatorController
+  - Início: 26/01/2026
+  - Fim: 26/01/2026
+  - Observações: ✅ POST /round, GET /dilution, POST /scenarios (até 5 cenários)
 - [ ] **F2-SIM-FE-001** - Modal: RoundSimulatorModal
   - Início: 
   - Fim: 
