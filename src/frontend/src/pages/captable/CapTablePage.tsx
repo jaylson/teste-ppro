@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Download, RefreshCw, Calendar, PieChart, BarChart3, Calculator } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Download, RefreshCw, Calendar, PieChart, BarChart3, Calculator, ArrowRightLeft } from 'lucide-react';
 import { Button, Card } from '@/components/ui';
 import { CapTableStats, CapTableChart, CapTableTable, RoundSimulatorModal } from '@/components/captable';
 import { useCapTable } from '@/hooks';
@@ -8,6 +9,7 @@ import { useClientStore } from '@/stores/clientStore';
 type ChartView = 'type' | 'class';
 
 export default function CapTablePage() {
+  const navigate = useNavigate();
   const { selectedCompanyId } = useClientStore();
   const [chartView, setChartView] = useState<ChartView>('type');
   const [asOfDate, setAsOfDate] = useState<string>(new Date().toISOString().split('T')[0]);
@@ -72,6 +74,14 @@ export default function CapTablePage() {
               className="text-sm border-none focus:ring-0 p-0"
             />
           </div>
+
+          <Button
+            variant="primary"
+            onClick={() => navigate('/cap-table/transactions')}
+            icon={<ArrowRightLeft className="w-4 h-4" />}
+          >
+            Movimentações
+          </Button>
 
           <Button
             variant="primary"
