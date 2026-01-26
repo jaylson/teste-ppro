@@ -188,11 +188,11 @@ public class BackgroundJobs : IBackgroundJobs
                         ClientId = subscription.ClientId,
                         SubscriptionId = subscription.Id,
                         InvoiceNumber = invoiceNumber,
-                        Amount = subscription.Plan.Price,
+                        Amount = planPrice,
                         IssueDate = issueDate,
                         DueDate = dueDate,
                         Status = InvoiceStatus.Pending,
-                        Description = $"Fatura mensal - {subscription.Plan.Name}",
+                        Description = $"Fatura mensal - {planName}",
                         Notes = $"Período de referência: {issueDate:MMMM/yyyy}"
                     };
                     

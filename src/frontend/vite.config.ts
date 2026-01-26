@@ -22,5 +22,18 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     sourcemap: true,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          // Vendor chunks - bibliotecas externas
+          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
+          'vendor-query': ['@tanstack/react-query'],
+          'vendor-forms': ['react-hook-form', '@hookform/resolvers', 'zod'],
+          'vendor-utils': ['axios', 'date-fns', 'zustand', 'clsx', 'tailwind-merge'],
+          'vendor-charts': ['recharts'],
+          'vendor-ui': ['lucide-react', 'react-hot-toast'],
+        },
+      },
+    },
   },
 });

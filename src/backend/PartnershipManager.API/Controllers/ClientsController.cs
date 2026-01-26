@@ -356,7 +356,7 @@ public class ClientsController : ControllerBase
         
         _logger.LogInformation("Cliente excluído: {ClientId}", id);
         
-        return Ok(ApiResponse<object>.Ok(null, "Cliente excluído com sucesso"));
+        return Ok(ApiResponse<object>.Ok(new { }, "Cliente excluído com sucesso"));
     }
     
     // Helper Methods
