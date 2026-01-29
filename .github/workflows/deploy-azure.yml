@@ -42,9 +42,14 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Deploy to Azure Web App for Containers
-        uses: azure/webapps-deploy@v2
+      - name: Login to Azure
+        uses: azure/login@v1
         with:
-          app-name: ppro
-          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Restart Web App to pull latest image
+        uses: azure/CLI@v1
+        with:
+          azcliversion: latest
+          inlineScript: |
+            az webapp restart --name ppro --resource-group container-ppro
