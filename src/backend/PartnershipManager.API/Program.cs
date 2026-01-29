@@ -68,11 +68,11 @@ app.MapHealthChecks("/health", new HealthCheckOptions
     ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
 });
 
-// Hangfire Dashboard
-app.MapHangfireDashboard("/hangfire", new DashboardOptions
-{
-    Authorization = new[] { new HangfireAuthorizationFilter() }
-});
+// Hangfire Dashboard - Temporarily disabled
+// app.MapHangfireDashboard("/hangfire", new DashboardOptions
+// {
+//     Authorization = new[] { new HangfireAuthorizationFilter() }
+// });
 
 // Map Controllers
 app.MapControllers();
