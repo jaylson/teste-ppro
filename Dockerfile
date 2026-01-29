@@ -20,8 +20,8 @@ RUN npm run build
 FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS runtime
 WORKDIR /app
 
-# Install Nginx
-RUN apt-get update && apt-get install -y nginx && rm -rf /var/lib/apt/lists/*
+# Install Nginx and supervisor
+RUN apt-get update && apt-get install -y nginx supervisor && rm -rf /var/lib/apt/lists/*
 
 # Copy backend
 COPY --from=backend-build /app/backend ./backend
@@ -30,15 +30,34 @@ COPY --from=backend-build /app/backend ./backend
 COPY --from=frontend-build /src/frontend/dist /var/www/html
 
 # Configure Nginx to proxy backend and serve frontend
-RUN rm /etc/nginx/sites-enabled/default
+RUN rm -f /etc/nginx/sites-enabled/default
 COPY nginx.conf /etc/nginx/sites-enabled/default
 
-# Create startup script
-RUN echo '#!/bin/bash\n\
-nginx -g "daemon off;" &\n\
-cd /app/backend\n\
-dotnet PartnershipManager.API.dll' > /app/start.sh && chmod +x /app/start.sh
+# Create supervisor config
+RUN mkdir -p /etc/supervisor/conf.d
+RUN echo '[supervisord]\n\
+nodaemon=true\n\
+logfile=/var/log/supervisor/supervisord.log\n\
+\n\
+[program:nginx]\n\
+command=/usr/sbin/nginx -g "daemon off;"\n\
+autostart=true\n\
+autorestart=true\n\
+startsecs=5\n\
+stopasgroup=true\n\
+stdout_logfile=/var/log/supervisor/nginx.log\n\
+stderr_logfile=/var/log/supervisor/nginx_err.log\n\
+\n\
+[program:dotnet]\n\
+command=bash -c "cd /app/backend && dotnet PartnershipManager.API.dll"\n\
+directory=/app/backend\n\
+autostart=true\n\
+autorestart=true\n\
+startsecs=10\n\
+stdout_logfile=/var/log/supervisor/dotnet.log\n\
+stderr_logfile=/var/log/supervisor/dotnet_err.log\n\
+environment=ASPNETCORE_URLS=http://+:5000,ASPNETCORE_ENVIRONMENT=Production' > /etc/supervisor/conf.d/services.conf
 
 EXPOSE 80
 
-CMD ["/app/start.sh"]
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/../supervisord.conf"]
