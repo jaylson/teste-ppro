@@ -50,7 +50,10 @@ public class AuthService : IAuthService
     {
         try
         {
-            return BCrypt.Net.BCrypt.Verify(password, passwordHash);
+            var result = BCrypt.Net.BCrypt.Verify(password, passwordHash);
+            Console.WriteLine($"Verifying password: {password} against hash: {passwordHash}");
+            Console.WriteLine($"Password verification result: {result}");
+            return result;
         }
         catch
         {
