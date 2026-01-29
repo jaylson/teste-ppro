@@ -13,9 +13,9 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:5000
-      - ConnectionStrings__MySQL=Server=newdataserver.mysql.database.azure.com;Port=3306;Database=ppro;Uid=dataserver_wp;Pwd=wpadm@753;SslMode=Required;CertificateFile=/app/ca-certificate.pem;CharSet=utf8mb4;
+      - ConnectionStrings__MySQL=Server=newdataserver.mysql.database.azure.com;Port=3306;Database=ppro;Uid=dataserver_wp;Pwd=wpadm%40753;SslMode=Preferred;CertificateFile=/app/ca-certificate.pem;CharSet=utf8mb4;
       - ConnectionStrings__Redis=${REDIS_CONNECTION_STRING}
-      - ConnectionStrings__Hangfire=Server=newdataserver.mysql.database.azure.com;Port=3306;Database=hangfire_ppro;Uid=dataserver_wp;Pwd=wpadm@753;SslMode=Required;CertificateFile=/app/ca-certificate.pem;CharSet=utf8mb4;
+      - ConnectionStrings__Hangfire=Server=newdataserver.mysql.database.azure.com;Port=3306;Database=hangfire_ppro;Uid=dataserver_wp;Pwd=wpadm%40753;SslMode=Preferred;CertificateFile=/app/ca-certificate.pem;CharSet=utf8mb4;
       - Jwt__Secret=${JWT_SECRET:-PartnershipManager_SecretKey_2025_Min32Chars!}
       - Jwt__Issuer=${JWT_ISSUER:-PartnershipManager}
       - Jwt__Audience=${JWT_AUDIENCE:-PartnershipManagerApp}
