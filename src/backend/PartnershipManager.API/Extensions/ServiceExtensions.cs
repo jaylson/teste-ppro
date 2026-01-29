@@ -99,7 +99,8 @@ public static class InfrastructureServiceExtensions
             services.AddScoped<ICacheService, InMemoryCacheService>();
         }
         
-        // Hangfire
+        // Hangfire - Temporarily disabled for testing
+        /*
         var hangfireConnection = configuration.GetConnectionString("Hangfire") ?? connectionString;
         services.AddHangfire(config =>
         {
@@ -123,6 +124,7 @@ public static class InfrastructureServiceExtensions
             options.WorkerCount = Environment.ProcessorCount * 2;
             options.Queues = new[] { "default", "emails", "reports" };
         });
+        */
         
         services.AddScoped<IBackgroundJobs, BackgroundJobs>();
         
@@ -236,11 +238,11 @@ public static class ApiServiceExtensions
             .AddRedis(
                 configuration.GetConnectionString("Redis") ?? "localhost:6379",
                 name: "redis",
-                tags: new[] { "cache", "redis" })
-            .AddHangfire(options =>
-            {
-                options.MinimumAvailableServers = 1;
-            }, name: "hangfire", tags: new[] { "jobs", "hangfire" });
+                tags: new[] { "cache", "redis" });
+            // .AddHangfire(options =>
+            // {
+            //     options.MinimumAvailableServers = 1;
+            // }, name: "hangfire", tags: new[] { "jobs", "hangfire" });
         
         // Current User Service
         services.AddHttpContextAccessor();
