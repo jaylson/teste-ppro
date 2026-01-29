@@ -78,7 +78,7 @@ app.MapHealthChecks("/health", new HealthCheckOptions
 app.MapControllers();
 
 // Configure recurring jobs
-HangfireJobsConfiguration.ConfigureRecurringJobs();
+// HangfireJobsConfiguration.ConfigureRecurringJobs();
 
 // =====================================================
 // ROOT ENDPOINT
