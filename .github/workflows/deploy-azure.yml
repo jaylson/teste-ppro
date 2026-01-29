@@ -7,6 +7,7 @@ on:
 
 env:
   REGISTRY: containerppro.azurecr.io
+  IMAGE_NAME: ppro
 
 jobs:
   build-and-push:
@@ -26,46 +27,24 @@ jobs:
           username: ${{ secrets.AZURE_ACR_USERNAME }}
           password: ${{ secrets.AZURE_ACR_PASSWORD }}
 
-      - name: Build and push Backend image
+      - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
-          context: ./src/backend
-          file: ./src/backend/Dockerfile
+          context: .
+          file: ./Dockerfile
           push: true
           tags: |
-            ${{ env.REGISTRY }}/pm-api:latest
-            ${{ env.REGISTRY }}/pm-api:${{ github.sha }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
 
-      - name: Build and push Frontend image
-        uses: docker/build-push-action@v5
-        with:
-          context: ./src/frontend
-          file: ./src/frontend/Dockerfile
-          push: true
-          tags: |
-            ${{ env.REGISTRY }}/pm-frontend:latest
-            ${{ env.REGISTRY }}/pm-frontend:${{ github.sha }}
-
-  deploy-backend:
+  deploy:
     needs: build-and-push
     runs-on: ubuntu-latest
 
     steps:
-      - name: Deploy Backend to Web App for Containers
+      - name: Deploy to Azure Web App for Containers
         uses: azure/webapps-deploy@v2
         with:
-          app-name: ppro-api
-          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE_BACKEND }}
-          images: ${{ env.REGISTRY }}/pm-api:${{ github.sha }}
-
-  deploy-frontend:
-    needs: build-and-push
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Deploy Frontend to Web App for Containers
-        uses: azure/webapps-deploy@v2
-        with:
-          app-name: ppro-frontend
-          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE_FRONTEND }}
-          images: ${{ env.REGISTRY }}/pm-frontend:${{ github.sha }}
+          app-name: ppro
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
