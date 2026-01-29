@@ -112,6 +112,7 @@ public static class InfrastructureServiceExtensions
                     {
                         TablesPrefix = "hangfire_",
                         PrepareSchemaIfNecessary = true,
+                        LazyInitialization = true,
                         QueuePollInterval = TimeSpan.FromSeconds(15),
                         JobExpirationCheckInterval = TimeSpan.FromHours(1),
                         CountersAggregateInterval = TimeSpan.FromMinutes(5)
