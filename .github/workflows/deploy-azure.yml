@@ -42,14 +42,5 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Login to Azure
-        uses: azure/login@v1
-        with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
-
-      - name: Restart Web App to pull latest image
-        uses: azure/CLI@v1
-        with:
-          azcliversion: latest
-          inlineScript: |
-            az webapp restart --name ppro --resource-group container-ppro
+      - name: Image pushed successfully
+        run: echo "Image pushed to ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}"
