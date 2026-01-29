@@ -58,6 +58,7 @@ stderr_logfile_maxbytes=0\n\
 [program:dotnet]\n\
 command=/bin/bash -c "dotnet PartnershipManager.API.dll"\n\
 directory=/app/backend\n\
+environment=ASPNETCORE_URLS="http://0.0.0.0:5000"\n\
 autostart=true\n\
 autorestart=true\n\
 startsecs=15\n\
