@@ -40,6 +40,7 @@ COPY nginx.conf /etc/nginx/sites-enabled/default
 RUN mkdir -p /etc/supervisor/conf.d
 RUN echo '[supervisord]\n\
 nodaemon=true\n\
+user=root\n\
 logfile=/var/log/supervisor/supervisord.log\n\
 \n\
 [program:nginx]\n\
@@ -52,14 +53,15 @@ stdout_logfile=/var/log/supervisor/nginx.log\n\
 stderr_logfile=/var/log/supervisor/nginx_err.log\n\
 \n\
 [program:dotnet]\n\
-command=bash -c "cd /app/backend && dotnet PartnershipManager.API.dll"\n\
+command=/bin/bash -c "cd /app/backend && dotnet PartnershipManager.API.dll 2>&1"\n\
 directory=/app/backend\n\
 autostart=true\n\
 autorestart=true\n\
-startsecs=10\n\
+startsecs=15\n\
+stopasgroup=true\n\
 stdout_logfile=/var/log/supervisor/dotnet.log\n\
 stderr_logfile=/var/log/supervisor/dotnet_err.log\n\
-environment=ASPNETCORE_URLS=http://+:5000,ASPNETCORE_ENVIRONMENT=Production' > /etc/supervisor/conf.d/services.conf
+environment=ASPNETCORE_URLS=http://+:5000,ASPNETCORE_ENVIRONMENT=Production,DOTNET_CLI_TELEMETRY_OPTOUT=1' > /etc/supervisor/conf.d/services.conf
 
 EXPOSE 80
 
