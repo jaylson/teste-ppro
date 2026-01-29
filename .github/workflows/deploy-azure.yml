@@ -51,15 +51,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Login to Azure
-        uses: azure/login@v1
-        with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
-
       - name: Deploy Backend to Web App for Containers
         uses: azure/webapps-deploy@v2
         with:
-          app-name: ${{ secrets.AZURE_WEBAPP_NAME_BACKEND }}
+          app-name: ppro-api
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE_BACKEND }}
           images: ${{ env.REGISTRY }}/pm-api:${{ github.sha }}
 
   deploy-frontend:
@@ -67,13 +63,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Login to Azure
-        uses: azure/login@v1
-        with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
-
       - name: Deploy Frontend to Web App for Containers
         uses: azure/webapps-deploy@v2
         with:
-          app-name: ${{ secrets.AZURE_WEBAPP_NAME_FRONTEND }}
+          app-name: ppro-frontend
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE_FRONTEND }}
           images: ${{ env.REGISTRY }}/pm-frontend:${{ github.sha }}
