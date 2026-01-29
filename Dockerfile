@@ -23,6 +23,9 @@ WORKDIR /app
 # Install Nginx and supervisor
 RUN apt-get update && apt-get install -y nginx supervisor && rm -rf /var/lib/apt/lists/*
 
+# Copy SSL certificate for MySQL
+COPY ca-certificate.pem /app/
+
 # Copy backend
 COPY --from=backend-build /app/backend ./backend
 
