@@ -24,6 +24,7 @@ builder.Host.UseSerilog();
 // =====================================================
 // SERVICES
 // =====================================================
+builder.Services.AddMemoryCache();
 builder.Services.AddInfrastructureServices(builder.Configuration);
 builder.Services.AddApplicationServices();
 builder.Services.AddApiServices(builder.Configuration);

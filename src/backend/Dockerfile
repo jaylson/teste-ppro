@@ -8,15 +8,15 @@ FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /src
 
 # Copiar arquivos de projeto e restaurar dependências
-COPY ["PartnershipManager.API/PartnershipManager.API.csproj", "PartnershipManager.API/"]
-COPY ["PartnershipManager.Application/PartnershipManager.Application.csproj", "PartnershipManager.Application/"]
-COPY ["PartnershipManager.Infrastructure/PartnershipManager.Infrastructure.csproj", "PartnershipManager.Infrastructure/"]
-COPY ["PartnershipManager.Domain/PartnershipManager.Domain.csproj", "PartnershipManager.Domain/"]
+COPY ["src/backend/PartnershipManager.API/PartnershipManager.API.csproj", "PartnershipManager.API/"]
+COPY ["src/backend/PartnershipManager.Application/PartnershipManager.Application.csproj", "PartnershipManager.Application/"]
+COPY ["src/backend/PartnershipManager.Infrastructure/PartnershipManager.Infrastructure.csproj", "PartnershipManager.Infrastructure/"]
+COPY ["src/backend/PartnershipManager.Domain/PartnershipManager.Domain.csproj", "PartnershipManager.Domain/"]
 
 RUN dotnet restore "PartnershipManager.API/PartnershipManager.API.csproj"
 
 # Copiar código fonte
-COPY . .
+COPY src/backend/ .
 
 # Build
 WORKDIR "/src/PartnershipManager.API"
@@ -31,14 +31,17 @@ FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS final
 WORKDIR /app
 
 # Criar usuário não-root
-RUN adduser --disabled-password --gecos "" appuser && chown -R appuser /app
-USER appuser
+RUN adduser --disabled-password --gecos "" appuser
 
 # Copiar aplicação publicada
 COPY --from=publish /app/publish .
 
-# Criar diretório de logs
-RUN mkdir -p /app/logs
+# Copiar certificado SSL do MySQL
+COPY ca-certificate.pem /app/
+
+# Criar diretório de logs e ajustar permissões
+RUN mkdir -p /app/logs && chown -R appuser /app
+USER appuser
 
 # Expor porta
 EXPOSE 5000

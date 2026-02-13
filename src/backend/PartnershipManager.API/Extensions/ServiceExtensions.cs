@@ -234,11 +234,14 @@ public static class ApiServiceExtensions
             .AddMySql(
                 configuration.GetConnectionString("MySQL")!,
                 name: "mysql",
-                tags: new[] { "db", "mysql" })
-            .AddRedis(
-                configuration.GetConnectionString("Redis") ?? "localhost:6379",
-                name: "redis",
-                tags: new[] { "cache", "redis" });
+                tags: new[] { "db", "mysql" });
+            
+            // Redis health check disabled during development if not configured
+            // .AddRedis(
+            //     configuration.GetConnectionString("Redis") ?? "localhost:6379",
+            //     name: "redis",
+            //     tags: new[] { "cache", "redis" });
+            
             // .AddHangfire(options =>
             // {
             //     options.MinimumAvailableServers = 1;
