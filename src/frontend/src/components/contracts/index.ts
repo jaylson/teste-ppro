@@ -8,8 +8,6 @@ export { StatusBadge } from './StatusBadge';
 export { ContractActions } from './ContractActions';
 export { ContractDetails } from './ContractDetails';
 export { ContractTimeline } from './ContractTimeline';
-export { ContractDetails } from './ContractDetails';
-export { ContractTimeline } from './ContractTimeline';
 
 // Future exports
 // export { ContractTable } from './ContractTable';

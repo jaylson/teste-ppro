@@ -4,11 +4,13 @@ import { Button, Card, Badge } from '@/components/ui';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { CONTRACT_STATUS_CONFIG, CONTRACT_TEMPLATE_TYPE_CONFIG } from '@/constants/contractConstants';
 import type {
-  ContractStatus,
   ContractTemplate,
-  ContractTemplateType,
   CreateContractTemplateRequest,
   UpdateContractTemplateRequest,
+} from '@/types/contract.types';
+import {
+  ContractStatus,
+  ContractTemplateType,
 } from '@/types/contract.types';
 import { contractTemplateService } from '@/services/contractService';
 
