@@ -165,7 +165,12 @@ public static class ApiServiceExtensions
             });
         
         // CORS
-        var corsOrigins = configuration["Cors:Origins"]?.Split(',') ?? new[] { "http://localhost:3000" };
+        var corsOrigins = configuration["Cors:Origins"]?
+            .Split(',')
+            .Select(o => o.Trim())
+            .Where(o => !string.IsNullOrEmpty(o))
+            .ToArray() ?? new[] { "http://localhost:3000" };
+        
         services.AddCors(options =>
         {
             options.AddPolicy("DefaultPolicy", builder =>
