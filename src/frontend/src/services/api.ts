@@ -5,8 +5,27 @@ import axios, {
 import { useAuthStore } from '@/stores/authStore';
 import { useClientStore } from '@/stores/clientStore';
 
-const API_URL = import.meta.env.VITE_API_URL || '/api';
-// Removed unused import_meta_env declaration
+// Detecção automática de ambiente
+const getApiUrl = (): string => {
+  const envUrl = import.meta.env.VITE_API_URL;
+  
+  // Se VITE_API_URL está definido e não é path relativo, use-o
+  if (envUrl && !envUrl.startsWith('/')) {
+    return envUrl;
+  }
+  
+  // Detecta GitHub Codespaces
+  if (typeof window !== 'undefined' && window.location.hostname.includes('github.dev')) {
+    // Extrai o base URL e substitui a porta 3000 por 5000
+    const baseUrl = window.location.origin.replace('-3000.', '-5000.');
+    return `${baseUrl}/api`;
+  }
+  
+  // Fallback para path relativo (desenvolvimento local com proxy do Vite)
+  return envUrl || '/api';
+};
+
+const API_URL = getApiUrl();
 
 export const api = axios.create({
   baseURL: API_URL,
