@@ -186,3 +186,13 @@ export const Colors = {
   info: '#2563EB',
   purple: '#7C3AED',
 } as const;
+
+// =====================================================
+// CONTRACT CONSTANTS
+// =====================================================
+export {
+  CONTRACT_STATUS_CONFIG,
+  SIGNATURE_STATUS_CONFIG,
+  CONTRACT_TEMPLATE_TYPE_CONFIG,
+  CLAUSE_TYPE_CONFIG,
+} from './contractConstants';

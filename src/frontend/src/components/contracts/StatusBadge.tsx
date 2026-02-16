@@ -4,7 +4,7 @@
 // Date: 13/02/2026
 
 import React from 'react';
-import { Badge } from '@/components/ui/badge';
+import { Badge } from '@/components/ui';
 import {
   ContractStatus,
   SignatureStatus,
@@ -17,7 +17,7 @@ import {
   CONTRACT_TEMPLATE_TYPE_CONFIG,
   CLAUSE_TYPE_CONFIG
 } from '@/constants';
-import { cn } from '@/lib/utils';
+import { cn } from '@/utils/cn';
 
 interface StatusBadgeProps {
   type: 'contract' | 'signature' | 'template' | 'clause';

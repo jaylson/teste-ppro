@@ -4,9 +4,7 @@
 // Date: 13/02/2026
 
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, Badge, Button } from '@/components/ui';
 import {
   Eye,
   Edit3,
@@ -20,8 +18,8 @@ import {
 } from 'lucide-react';
 import { Contract, ContractStatus } from '@/types';
 import { CONTRACT_STATUS_CONFIG } from '@/constants';
-import { formatDate } from '@/utils/dateUtils';
-import { cn } from '@/lib/utils';
+import { formatDate } from '@/utils/format';
+import { cn } from '@/utils/cn';
 import { contractService } from '@/services/contractService';
 
 interface ContractCardProps {

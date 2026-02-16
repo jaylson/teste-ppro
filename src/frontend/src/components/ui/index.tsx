@@ -119,8 +119,46 @@ export const Card = forwardRef<HTMLDivElement, CardProps>(
 Card.displayName = 'Card';
 
 /* =====================================================
-   STAT CARD
+   CARD HEADER
    ===================================================== */
+export interface CardHeaderProps extends React.HTMLAttributes<HTMLDivElement> {}
+
+export const CardHeader = forwardRef<HTMLDivElement, CardHeaderProps>(
+  ({ className, children, ...props }, ref) => {
+    return (
+      <div
+        ref={ref}
+        className={cn('card-header', className)}
+        {...props}
+      >
+        {children}
+      </div>
+    );
+  }
+);
+
+CardHeader.displayName = 'CardHeader';
+
+/* =====================================================
+   CARD CONTENT
+   ===================================================== */
+export interface CardContentProps extends React.HTMLAttributes<HTMLDivElement> {}
+
+export const CardContent = forwardRef<HTMLDivElement, CardContentProps>(
+  ({ className, children, ...props }, ref) => {
+    return (
+      <div
+        ref={ref}
+        className={cn('card-content', className)}
+        {...props}
+      >
+        {children}
+      </div>
+    );
+  }
+);
+
+CardContent.displayName = 'CardContent';
 export interface StatCardProps {
   icon: React.ReactNode;
   iconColor?: string;
