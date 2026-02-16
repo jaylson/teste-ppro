@@ -159,6 +159,88 @@ public interface IShareTransactionRepository
     Task<bool> ExistsAsync(Guid id, Guid clientId);
 }
 
+// =====================================================
+// CONTRATOS
+// =====================================================
+
+/// <summary>
+/// Repositório de templates de contratos reutilizáveis
+/// </summary>
+public interface IContractTemplateRepository
+{
+    Task<(IEnumerable<ContractTemplate> Items, int Total)> GetPagedAsync(
+        Guid clientId,
+        int page,
+        int pageSize,
+        string? search = null,
+        string? templateType = null,
+        bool? isActive = null);
+
+    Task<ContractTemplate?> GetByIdAsync(Guid id, Guid clientId);
+    Task<ContractTemplate?> GetByCodeAsync(Guid clientId, string code);
+    Task<bool> CodeExistsAsync(Guid clientId, string code, Guid? excludeId = null);
+    Task<IEnumerable<ContractTemplate>> GetActiveTemplatesAsync(Guid clientId);
+    Task<IEnumerable<ContractTemplate>> GetByTypeAsync(Guid clientId, ContractTemplateType templateType);
+    Task AddAsync(ContractTemplate template);
+    Task UpdateAsync(ContractTemplate template);
+    Task SoftDeleteAsync(Guid id, Guid clientId, Guid? deletedBy = null);
+    Task<bool> ExistsAsync(Guid id, Guid clientId);
+}
+
+/// <summary>
+/// Repositório de biblioteca de cláusulas padronizadas
+/// </summary>
+public interface IClauseRepository
+{
+    Task<(IEnumerable<Clause> Items, int Total)> GetPagedAsync(
+        Guid clientId,
+        int page,
+        int pageSize,
+        string? search = null,
+        string? clauseType = null,
+        bool? isMandatory = null,
+        bool? isActive = null);
+
+    Task<Clause?> GetByIdAsync(Guid id, Guid clientId);
+    Task<Clause?> GetByCodeAsync(Guid clientId, string code);
+    Task<IEnumerable<Clause>> GetByTypeAsync(Guid clientId, ClauseType clauseType);
+    Task<IEnumerable<Clause>> GetMandatoryClausesAsync(Guid clientId);
+    Task<IEnumerable<Clause>> GetActiveClausesAsync(Guid clientId);
+    Task<bool> CodeExistsAsync(Guid clientId, string code, Guid? excludeId = null);
+    Task AddAsync(Clause clause);
+    Task UpdateAsync(Clause clause);
+    Task SoftDeleteAsync(Guid id, Guid clientId, Guid? deletedBy = null);
+    Task<bool> ExistsAsync(Guid id, Guid clientId);
+}
+
+/// <summary>
+/// Repositório de contratos gerados
+/// </summary>
+public interface IContractRepository
+{
+    Task<(IEnumerable<Contract> Items, int Total)> GetPagedAsync(
+        Guid clientId,
+        int page,
+        int pageSize,
+        Guid? companyId = null,
+        string? search = null,
+        string? status = null,
+        string? contractType = null,
+        DateTime? fromDate = null,
+        DateTime? toDate = null);
+
+    Task<Contract?> GetByIdAsync(Guid id, Guid clientId);
+    Task<Contract?> GetWithDetailsAsync(Guid id, Guid clientId);
+    Task<IEnumerable<Contract>> GetByCompanyAsync(Guid clientId, Guid companyId);
+    Task<IEnumerable<Contract>> GetByStatusAsync(Guid clientId, ContractStatus status);
+    Task<IEnumerable<Contract>> GetExpiredContractsAsync(Guid clientId);
+    Task<IEnumerable<Contract>> GetByTemplateAsync(Guid clientId, Guid templateId);
+    Task AddAsync(Contract contract);
+    Task UpdateAsync(Contract contract);
+    Task SoftDeleteAsync(Guid id, Guid clientId, Guid? deletedBy = null);
+    Task<bool> ExistsAsync(Guid id, Guid clientId);
+}
+
 /// <summary>
 /// Repositório de usuários
 /// </summary>

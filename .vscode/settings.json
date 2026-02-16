@@ -1,5 +1,7 @@
 {
     "chat.tools.terminal.autoApprove": {
-        "docker compose": true
+        "docker compose": true,
+        "mkdir": true,
+        "dotnet build": true
     }
 }

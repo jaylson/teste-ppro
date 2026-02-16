@@ -94,16 +94,6 @@ public enum MaritalStatus
     Widowed = 5
 }
 
-public enum ContractStatus
-{
-    Draft = 1,
-    PendingSignatures = 2,
-    PartiallySigned = 3,
-    Signed = 4,
-    Expired = 5,
-    Cancelled = 6
-}
-
 public enum WorkflowStatus
 {
     Pending = 1,

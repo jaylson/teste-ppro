@@ -13,6 +13,10 @@ import Companies from './pages/Companies';
 import Users from './pages/settings/Users';
 import { Plans, ClientsSubscriptions, BillingDashboard, Invoices } from './pages/billing';
 import { ShareholdersListPage, ShareholderDetailPage } from './pages/shareholders';
+import ContractsListPage from './pages/contracts';
+import ContractTemplatesPage from './pages/contracts/templates';
+import ContractBuilderPage from './pages/contracts/builder';
+import ContractDetailsPage from './pages/contracts/[id]';
 
 function App() {
   const { isAuthenticated } = useAuthStore();
@@ -40,6 +44,12 @@ function App() {
         {/* Shareholders Routes */}
         <Route path="/shareholders" element={<ShareholdersListPage />} />
         <Route path="/shareholders/:id" element={<ShareholderDetailPage />} />
+        
+        {/* Contracts Routes */}
+        <Route path="/contracts" element={<ContractsListPage />} />
+        <Route path="/contracts/:id" element={<ContractDetailsPage />} />
+        <Route path="/contracts/templates" element={<ContractTemplatesPage />} />
+        <Route path="/contracts/builder" element={<ContractBuilderPage />} />
         
         {/* Settings Routes */}
         <Route path="/settings/users" element={<Users />} />

@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using PartnershipManager.Application.Interfaces;
 using PartnershipManager.Domain.Interfaces;
 using PartnershipManager.Domain.Interfaces.Billing;
 using PartnershipManager.Domain.Interfaces.Services;
@@ -78,6 +79,19 @@ public static class InfrastructureServiceExtensions
         // Repositories - Shares
         services.AddScoped<IShareRepository, ShareRepository>();
         services.AddScoped<IShareTransactionRepository, ShareTransactionRepository>();
+        
+        // Contracts Module - Repositories
+        services.AddScoped<IContractTemplateRepository, ContractTemplateRepository>();
+        services.AddScoped<IClauseRepository, ClauseRepository>();
+        services.AddScoped<IContractRepository, ContractRepository>();
+        
+        // Contracts Module - Services
+        services.AddScoped<IContractTemplateService, ContractTemplateService>();
+        services.AddScoped<IClauseService, ClauseService>();
+        services.AddScoped<IContractService, ContractService>();
+        services.AddScoped<IContractGenerationService, ContractGenerationService>();
+        services.AddScoped<IClickSignWebhookService, ClickSignWebhookService>();
+        services.AddHttpClient<IClickSignService, ClickSignService>();
         
         // PDF Generator Service  
         services.AddScoped<IPdfGeneratorService, PdfGeneratorService>();
