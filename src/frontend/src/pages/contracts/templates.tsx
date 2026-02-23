@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Plus, Search, Copy, Edit, Trash2, Eye, FileText, Loader2 } from 'lucide-react';
 import { Button, Card, Badge } from '@/components/ui';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
+import VariablesList from '@/components/contracts/VariablesList';
 import { CONTRACT_STATUS_CONFIG, CONTRACT_TEMPLATE_TYPE_CONFIG } from '@/constants/contractConstants';
 import type {
   ContractTemplate,
@@ -13,6 +15,7 @@ import {
   ContractTemplateType,
 } from '@/types/contract.types';
 import { contractTemplateService } from '@/services/contractService';
+import { useAuthStore } from '@/stores/authStore';
 
 /**
  * ContractTemplatesPage
@@ -20,6 +23,9 @@ import { contractTemplateService } from '@/services/contractService';
  * Rotas: /contracts/templates
  */
 function ContractTemplatesPage() {
+  const navigate = useNavigate();
+  const { user } = useAuthStore();
+  const canManageTemplates = user?.roles?.some((role) => role === 'Admin' || role === 'Legal') ?? false;
   const [templates, setTemplates] = useState<ContractTemplate[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -38,6 +44,23 @@ function ContractTemplatesPage() {
   const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
 
   const pageSize = 10;
+
+  if (!canManageTemplates) {
+    return (
+      <div className="max-w-3xl mx-auto">
+        <Card className="p-8 text-center">
+          <FileText className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">Acesso restrito</h2>
+          <p className="text-gray-600 mb-6">
+            Voce nao tem permissao para gerenciar templates de contratos.
+          </p>
+          <Button variant="primary" onClick={() => navigate('/contracts')}>
+            Voltar para Contratos
+          </Button>
+        </Card>
+      </div>
+    );
+  }
 
   useEffect(() => {
     loadTemplates();
@@ -696,6 +719,17 @@ function PreviewModal({ template, onClose }: PreviewModalProps) {
             ✕
           </button>
         </div>
+
+        {/* Variáveis detectadas */}
+        <div className="mb-6">
+          <VariablesList 
+            content={template.content} 
+            title="Variáveis deste template"
+            showCount={true}
+          />
+        </div>
+
+        {/* Conteúdo do template */}
         <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
           <div
             className="prose max-w-none"

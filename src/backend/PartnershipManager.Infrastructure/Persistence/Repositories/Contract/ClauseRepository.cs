@@ -4,7 +4,9 @@
 // Date: 13/02/2026
 
 using System.Data;
+using System.Runtime.Serialization;
 using System.Text;
+using System.Text.Json;
 using Dapper;
 using PartnershipManager.Domain.Entities;
 using PartnershipManager.Domain.Enums;
@@ -101,7 +103,8 @@ public class ClauseRepository : IClauseRepository
         parameters.Add("@PageSize", pageSize);
         parameters.Add("@Offset", offset);
 
-        var items = await Connection.QueryAsync<Clause>(sql, parameters, Transaction);
+        var rows = await Connection.QueryAsync(sql, parameters, Transaction);
+        var items = rows.Select(MapToClause);
 
         return (items, total);
     }
@@ -113,11 +116,13 @@ public class ClauseRepository : IClauseRepository
             FROM {TableName} c
             WHERE c.id = @Id AND c.client_id = @ClientId AND c.is_deleted = 0";
 
-        return await Connection.QueryFirstOrDefaultAsync<Clause>(sql, new
+        var row = await Connection.QueryFirstOrDefaultAsync(sql, new
         {
             Id = id.ToString(),
             ClientId = clientId.ToString()
         }, Transaction);
+
+        return row != null ? MapToClause(row) : null;
     }
 
     public async Task<Clause?> GetByCodeAsync(Guid clientId, string code)
@@ -128,11 +133,13 @@ public class ClauseRepository : IClauseRepository
             WHERE c.client_id = @ClientId AND c.code = @Code AND c.is_deleted = 0
             LIMIT 1";
 
-        return await Connection.QueryFirstOrDefaultAsync<Clause>(sql, new
+        var row = await Connection.QueryFirstOrDefaultAsync(sql, new
         {
             ClientId = clientId.ToString(),
             Code = code
         }, Transaction);
+
+        return row != null ? MapToClause(row) : null;
     }
 
     public async Task<IEnumerable<Clause>> GetByTypeAsync(Guid clientId, ClauseType clauseType)
@@ -143,11 +150,13 @@ public class ClauseRepository : IClauseRepository
             WHERE c.client_id = @ClientId AND c.clause_type = @ClauseType AND c.is_deleted = 0
             ORDER BY c.display_order ASC, c.name ASC";
 
-        return await Connection.QueryAsync<Clause>(sql, new
+        var rows = await Connection.QueryAsync(sql, new
         {
             ClientId = clientId.ToString(),
             ClauseType = clauseType.ToString()
         }, Transaction);
+
+        return rows.Select(MapToClause);
     }
 
     public async Task<IEnumerable<Clause>> GetMandatoryClausesAsync(Guid clientId)
@@ -158,10 +167,12 @@ public class ClauseRepository : IClauseRepository
             WHERE c.client_id = @ClientId AND c.is_mandatory = 1 AND c.is_deleted = 0
             ORDER BY c.display_order ASC, c.name ASC";
 
-        return await Connection.QueryAsync<Clause>(sql, new
+        var rows = await Connection.QueryAsync(sql, new
         {
             ClientId = clientId.ToString()
         }, Transaction);
+
+        return rows.Select(MapToClause);
     }
 
     public async Task<IEnumerable<Clause>> GetActiveClausesAsync(Guid clientId)
@@ -172,10 +183,12 @@ public class ClauseRepository : IClauseRepository
             WHERE c.client_id = @ClientId AND c.is_active = 1 AND c.is_deleted = 0
             ORDER BY c.display_order ASC, c.name ASC";
 
-        return await Connection.QueryAsync<Clause>(sql, new
+        var rows = await Connection.QueryAsync(sql, new
         {
             ClientId = clientId.ToString()
         }, Transaction);
+
+        return rows.Select(MapToClause);
     }
 
     public async Task<bool> CodeExistsAsync(Guid clientId, string code, Guid? excludeId = null)
@@ -292,5 +305,65 @@ public class ClauseRepository : IClauseRepository
         }, Transaction);
 
         return count > 0;
+    }
+
+    private static Clause MapToClause(dynamic row)
+    {
+        Guid ParseGuid(object value) => value is Guid g ? g : Guid.Parse(value.ToString()!);
+        Guid? ParseNullableGuid(object? value) => value == null ? null : (value is Guid g ? g : Guid.Parse(value.ToString()!));
+        
+        var clauseTypeString = (string)row.ClauseType;
+        var clauseType = ParseClauseType(clauseTypeString);
+
+        var tagsString = (string)row.Tags;
+        var tags = string.IsNullOrWhiteSpace(tagsString) 
+            ? new List<string>() 
+            : JsonSerializer.Deserialize<List<string>>(tagsString) ?? new List<string>();
+
+        var clause = Clause.Create(
+            clientId: ParseGuid(row.ClientId),
+            name: (string)row.Name,
+            code: (string)row.Code,
+            content: (string)row.Content,
+            clauseType: clauseType,
+            isMandatory: row.IsMandatory is bool b1 ? b1 : row.IsMandatory == 1,
+            description: (string?)row.Description,
+            tags: tags,
+            displayOrder: (int)row.DisplayOrder,
+            createdBy: ParseNullableGuid(row.CreatedBy)
+        );
+
+        clause.Id = ParseGuid(row.Id);
+        clause.CreatedAt = (DateTime)row.CreatedAt;
+        clause.UpdatedAt = (DateTime)row.UpdatedAt;
+        clause.Version = (int)row.Version;
+        clause.IsActive = row.IsActive is bool b2 ? b2 : row.IsActive == 1;
+        clause.IsDeleted = row.IsDeleted is bool b3 ? b3 : row.IsDeleted == 1;
+        clause.DeletedAt = row.DeletedAt as DateTime?;
+
+        return clause;
+    }
+
+    private static ClauseType ParseClauseType(string value)
+    {
+        // Map database snake_case values to enum
+        foreach (var field in typeof(ClauseType).GetFields().Where(f => f.IsLiteral))
+        {
+            var attribute = field.GetCustomAttributes(typeof(EnumMemberAttribute), false)
+                .FirstOrDefault() as EnumMemberAttribute;
+
+            if (attribute != null && attribute.Value == value)
+            {
+                return (ClauseType)field.GetValue(null)!;
+            }
+        }
+
+        // Fallback to enum name parsing
+        if (Enum.TryParse<ClauseType>(value, true, out var result))
+        {
+            return result;
+        }
+
+        throw new ArgumentException($"Invalid ClauseType value: {value}");
     }
 }

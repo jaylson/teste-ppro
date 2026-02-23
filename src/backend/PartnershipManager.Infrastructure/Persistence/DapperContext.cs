@@ -26,13 +26,19 @@ public class MySqlConnectionFactory : IDbConnectionFactory
 
     public IDbConnection CreateConnection()
     {
-        var connection = new MySqlConnection(_connectionString);
+        var connectionStringBuilder = new MySqlConnector.MySqlConnectionStringBuilder(_connectionString)
+        {
+            CharacterSet = "utf8mb4",
+            UseCompression = false
+        };
+        
+        var connection = new MySqlConnection(connectionStringBuilder.ConnectionString);
         connection.Open();
         
         // Garantir que a conexão use UTF-8
         using (var cmd = connection.CreateCommand())
         {
-            cmd.CommandText = "SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci";
+            cmd.CommandText = "SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci; SET character_set_results = utf8mb4;";
             cmd.ExecuteNonQuery();
         }
         
@@ -41,16 +47,19 @@ public class MySqlConnectionFactory : IDbConnectionFactory
 
     public async Task<IDbConnection> CreateConnectionAsync()
     {
-        var connection = new MySqlConnection(_connectionString);
+        var connectionStringBuilder = new MySqlConnector.MySqlConnectionStringBuilder(_connectionString)
+        {
+            CharacterSet = "utf8mb4",
+            UseCompression = false
+        };
+        var connection = new MySqlConnection(connectionStringBuilder.ConnectionString);
         await connection.OpenAsync();
-        
         // Garantir que a conexão use UTF-8
         using (var cmd = connection.CreateCommand())
         {
-            cmd.CommandText = "SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci";
+            cmd.CommandText = "SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci; SET character_set_results = utf8mb4;";
             await cmd.ExecuteNonQueryAsync();
         }
-        
         return connection;
     }
 }

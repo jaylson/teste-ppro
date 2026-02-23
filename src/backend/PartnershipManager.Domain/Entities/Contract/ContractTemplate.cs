@@ -63,12 +63,12 @@ public class ContractTemplate : BaseEntity
     /// <summary>
     /// Template version number
     /// </summary>
-    public int Version { get; private set; } = 1;
+    public int Version { get; set; } = 1;
 
     /// <summary>
     /// Whether this template can be used for new contracts
     /// </summary>
-    public bool IsActive { get; private set; } = true;
+    public bool IsActive { get; set; } = true;
 
     #endregion
 

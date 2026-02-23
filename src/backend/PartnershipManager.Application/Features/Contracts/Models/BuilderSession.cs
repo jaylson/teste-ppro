@@ -16,7 +16,7 @@ public class BuilderSession
     public Guid SessionId { get; set; } = Guid.NewGuid();
     public Guid ClientId { get; set; }
     public Guid CompanyId { get; set; }
-    public Guid TemplateId { get; set; }
+    public Guid? TemplateId { get; set; }
     public string TemplateName { get; set; } = string.Empty;
     public string Title { get; set; } = string.Empty;
     public int CurrentStep { get; set; } = 1;

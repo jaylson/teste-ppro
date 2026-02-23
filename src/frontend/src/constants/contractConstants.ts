@@ -160,52 +160,72 @@ export const CONTRACT_TEMPLATE_TYPE_CONFIG: Record<
     label: string;
     description: string;
     icon: string;
+    bgColor: string;
+    textColor: string;
   }
 > = {
   [ContractTemplateType.StockOption]: {
     label: 'Stock Option',
     description: 'Acordo de Opção de Ações',
-    icon: 'TrendingUp'
+    icon: 'TrendingUp',
+    bgColor: 'bg-blue-100',
+    textColor: 'text-blue-800'
   },
   [ContractTemplateType.ShareholdersAgreement]: {
     label: 'Acordo de Acionistas',
     description: 'Acordo entre acionistas',
-    icon: 'Users'
+    icon: 'Users',
+    bgColor: 'bg-green-100',
+    textColor: 'text-green-800'
   },
   [ContractTemplateType.NDA]: {
     label: 'Confidencialidade',
     description: 'Acordo de Não-Divulgação',
-    icon: 'Lock'
+    icon: 'Lock',
+    bgColor: 'bg-gray-100',
+    textColor: 'text-gray-800'
   },
   [ContractTemplateType.Investment]: {
     label: 'Investimento',
     description: 'Acordo de Investimento',
-    icon: 'DollarSign'
+    icon: 'DollarSign',
+    bgColor: 'bg-amber-100',
+    textColor: 'text-amber-800'
   },
   [ContractTemplateType.Employment]: {
     label: 'Emprego',
     description: 'Contrato de Trabalho',
-    icon: 'Briefcase'
+    icon: 'Briefcase',
+    bgColor: 'bg-purple-100',
+    textColor: 'text-purple-800'
   },
   [ContractTemplateType.ServiceAgreement]: {
     label: 'Prestação de Serviço',
     description: 'Acordo de Serviços',
-    icon: 'FileText'
+    icon: 'FileText',
+    bgColor: 'bg-orange-100',
+    textColor: 'text-orange-800'
   },
   [ContractTemplateType.Partnership]: {
     label: 'Parceria',
     description: 'Acordo de Parceria',
-    icon: 'Handshake'
+    icon: 'Handshake',
+    bgColor: 'bg-emerald-100',
+    textColor: 'text-emerald-900'
   },
   [ContractTemplateType.Confidentiality]: {
     label: 'Confidencialidade',
     description: 'Acordo de Confidencialidade',
-    icon: 'EyeOff'
+    icon: 'EyeOff',
+    bgColor: 'bg-red-100',
+    textColor: 'text-red-800'
   },
   [ContractTemplateType.Other]: {
     label: 'Outro',
     description: 'Outro tipo de contrato',
-    icon: 'FileText'
+    icon: 'FileText',
+    bgColor: 'bg-slate-100',
+    textColor: 'text-slate-800'
   }
 };
 

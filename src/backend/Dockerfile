@@ -39,8 +39,8 @@ COPY --from=publish /app/publish .
 # Copiar certificado SSL do MySQL
 COPY ca-certificate.pem /app/
 
-# Criar diretório de logs e ajustar permissões
-RUN mkdir -p /app/logs && chown -R appuser /app
+# Criar diretórios necessários e ajustar permissões
+RUN mkdir -p /app/logs /app/storage && chown -R appuser /app
 USER appuser
 
 # Expor porta

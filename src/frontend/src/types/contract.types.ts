@@ -1,3 +1,10 @@
+// Interface para metadados do contrato (usada no builder)
+export interface ContractMetadata {
+  title: string;
+  description?: string;
+  contractDate?: string;
+  expirationDate?: string;
+}
 // F3-FE-TYPES: Contract-related types
 // File: src/frontend/src/types/contract.types.ts
 // Author: GitHub Copilot
@@ -425,3 +432,33 @@ export const ClauseTypeDisplayNames: Record<ClauseType, string> = {
   [ClauseType.Amendments]: 'Amendments',
   [ClauseType.General]: 'General'
 };
+
+// ============================================================
+// Version History types (Fase 4)
+// ============================================================
+
+export interface ContractVersion {
+  id: string;
+  contractId: string;
+  versionNumber: number;
+  fileType: 'pdf' | 'docx';
+  source: 'builder' | 'upload';
+  fileSize?: number;
+  fileHash?: string;
+  notes?: string;
+  createdAt: string;
+  createdBy?: string;
+}
+
+export interface UploadContractRequest {
+  companyId: string;
+  title: string;
+  contractType: ContractTemplateType;
+  description?: string;
+  notes?: string;
+}
+
+export interface UploadVersionRequest {
+  notes?: string;
+}
+

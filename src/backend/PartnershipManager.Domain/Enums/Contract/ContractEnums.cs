@@ -3,6 +3,8 @@
 // Author: GitHub Copilot
 // Date: 13/02/2026
 
+using System.Runtime.Serialization;
+
 namespace PartnershipManager.Domain.Enums;
 
 /// <summary>
@@ -10,14 +12,31 @@ namespace PartnershipManager.Domain.Enums;
 /// </summary>
 public enum ContractTemplateType
 {
+    [EnumMember(Value = "stock_option")]
     StockOption = 0,
+    
+    [EnumMember(Value = "shareholders_agreement")]
     ShareholdersAgreement = 1,
+    
+    [EnumMember(Value = "nda")]
     NDA = 2,
+    
+    [EnumMember(Value = "investment")]
     Investment = 3,
+    
+    [EnumMember(Value = "employment")]
     Employment = 4,
+    
+    [EnumMember(Value = "service_agreement")]
     ServiceAgreement = 5,
+    
+    [EnumMember(Value = "partnership")]
     Partnership = 6,
+    
+    [EnumMember(Value = "confidentiality")]
     Confidentiality = 7,
+    
+    [EnumMember(Value = "other")]
     Other = 99
 }
 
@@ -26,14 +45,31 @@ public enum ContractTemplateType
 /// </summary>
 public enum ClauseType
 {
+    [EnumMember(Value = "governance")]
     Governance = 0,
+    
+    [EnumMember(Value = "rights_obligations")]
     RightsObligations = 1,
+    
+    [EnumMember(Value = "compliance")]
     Compliance = 2,
+    
+    [EnumMember(Value = "financial")]
     Financial = 3,
+    
+    [EnumMember(Value = "termination")]
     Termination = 4,
+    
+    [EnumMember(Value = "confidentiality")]
     Confidentiality = 5,
+    
+    [EnumMember(Value = "dispute_resolution")]
     DisputeResolution = 6,
+    
+    [EnumMember(Value = "amendments")]
     Amendments = 7,
+    
+    [EnumMember(Value = "general")]
     General = 99
 }
 
@@ -42,14 +78,31 @@ public enum ClauseType
 /// </summary>
 public enum ContractStatus
 {
+    [EnumMember(Value = "draft")]
     Draft = 0,
+    
+    [EnumMember(Value = "pending_review")]
     PendingReview = 1,
+    
+    [EnumMember(Value = "approved")]
     Approved = 2,
+    
+    [EnumMember(Value = "sent_for_signature")]
     SentForSignature = 3,
+    
+    [EnumMember(Value = "partially_signed")]
     PartiallySigned = 4,
+    
+    [EnumMember(Value = "signed")]
     Signed = 5,
+    
+    [EnumMember(Value = "executed")]
     Executed = 6,
+    
+    [EnumMember(Value = "expired")]
     Expired = 7,
+    
+    [EnumMember(Value = "cancelled")]
     Cancelled = 8
 }
 
@@ -58,10 +111,19 @@ public enum ContractStatus
 /// </summary>
 public enum SignatureStatus
 {
+    [EnumMember(Value = "pending")]
     Pending = 0,
+    
+    [EnumMember(Value = "waiting_signature")]
     WaitingSignature = 1,
+    
+    [EnumMember(Value = "signed")]
     Signed = 2,
+    
+    [EnumMember(Value = "rejected")]
     Rejected = 3,
+    
+    [EnumMember(Value = "expired")]
     Expired = 4
 }
 

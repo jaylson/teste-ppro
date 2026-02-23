@@ -98,8 +98,10 @@ public class ContractTemplatesController : ControllerBase
     /// Cria novo template de contrato
     /// </summary>
     [HttpPost]
+    [Authorize(Roles = "Admin,Legal")]
     [ProducesResponseType(typeof(ApiResponse<ContractTemplateResponse>), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> Create([FromBody] CreateContractTemplateRequest request)
     {
         var clientId = HttpContext.GetRequiredClientId();
@@ -116,8 +118,10 @@ public class ContractTemplatesController : ControllerBase
     /// Atualiza um template de contrato
     /// </summary>
     [HttpPut("{id:guid}")]
+    [Authorize(Roles = "Admin,Legal")]
     [ProducesResponseType(typeof(ApiResponse<ContractTemplateResponse>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> Update(Guid id, [FromBody] UpdateContractTemplateRequest request)
     {
         var clientId = HttpContext.GetRequiredClientId();
@@ -133,8 +137,10 @@ public class ContractTemplatesController : ControllerBase
     /// Clona um template de contrato com novo código e nome
     /// </summary>
     [HttpPost("{id:guid}/clone")]
+    [Authorize(Roles = "Admin,Legal")]
     [ProducesResponseType(typeof(ApiResponse<ContractTemplateResponse>), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> Clone(Guid id, [FromBody] CloneContractTemplateRequest request)
     {
         var clientId = HttpContext.GetRequiredClientId();
@@ -151,8 +157,10 @@ public class ContractTemplatesController : ControllerBase
     /// Remove (soft delete) um template de contrato
     /// </summary>
     [HttpDelete("{id:guid}")]
+    [Authorize(Roles = "Admin,Legal")]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> Delete(Guid id)
     {
         var clientId = HttpContext.GetRequiredClientId();

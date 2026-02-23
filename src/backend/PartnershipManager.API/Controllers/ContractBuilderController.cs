@@ -5,12 +5,15 @@
 
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using PartnershipManager.API.Middlewares;
+using PartnershipManager.Application.Common.Models;
 using PartnershipManager.Application.Features.Contracts.DTOs;
 using PartnershipManager.Application.Features.Contracts.Models;
 using PartnershipManager.Domain.Entities;
 using PartnershipManager.Domain.Enums;
 using PartnershipManager.Domain.Interfaces;
 using PartnershipManager.Domain.Interfaces.Services;
+using PartnershipManager.Infrastructure.Services;
 using System.Collections.Concurrent;
 
 namespace PartnershipManager.API.Controllers;
@@ -31,6 +34,7 @@ public class ContractBuilderController : ControllerBase
     private readonly IClauseRepository _clauseRepository;
     private readonly IContractRepository _contractRepository;
     private readonly IContractGenerationService _generationService;
+    private readonly IContractVersionService _versionService;
     private readonly ILogger<ContractBuilderController> _logger;
 
     public ContractBuilderController(
@@ -38,12 +42,14 @@ public class ContractBuilderController : ControllerBase
         IClauseRepository clauseRepository,
         IContractRepository contractRepository,
         IContractGenerationService generationService,
+        IContractVersionService versionService,
         ILogger<ContractBuilderController> logger)
     {
         _templateRepository = templateRepository;
         _clauseRepository = clauseRepository;
         _contractRepository = contractRepository;
         _generationService = generationService;
+        _versionService = versionService;
         _logger = logger;
     }
 
@@ -55,29 +61,42 @@ public class ContractBuilderController : ControllerBase
     /// <param name="request">Template and company info</param>
     /// <returns>Builder session initialized</returns>
     [HttpPost("start")]
-    [ProducesResponseType(typeof(BuilderSessionResponse), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(BuilderSessionResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> StartBuilder([FromBody] StartBuilderRequest request)
     {
         try
         {
-            _logger.LogInformation("Starting builder session for Company: {CompanyId}, Template: {TemplateId}", 
-                request.CompanyId, request.TemplateId);
-
-            // Get client ID from auth context (simplified for now)
-            var clientId = Guid.Parse(User.FindFirst("client_id")?.Value ?? Guid.Empty.ToString());
-            
-            // Load template
-            var template = await _templateRepository.GetByIdAsync(request.TemplateId, clientId);
-            if (template == null)
+            // CompanyId is required, but TemplateId is optional
+            if (request.CompanyId == Guid.Empty)
             {
-                return NotFound($"Template with ID {request.TemplateId} not found");
+                return BadRequest("CompanyId é obrigatório");
             }
 
-            if (!template.IsActive)
+            var clientId = HttpContext.GetRequiredClientId();
+            
+            // Load template if provided
+            ContractTemplate? template = null;
+            if (request.TemplateId.HasValue && request.TemplateId != Guid.Empty)
             {
-                return BadRequest("Selected template is not active");
+                _logger.LogInformation("Starting builder session for Company: {CompanyId}, Template: {TemplateId}", 
+                    request.CompanyId, request.TemplateId);
+
+                template = await _templateRepository.GetByIdAsync(request.TemplateId.Value, clientId);
+                if (template == null)
+                {
+                    return NotFound($"Template with ID {request.TemplateId} not found");
+                }
+
+                if (!template.IsActive)
+                {
+                    return BadRequest("Selected template is not active");
+                }
+            }
+            else
+            {
+                _logger.LogInformation("Starting blank builder session for Company: {CompanyId}", request.CompanyId);
             }
 
             // Create session
@@ -87,8 +106,8 @@ public class ContractBuilderController : ControllerBase
                 ClientId = clientId,
                 CompanyId = request.CompanyId,
                 TemplateId = request.TemplateId,
-                TemplateName = template.Name,
-                Title = request.Title ?? $"{template.Name} - {DateTime.UtcNow:yyyy-MM-dd}",
+                TemplateName = template?.Name ?? "Contrato em Branco",
+                Title = request.Title ?? (template != null ? $"{template.Name} - {DateTime.UtcNow:yyyy-MM-dd}" : $"Novo Contrato - {DateTime.UtcNow:yyyy-MM-dd}"),
                 CurrentStep = 1,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow,
@@ -106,14 +125,14 @@ public class ContractBuilderController : ControllerBase
                 CompanyId = session.CompanyId,
                 TemplateId = session.TemplateId,
                 TemplateName = session.TemplateName,
-                TemplateType = template.TemplateType,
+                TemplateType = template?.TemplateType,
                 Title = session.Title,
                 CurrentStep = session.CurrentStep,
                 CreatedAt = session.CreatedAt,
                 UpdatedAt = session.UpdatedAt
             };
 
-            return CreatedAtAction(nameof(GetSession), new { sessionId = session.SessionId }, response);
+            return Ok(response);
         }
         catch (Exception ex)
         {
@@ -282,15 +301,27 @@ public class ContractBuilderController : ControllerBase
                 return BadRequest("Session has expired");
             }
 
-            // Load template to get required variables
-            var template = await _templateRepository.GetByIdAsync(session.TemplateId, session.ClientId);
-            if (template == null)
+            // Load template to get required variables (or use blank template)
+            ContractTemplate? template = null;
+            if (session.TemplateId.HasValue)
             {
-                return NotFound("Template not found");
+                template = await _templateRepository.GetByIdAsync(session.TemplateId.Value, session.ClientId);
+                if (template == null)
+                {
+                    return NotFound("Template not found");
+                }
+            }
+            else
+            {
+                template = CreateBlankTemplate(session.ClientId, session.CompanyId);
             }
 
+            var templateContent = template.Content;
+
             // Extract required variables
-            var requiredVariables = _generationService.ExtractVariables(template.Content);
+            var requiredVariables = _generationService.ExtractVariables(templateContent)
+                .Where(v => !string.Equals(v, "CLAUSES", StringComparison.OrdinalIgnoreCase))
+                .ToList();
             
             // Add clause variables
             foreach (var clauseSelection in session.Clauses)
@@ -307,8 +338,10 @@ public class ContractBuilderController : ControllerBase
 
             // Check for missing variables
             var missingVariables = _generationService.ValidateVariables(
-                template.Content, 
-                request.Variables ?? new Dictionary<string, string>());
+                templateContent, 
+                request.Variables ?? new Dictionary<string, string>())
+                .Where(v => !string.Equals(v, "CLAUSES", StringComparison.OrdinalIgnoreCase))
+                .ToList();
 
             // Update session
             session.Variables = request.Variables ?? new Dictionary<string, string>();
@@ -381,10 +414,18 @@ public class ContractBuilderController : ControllerBase
             }
 
             // Load template and clauses
-            var template = await _templateRepository.GetByIdAsync(session.TemplateId, session.ClientId);
-            if (template == null)
+            ContractTemplate? template = null;
+            if (session.TemplateId.HasValue)
             {
-                return NotFound("Template not found");
+                template = await _templateRepository.GetByIdAsync(session.TemplateId.Value, session.ClientId);
+                if (template == null)
+                {
+                    return NotFound("Template not found");
+                }
+            }
+            else
+            {
+                template = CreateBlankTemplate(session.ClientId, session.CompanyId);
             }
 
             var clauses = new List<Clause>();
@@ -472,10 +513,18 @@ public class ContractBuilderController : ControllerBase
             }
 
             // Load template
-            var template = await _templateRepository.GetByIdAsync(session.TemplateId, session.ClientId);
-            if (template == null)
+            ContractTemplate? template = null;
+            if (session.TemplateId.HasValue)
             {
-                return NotFound("Template not found");
+                template = await _templateRepository.GetByIdAsync(session.TemplateId.Value, session.ClientId);
+                if (template == null)
+                {
+                    return NotFound("Template not found");
+                }
+            }
+            else
+            {
+                template = CreateBlankTemplate(session.ClientId, session.CompanyId);
             }
 
             // Create contract entity
@@ -497,11 +546,25 @@ public class ContractBuilderController : ControllerBase
             var clauseIds = session.Clauses.Select(c => c.ClauseId).ToList();
 
             // Generate complete contract (HTML + PDF)
-            var (htmlContent, pdfBytes) = await _generationService.GenerateCompleteContractAsync(
-                contract.Id,
-                session.TemplateId,
-                clauseIds,
+            var clauses = new List<Clause>();
+            foreach (var clauseId in clauseIds)
+            {
+                var clause = await _clauseRepository.GetByIdAsync(clauseId, session.ClientId);
+                if (clause != null)
+                {
+                    clauses.Add(clause);
+                }
+            }
+
+            var htmlContent = await _generationService.GenerateContractContentAsync(
+                contract,
+                template,
+                clauses,
                 session.Variables);
+
+            var pdfBytes = await _generationService.GenerateContractPdfAsync(
+                contract,
+                htmlContent);
 
             // TODO: Save PDF to storage (S3, Azure Blob, etc.)
             // For now, we'll just set a placeholder path
@@ -522,6 +585,13 @@ public class ContractBuilderController : ControllerBase
 
             await _contractRepository.UpdateAsync(contract);
 
+            // Register version 1 generated by the builder
+            var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            await _versionService.RecordBuilderVersionAsync(
+                contractId : contract.Id,
+                clientId   : session.ClientId,
+                pdfBytes   : pdfBytes,
+                createdBy  : userId);
             // Mark session as completed
             session.GeneratedContractId = contract.Id;
             
@@ -614,6 +684,24 @@ public class ContractBuilderController : ControllerBase
         using var sha256 = System.Security.Cryptography.SHA256.Create();
         var hash = sha256.ComputeHash(data);
         return BitConverter.ToString(hash).Replace("-", "").ToLowerInvariant();
+    }
+
+    /// <summary>
+    /// Build a lightweight blank template for "start from scratch" flows
+    /// </summary>
+    private static ContractTemplate CreateBlankTemplate(Guid clientId, Guid? companyId)
+    {
+        return ContractTemplate.Create(
+            clientId: clientId,
+            name: "Contrato em Branco",
+            code: $"BLANK-{Guid.NewGuid():N}",
+            templateType: ContractTemplateType.Other,
+            content: "<div>{{CLAUSES}}</div>",
+            description: "Template em branco gerado automaticamente",
+            companyId: companyId,
+            defaultStatus: ContractStatus.Draft,
+            tags: new List<string> { "blank" },
+            createdBy: null);
     }
 
     #endregion

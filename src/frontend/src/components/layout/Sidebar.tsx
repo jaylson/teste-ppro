@@ -14,11 +14,20 @@ import {
   Globe,
   CreditCard,
   Building2,
+  List,
+  LucideIcon,
 } from 'lucide-react';
 import { useAuthStore } from '@/stores/authStore';
 import { cn } from '@/utils/cn';
 
-const navigation = [
+interface NavigationItem {
+  name: string;
+  href: string;
+  icon: LucideIcon;
+  requiresRole?: string[];
+}
+
+const navigation: NavigationItem[] = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { name: 'Empresas', href: '/companies', icon: Building2 },
   { name: 'Sócios', href: '/shareholders', icon: Users },
@@ -31,9 +40,11 @@ const navigation = [
   { name: 'Portal Investidor', href: '/investor', icon: Briefcase },
 ];
 
-const settingsNavigation = [
+const settingsNavigation: NavigationItem[] = [
   { name: 'Usuários', href: '/settings/users', icon: Users },
   { name: 'Billing', href: '/billing', icon: CreditCard },
+  { name: 'Templates de Contratos', href: '/contracts/templates', icon: FileText, requiresRole: ['Admin', 'Legal'] },
+  { name: 'Cláusulas', href: '/contracts/clauses', icon: List, requiresRole: ['Admin', 'Legal'] },
 ];
 
 const languages = [
@@ -90,19 +101,25 @@ export default function Sidebar() {
             Administração
           </div>
           <ul className="space-y-1">
-            {settingsNavigation.map((item) => (
-              <li key={item.name}>
-                <NavLink
-                  to={item.href}
-                  className={({ isActive }) =>
-                    cn('sidebar-item', isActive && 'sidebar-item-active')
-                  }
-                >
-                  <item.icon className="w-5 h-5" />
-                  <span>{item.name}</span>
-                </NavLink>
-              </li>
-            ))}
+            {settingsNavigation
+              .filter((item) => {
+                // Show item if it doesn't require a role, or if user has the required role
+                if (!item.requiresRole) return true;
+                return item.requiresRole.some((role) => user?.roles?.includes(role));
+              })
+              .map((item) => (
+                <li key={item.name}>
+                  <NavLink
+                    to={item.href}
+                    className={({ isActive }) =>
+                      cn('sidebar-item', isActive && 'sidebar-item-active')
+                    }
+                  >
+                    <item.icon className="w-5 h-5" />
+                    <span>{item.name}</span>
+                  </NavLink>
+                </li>
+              ))}
           </ul>
         </div>
       </nav>

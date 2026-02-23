@@ -8,6 +8,9 @@ export { StatusBadge } from './StatusBadge';
 export { ContractActions } from './ContractActions';
 export { ContractDetails } from './ContractDetails';
 export { ContractTimeline } from './ContractTimeline';
+export { ContractVersionHistory } from './ContractVersionHistory';
+export { UploadNewVersion } from './UploadNewVersion';
+export { EditContractModal } from './EditContractModal';
 
 // Future exports
 // export { ContractTable } from './ContractTable';

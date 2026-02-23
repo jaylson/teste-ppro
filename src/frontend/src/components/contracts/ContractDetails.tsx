@@ -1,18 +1,36 @@
-import { FileText, Calendar, Users, Hash } from 'lucide-react';
+import { useState } from 'react';
+import { FileText, Calendar, Users, Hash, Edit3, Upload } from 'lucide-react';
 import { Card, Badge } from '@/components/ui';
+import { Button } from '@/components/ui';
 import { StatusBadge } from '@/components/contracts/StatusBadge';
+import { ContractVersionHistory } from '@/components/contracts/ContractVersionHistory';
+import { EditContractModal } from '@/components/contracts/EditContractModal';
+import { UploadNewVersion } from '@/components/contracts/UploadNewVersion';
 import { CONTRACT_TEMPLATE_TYPE_CONFIG } from '@/constants/contractConstants';
 import { formatDate, formatDateTime } from '@/utils/format';
+import { ContractStatus } from '@/types/contract.types';
 import type { Contract } from '@/types/contract.types';
 
 interface ContractDetailsProps {
   contract: Contract;
+  onContractUpdated?: () => void;
 }
 
-export function ContractDetails({ contract }: ContractDetailsProps) {
+export function ContractDetails({ contract, onContractUpdated }: ContractDetailsProps) {
   const templateType = CONTRACT_TEMPLATE_TYPE_CONFIG[contract.contractType];
   const parties = contract.parties || [];
   const clauses = contract.clauses || [];
+
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showUploadModal, setShowUploadModal] = useState(false);
+
+  const canEdit =
+    contract.status === ContractStatus.Draft ||
+    contract.status === ContractStatus.PendingReview;
+
+  const canUpload =
+    contract.status !== ContractStatus.Cancelled &&
+    contract.status !== ContractStatus.Expired;
 
   return (
     <div className="space-y-6">
@@ -24,7 +42,35 @@ export function ContractDetails({ contract }: ContractDetailsProps) {
               <p className="text-sm text-gray-600 mt-2">{contract.description}</p>
             )}
           </div>
-          <StatusBadge type="contract" status={contract.status} />
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <StatusBadge type="contract" status={contract.status} />
+            {canEdit ? (
+              <Button
+                variant="secondary"
+                size="sm"
+                icon={<Edit3 className="w-4 h-4" />}
+                onClick={() => setShowEditModal(true)}
+              >
+                Editar
+              </Button>
+            ) : (
+              <div title="Edição bloqueada após geração. Use 'Upload nova versão' para atualizar.">
+                <Button variant="secondary" size="sm" icon={<Edit3 className="w-4 h-4 text-gray-400" />} disabled>
+                  Editar
+                </Button>
+              </div>
+            )}
+            {canUpload && (
+              <Button
+                variant="secondary"
+                size="sm"
+                icon={<Upload className="w-4 h-4 text-cyan-600" />}
+                onClick={() => setShowUploadModal(true)}
+              >
+                Nova versão
+              </Button>
+            )}
+          </div>
         </div>
 
         <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600">
@@ -108,6 +154,31 @@ export function ContractDetails({ contract }: ContractDetailsProps) {
           </div>
         )}
       </Card>
+
+      {/* Version History */}
+      <ContractVersionHistory contractId={contract.id} />
+
+      {/* Modals */}
+      {showEditModal && (
+        <EditContractModal
+          contract={contract}
+          onSuccess={() => {
+            setShowEditModal(false);
+            onContractUpdated?.();
+          }}
+          onClose={() => setShowEditModal(false)}
+        />
+      )}
+      {showUploadModal && (
+        <UploadNewVersion
+          contractId={contract.id}
+          onSuccess={() => {
+            setShowUploadModal(false);
+            onContractUpdated?.();
+          }}
+          onClose={() => setShowUploadModal(false)}
+        />
+      )}
     </div>
   );
 }

@@ -4,7 +4,9 @@
 // Date: 13/02/2026
 
 using System.Data;
+using System.Runtime.Serialization;
 using System.Text;
+using System.Text.Json;
 using Dapper;
 using PartnershipManager.Domain.Entities;
 using PartnershipManager.Domain.Enums;
@@ -18,6 +20,18 @@ namespace PartnershipManager.Infrastructure.Persistence.Repositories;
 public class ContractTemplateRepository : IContractTemplateRepository
 {
     private readonly DapperContext _context;
+    
+    static ContractTemplateRepository()
+    {
+        // Configure custom type mapping for ContractTemplate to handle enum conversion
+        SqlMapper.SetTypeMap(
+            typeof(ContractTemplate),
+            new CustomPropertyTypeMap(
+                typeof(ContractTemplate),
+                (type, columnName) => type.GetProperty(columnName, System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.IgnoreCase)!
+            )
+        );
+    }
 
     public ContractTemplateRepository(DapperContext context)
     {
@@ -26,6 +40,35 @@ public class ContractTemplateRepository : IContractTemplateRepository
 
     private IDbConnection Connection => _context.Connection;
     private IDbTransaction? Transaction => _context.Transaction;
+    
+    /// <summary>
+    /// Helper method to parse TemplateType enum from database value
+    /// </summary>
+    private static ContractTemplateType ParseTemplateType(string value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return ContractTemplateType.Other;
+            
+        // Try to find enum value by EnumMember attribute
+        foreach (var field in typeof(ContractTemplateType).GetFields())
+        {
+            var attribute = field.GetCustomAttributes(typeof(EnumMemberAttribute), false)
+                .FirstOrDefault() as EnumMemberAttribute;
+
+            if (attribute != null && attribute.Value == value)
+            {
+                return (ContractTemplateType)field.GetValue(null)!;
+            }
+        }
+
+        // Fallback: try parse by name (case-insensitive)
+        if (Enum.TryParse<ContractTemplateType>(value, true, out var result))
+        {
+            return result;
+        }
+
+        return ContractTemplateType.Other;
+    }
 
     private const string SelectColumns = @"
         ct.id AS Id,
@@ -94,9 +137,92 @@ public class ContractTemplateRepository : IContractTemplateRepository
         parameters.Add("@PageSize", pageSize);
         parameters.Add("@Offset", offset);
 
-        var items = await Connection.QueryAsync<ContractTemplate>(sql, parameters, Transaction);
+        // Query as dynamic to handle enum conversion manually
+        var dynamicItems = await Connection.QueryAsync(sql, parameters, Transaction);
+        
+        var items = new List<ContractTemplate>();
+        foreach (var item in dynamicItems)
+        {
+            items.Add(MapToContractTemplate(item));
+        }
 
         return (items, total);
+    }
+    
+    /// <summary>
+    /// Maps a dynamic database row to ContractTemplate entity
+    /// </summary>
+    private static ContractTemplate MapToContractTemplate(dynamic row)
+    {
+        var templateType = ParseTemplateType((string)row.TemplateType);
+        var defaultStatus = ParseContractStatus((string)row.DefaultStatus);
+        
+        // Helper to parse Guid from dynamic (can be Guid or string)
+        Guid ParseGuid(dynamic value) => value is Guid guid ? guid : Guid.Parse((string)value);
+        Guid? ParseNullableGuid(dynamic value) => value == null || (value is string s && string.IsNullOrWhiteSpace(s)) ? null : ParseGuid(value);
+        
+        var template = ContractTemplate.Create(
+            clientId: ParseGuid(row.ClientId),
+            name: (string)row.Name,
+            code: (string)row.Code,
+            templateType: templateType,
+            content: (string)row.Content,
+            description: (string)row.Description ?? string.Empty,
+            companyId: ParseNullableGuid(row.CompanyId),
+            defaultStatus: defaultStatus,
+            tags: System.Text.Json.JsonSerializer.Deserialize<List<string>>((string)row.Tags ?? "[]"),
+            createdBy: ParseNullableGuid(row.CreatedBy)
+        );
+        
+        // Set additional properties via reflection (Id, timestamps, etc.)
+        var type = typeof(ContractTemplate);
+        
+        type.GetProperty("Id")!.SetValue(template, ParseGuid(row.Id));
+        type.GetProperty("Version")!.SetValue(template, (int)row.Version);
+        type.GetProperty("IsActive")!.SetValue(template, (bool)row.IsActive);
+        type.GetProperty("CreatedAt")!.SetValue(template, (DateTime)row.CreatedAt);
+        type.GetProperty("UpdatedAt")!.SetValue(template, (DateTime)row.UpdatedAt);
+        
+        if (ParseNullableGuid(row.UpdatedBy).HasValue)
+            type.GetProperty("UpdatedBy")!.SetValue(template, ParseNullableGuid(row.UpdatedBy));
+            
+        if ((bool)row.IsDeleted)
+        {
+            type.GetProperty("IsDeleted")!.SetValue(template, true);
+            if (row.DeletedAt != null)
+                type.GetProperty("DeletedAt")!.SetValue(template, (DateTime)row.DeletedAt);
+        }
+        
+        return template;
+    }
+    
+    /// <summary>
+    /// Helper method to parse ContractStatus enum from database value
+    /// </summary>
+    private static ContractStatus ParseContractStatus(string value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return ContractStatus.Draft;
+            
+        // Try to find enum value by EnumMember attribute
+        foreach (var field in typeof(ContractStatus).GetFields())
+        {
+            var attribute = field.GetCustomAttributes(typeof(EnumMemberAttribute), false)
+                .FirstOrDefault() as EnumMemberAttribute;
+
+            if (attribute != null && attribute.Value == value)
+            {
+                return (ContractStatus)field.GetValue(null)!;
+            }
+        }
+
+        // Fallback: try parse by name (case-insensitive)
+        if (Enum.TryParse<ContractStatus>(value, true, out var result))
+        {
+            return result;
+        }
+
+        return ContractStatus.Draft;
     }
 
     public async Task<ContractTemplate?> GetByIdAsync(Guid id, Guid clientId)
@@ -106,11 +232,13 @@ public class ContractTemplateRepository : IContractTemplateRepository
             FROM {TableName} ct
             WHERE ct.id = @Id AND ct.client_id = @ClientId AND ct.is_deleted = 0";
 
-        return await Connection.QueryFirstOrDefaultAsync<ContractTemplate>(sql, new
+        var row = await Connection.QueryFirstOrDefaultAsync<dynamic>(sql, new
         {
             Id = id.ToString(),
             ClientId = clientId.ToString()
         }, Transaction);
+
+        return row != null ? MapToContractTemplate(row) : null;
     }
 
     public async Task<ContractTemplate?> GetByCodeAsync(Guid clientId, string code)
@@ -121,11 +249,13 @@ public class ContractTemplateRepository : IContractTemplateRepository
             WHERE ct.client_id = @ClientId AND ct.code = @Code AND ct.is_deleted = 0
             LIMIT 1";
 
-        return await Connection.QueryFirstOrDefaultAsync<ContractTemplate>(sql, new
+        var row = await Connection.QueryFirstOrDefaultAsync<dynamic>(sql, new
         {
             ClientId = clientId.ToString(),
             Code = code
         }, Transaction);
+
+        return row != null ? MapToContractTemplate(row) : null;
     }
 
     public async Task<bool> CodeExistsAsync(Guid clientId, string code, Guid? excludeId = null)

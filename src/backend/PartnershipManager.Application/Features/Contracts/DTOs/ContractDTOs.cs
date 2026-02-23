@@ -193,3 +193,46 @@ public record AttachDocumentRequest
     public long DocumentSize { get; init; }
     public string DocumentHash { get; init; } = string.Empty;
 }
+
+// =====================================================================
+// VERSION HISTORY DTOs (Fase 4)
+// =====================================================================
+
+/// <summary>
+/// Response DTO for a single contract document version
+/// </summary>
+public record ContractVersionResponse
+{
+    public Guid Id { get; init; }
+    public Guid ContractId { get; init; }
+    public int VersionNumber { get; init; }
+    public string FileType { get; init; } = string.Empty;   // "pdf" | "docx"
+    public string Source { get; init; } = string.Empty;     // "builder" | "upload"
+    public long? FileSize { get; init; }
+    public string? FileHash { get; init; }
+    public string? Notes { get; init; }
+    public DateTime CreatedAt { get; init; }
+    public string? CreatedBy { get; init; }
+}
+
+/// <summary>
+/// Request DTO for creating a contract from an uploaded DOCX file.
+/// Received via multipart/form-data from the controller.
+/// </summary>
+public record CreateContractFromUploadRequest
+{
+    public Guid CompanyId { get; init; }
+    public string Title { get; init; } = string.Empty;
+    public ContractTemplateType ContractType { get; init; } = ContractTemplateType.Other;
+    public string? Description { get; init; }
+    public string? Notes { get; init; }
+}
+
+/// <summary>
+/// Request DTO for uploading a new version of an existing contract (DOCX).
+/// Received via multipart/form-data from the controller.
+/// </summary>
+public record UploadContractVersionRequest
+{
+    public string? Notes { get; init; }
+}

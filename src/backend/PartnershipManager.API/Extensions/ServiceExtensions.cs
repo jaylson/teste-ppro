@@ -1,4 +1,5 @@
 using System.Text;
+using Dapper;
 using FluentValidation;
 using Hangfire;
 using Hangfire.MySql;
@@ -7,6 +8,7 @@ using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using PartnershipManager.Application.Interfaces;
+using PartnershipManager.Domain.Enums;
 using PartnershipManager.Domain.Interfaces;
 using PartnershipManager.Domain.Interfaces.Billing;
 using PartnershipManager.Domain.Interfaces.Services;
@@ -14,6 +16,7 @@ using PartnershipManager.Infrastructure.Caching;
 using PartnershipManager.Infrastructure.Jobs;
 using PartnershipManager.Infrastructure.Persistence;
 using PartnershipManager.Infrastructure.Persistence.Repositories;
+using PartnershipManager.Infrastructure.Persistence.TypeHandlers;
 using PartnershipManager.Infrastructure.Repositories.Billing;
 using PartnershipManager.Infrastructure.Services;
 
@@ -53,6 +56,15 @@ public static class InfrastructureServiceExtensions
         services.AddSingleton<IDbConnectionFactory>(new MySqlConnectionFactory(connectionString));
         services.AddScoped<DapperContext>();
         
+        // Configure Dapper TypeHandlers for enums
+        SqlMapper.AddTypeHandler(new EnumMemberTypeHandler<ContractTemplateType>());
+        SqlMapper.AddTypeHandler(new EnumMemberTypeHandler<ContractStatus>());
+        SqlMapper.AddTypeHandler(new EnumMemberTypeHandler<ClauseType>());
+        SqlMapper.AddTypeHandler(new EnumMemberTypeHandler<SignatureStatus>());
+        
+        // Configure Dapper TypeHandler for JSON Lists
+        SqlMapper.AddTypeHandler(new JsonListTypeHandler());
+        
         // Repositories
         services.AddScoped<ICoreClientRepository, CoreClientRepository>();
         services.AddScoped<ICompanyRepository, CompanyRepository>();
@@ -84,12 +96,15 @@ public static class InfrastructureServiceExtensions
         services.AddScoped<IContractTemplateRepository, ContractTemplateRepository>();
         services.AddScoped<IClauseRepository, ClauseRepository>();
         services.AddScoped<IContractRepository, ContractRepository>();
-        
+        services.AddScoped<IContractVersionRepository, ContractVersionRepository>();
+
         // Contracts Module - Services
         services.AddScoped<IContractTemplateService, ContractTemplateService>();
         services.AddScoped<IClauseService, ClauseService>();
         services.AddScoped<IContractService, ContractService>();
         services.AddScoped<IContractGenerationService, ContractGenerationService>();
+        services.AddScoped<IContractStorageService, ContractStorageService>();
+        services.AddScoped<IContractVersionService, ContractVersionService>();
         services.AddScoped<IClickSignWebhookService, ClickSignWebhookService>();
         services.AddHttpClient<IClickSignService, ClickSignService>();
         
@@ -162,6 +177,7 @@ public static class ApiServiceExtensions
                 options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
                 options.JsonSerializerOptions.WriteIndented = true;
                 options.JsonSerializerOptions.Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping;
+                options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
             });
         
         // CORS
@@ -170,15 +186,36 @@ public static class ApiServiceExtensions
             .Select(o => o.Trim())
             .Where(o => !string.IsNullOrEmpty(o))
             .ToArray() ?? new[] { "http://localhost:3000" };
+        var corsOriginSet = new HashSet<string>(corsOrigins, StringComparer.OrdinalIgnoreCase);
         
         services.AddCors(options =>
         {
             options.AddPolicy("DefaultPolicy", builder =>
             {
-                builder.WithOrigins(corsOrigins)
+                builder.SetIsOriginAllowed(origin =>
+                    {
+                        if (string.IsNullOrWhiteSpace(origin))
+                            return false;
+                        
+                        // Allow configured origins
+                        if (corsOriginSet.Contains(origin))
+                            return true;
+                        
+                        // Allow any GitHub Codespaces origin
+                        if (origin.EndsWith(".app.github.dev", StringComparison.OrdinalIgnoreCase))
+                            return true;
+                        
+                        // Allow any localhost origin for development
+                        if (origin.StartsWith("http://localhost:", StringComparison.OrdinalIgnoreCase) ||
+                            origin.StartsWith("https://localhost:", StringComparison.OrdinalIgnoreCase))
+                            return true;
+                        
+                        return false;
+                    })
                     .AllowAnyMethod()
                     .AllowAnyHeader()
-                    .AllowCredentials();
+                    .AllowCredentials()
+                    .WithExposedHeaders("*");
             });
         });
         

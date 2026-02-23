@@ -15,7 +15,7 @@ namespace PartnershipManager.Application.Features.Contracts.DTOs;
 public record StartBuilderRequest
 {
     public Guid CompanyId { get; init; }
-    public Guid TemplateId { get; init; }
+    public Guid? TemplateId { get; init; }
     public string? Title { get; init; }
 }
 
@@ -26,9 +26,9 @@ public record BuilderSessionResponse
 {
     public Guid SessionId { get; init; }
     public Guid CompanyId { get; init; }
-    public Guid TemplateId { get; init; }
+    public Guid? TemplateId { get; init; }
     public string TemplateName { get; init; } = string.Empty;
-    public ContractTemplateType TemplateType { get; init; }
+    public ContractTemplateType? TemplateType { get; init; }
     public string Title { get; init; } = string.Empty;
     public int CurrentStep { get; init; }
     public DateTime CreatedAt { get; init; }
@@ -206,7 +206,7 @@ public record CompleteSessionResponse
 {
     public Guid SessionId { get; init; }
     public Guid CompanyId { get; init; }
-    public Guid TemplateId { get; init; }
+    public Guid? TemplateId { get; init; }
     public string Title { get; init; } = string.Empty;
     public int CurrentStep { get; init; }
     public List<PartyInfo> Parties { get; init; } = new();

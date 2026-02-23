@@ -63,12 +63,12 @@ public class Clause : BaseEntity
     /// <summary>
     /// Clause version number
     /// </summary>
-    public int Version { get; private set; } = 1;
+    public int Version { get; set; } = 1;
 
     /// <summary>
     /// Whether this clause can be used in new contracts
     /// </summary>
-    public bool IsActive { get; private set; } = true;
+    public bool IsActive { get; set; } = true;
 
     #endregion
 

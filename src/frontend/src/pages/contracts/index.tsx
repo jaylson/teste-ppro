@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
-import { Plus, Search, Filter, Download, FileText, Loader2 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Plus, Search, Filter, Download, FileText, Loader2, Eye } from 'lucide-react';
 import { Button, Card } from '@/components/ui';
-import { ContractCard } from '@/components/contracts';
+import { StatusBadge } from '@/components/contracts';
 import {
   CONTRACT_STATUS_CONFIG,
   CONTRACT_TEMPLATE_TYPE_CONFIG,
 } from '@/constants/contractConstants';
+import { formatDate } from '@/utils/format';
 import type {
   Contract,
   ContractStatus,
@@ -19,6 +21,7 @@ import { contractService } from '@/services/contractService';
  * Rotas: /contracts
  */
 function ContractsListPage() {
+  const navigate = useNavigate();
   const [contracts, setContracts] = useState<Contract[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -79,7 +82,7 @@ function ContractsListPage() {
           variant="primary"
           size="lg"
           icon={<Plus className="w-5 h-5" />}
-          onClick={() => (window.location.href = '/contracts/builder')}
+          onClick={() => navigate('/contracts/builder')}
         >
           Novo Contrato
         </Button>
@@ -183,19 +186,89 @@ function ContractsListPage() {
         </Card>
       )}
 
-      {/* Contracts Grid */}
+      {/* Contracts Table */}
       {!isLoading && !error && contracts.length > 0 && (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {contracts.map((contract) => (
-              <ContractCard
-                key={contract.id}
-                contract={contract}
-                onUpdate={handleRefresh}
-                onView={(id) => (window.location.href = `/contracts/${id}`)}
-              />
-            ))}
-          </div>
+          <Card className="overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50 border-b border-gray-200">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Título
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Tipo
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Status
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Partes
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Criado em
+                    </th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Ações
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {contracts.map((contract) => (
+                    <tr
+                      key={contract.id}
+                      className="hover:bg-gray-50 cursor-pointer"
+                      onClick={() => navigate(`/contracts/${contract.id}`)}
+                    >
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-3">
+                          <FileText className="w-5 h-5 text-cyan-600 flex-shrink-0" />
+                          <div>
+                            <p className="font-medium text-gray-900 text-sm">{contract.title}</p>
+                            {contract.description && (
+                              <p className="text-xs text-gray-500 truncate max-w-xs">
+                                {contract.description}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700">
+                          {CONTRACT_TEMPLATE_TYPE_CONFIG[contract.contractType]?.label ||
+                            contract.contractType}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <StatusBadge type="contract" status={contract.status} />
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {contract.parties?.length ?? 0} parte
+                        {(contract.parties?.length ?? 0) !== 1 ? 's' : ''}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {formatDate(contract.createdAt)}
+                      </td>
+                      <td
+                        className="px-6 py-4 whitespace-nowrap text-right"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          icon={<Eye className="w-4 h-4" />}
+                          onClick={() => navigate(`/contracts/${contract.id}`)}
+                        >
+                          Ver
+                        </Button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </Card>
 
           {/* Pagination */}
           {totalPages > 1 && (
@@ -239,7 +312,7 @@ function ContractsListPage() {
           <Button
             variant="primary"
             icon={<Plus className="w-4 h-4" />}
-            onClick={() => (window.location.href = '/contracts/builder')}
+            onClick={() => navigate('/contracts/builder')}
           >
             Criar Primeiro Contrato
           </Button>

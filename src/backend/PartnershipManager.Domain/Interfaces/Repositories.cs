@@ -242,6 +242,18 @@ public interface IContractRepository
 }
 
 /// <summary>
+/// Repositório de versões de contrato (histórico de documentos)
+/// </summary>
+public interface IContractVersionRepository
+{
+    Task<IEnumerable<ContractVersion>> GetByContractAsync(Guid contractId);
+    Task<ContractVersion?> GetByIdAsync(Guid versionId);
+    Task<ContractVersion?> GetByVersionNumberAsync(Guid contractId, int versionNumber);
+    Task<ContractVersion?> GetLatestAsync(Guid contractId);
+    Task AddAsync(ContractVersion version);
+}
+
+/// <summary>
 /// Repositório de usuários
 /// </summary>
 public interface IUserRepository

@@ -95,6 +95,16 @@ public class Contract : BaseEntity
     /// </summary>
     public List<ContractClause> Clauses { get; private set; } = new();
 
+    /// <summary>
+    /// Current (latest) version number. 0 = no document yet.
+    /// </summary>
+    public int CurrentVersionNumber { get; private set; } = 0;
+
+    /// <summary>
+    /// Navigation: Full document version history
+    /// </summary>
+    public List<ContractVersion> Versions { get; private set; } = new();
+
     #endregion
 
     #region Factory Methods
@@ -131,6 +141,8 @@ public class Contract : BaseEntity
             ExpirationDate = expirationDate,
             Parties = new(),
             Clauses = new(),
+            Versions = new(),
+            CurrentVersionNumber = 0,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow,
             CreatedBy = createdBy
@@ -184,6 +196,18 @@ public class Contract : BaseEntity
         DocumentHash = documentHash;
         UpdatedAt = DateTime.UtcNow;
         UpdatedBy = updatedBy;
+    }
+
+    /// <summary>
+    /// Increments the version counter and returns the new version number.
+    /// Must be called before persisting a new ContractVersion record.
+    /// </summary>
+    public int IncrementVersion(Guid? updatedBy = null)
+    {
+        CurrentVersionNumber++;
+        UpdatedAt = DateTime.UtcNow;
+        UpdatedBy = updatedBy;
+        return CurrentVersionNumber;
     }
 
     /// <summary>

@@ -13,11 +13,13 @@ import { CLAUSE_TYPE_CONFIG } from '@/constants/contractConstants';
 interface Step3SelectClausesProps {
   selectedClauseIds: string[];
   onUpdate: (clauseIds: string[]) => void;
+  onUpdateClauses?: (clauses: Clause[]) => void;
 }
 
 export const Step3SelectClauses: React.FC<Step3SelectClausesProps> = ({
   selectedClauseIds,
   onUpdate,
+  onUpdateClauses,
 }) => {
   const [clauses, setClauses] = useState<Clause[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -70,27 +72,35 @@ export const Step3SelectClauses: React.FC<Step3SelectClausesProps> = ({
     return acc;
   }, {} as Record<ClauseType, Clause[]>);
 
+  const notifyClauseObjects = (ids: string[]) => {
+    const selected = clauses.filter((c) => ids.includes(c.id));
+    onUpdateClauses?.(selected);
+  };
+
   const handleToggleClause = (clauseId: string) => {
     const isSelected = selectedClauseIds.includes(clauseId);
-    if (isSelected) {
-      onUpdate(selectedClauseIds.filter((id) => id !== clauseId));
-    } else {
-      onUpdate([...selectedClauseIds, clauseId]);
-    }
+    const newIds = isSelected
+      ? selectedClauseIds.filter((id) => id !== clauseId)
+      : [...selectedClauseIds, clauseId];
+    onUpdate(newIds);
+    notifyClauseObjects(newIds);
   };
 
   const handleSelectAll = () => {
     const allClauseIds = filteredClauses.map((c) => c.id);
     onUpdate(allClauseIds);
+    notifyClauseObjects(allClauseIds);
   };
 
   const handleDeselectAll = () => {
     onUpdate([]);
+    onUpdateClauses?.([]);
   };
 
   const handleSelectMandatory = () => {
     const mandatoryIds = filteredClauses.filter((c) => c.isMandatory).map((c) => c.id);
     onUpdate(mandatoryIds);
+    notifyClauseObjects(mandatoryIds);
   };
 
   return (
@@ -189,7 +199,7 @@ export const Step3SelectClauses: React.FC<Step3SelectClausesProps> = ({
             return (
               <div key={type}>
                 <h4 className="text-md font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                  <Tag className={`w-5 h-5 ${typeConfig.textColor}`} />
+                  <Tag className="w-5 h-5 text-gray-500" />
                   {typeConfig.label} ({typeClauses.length})
                 </h4>
                 <div className="space-y-2">

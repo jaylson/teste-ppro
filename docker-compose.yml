@@ -20,6 +20,8 @@ services:
       - Jwt__Issuer=${JWT_ISSUER:-PartnershipManager}
       - Jwt__Audience=${JWT_AUDIENCE:-PartnershipManagerApp}
       - Cors__Origins=http://localhost:3000,http://frontend:3000,https://fantastic-space-parakeet-jw6454j4rjh7pj-3000.app.github.dev,https://fantastic-space-parakeet-jw6454j4rjh7pj-5000.app.github.dev
+    volumes:
+      - contract_storage:/app/storage
     ports:
       - "5000:5000"
     networks:
@@ -48,3 +50,6 @@ services:
 networks:
   pm-network:
     driver: bridge
+
+volumes:
+  contract_storage:

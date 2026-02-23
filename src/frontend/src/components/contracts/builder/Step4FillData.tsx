@@ -7,12 +7,7 @@ import React from 'react';
 import { FileText, Calendar, AlignLeft } from 'lucide-react';
 import { Card } from '@/components/ui';
 
-interface ContractMetadata {
-  title: string;
-  description?: string;
-  contractDate?: string;
-  expirationDate?: string;
-}
+import type { ContractMetadata } from '@/types/contract.types';
 
 interface Step4FillDataProps {
   metadata: ContractMetadata;

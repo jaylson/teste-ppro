@@ -88,6 +88,12 @@ public class ExceptionHandlingMiddleware
                 _logger.LogWarning("Erro de domínio: {Message}", domainEx.Message);
                 break;
 
+            case System.IO.FileNotFoundException fileNotFoundEx:
+                response.StatusCode = (int)HttpStatusCode.NotFound;
+                errorResponse.Message = "Arquivo não encontrado.";
+                _logger.LogWarning("Arquivo não encontrado: {Message}", fileNotFoundEx.Message);
+                break;
+
             case ArgumentException argumentEx:
                 response.StatusCode = (int)HttpStatusCode.BadRequest;
                 errorResponse.Message = argumentEx.Message;

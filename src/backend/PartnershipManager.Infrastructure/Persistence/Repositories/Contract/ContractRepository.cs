@@ -38,6 +38,7 @@ public class ContractRepository : IContractRepository
         c.document_path AS DocumentPath,
         c.document_size AS DocumentSize,
         c.document_hash AS DocumentHash,
+        c.current_version_number AS CurrentVersionNumber,
         c.status AS Status,
         c.contract_date AS ContractDate,
         c.expiration_date AS ExpirationDate,
@@ -249,11 +250,11 @@ public class ContractRepository : IContractRepository
         var sql = @"
             INSERT INTO contracts
             (id, client_id, company_id, title, description, contract_type, template_id, 
-             document_path, document_size, document_hash, status, contract_date, expiration_date,
+             document_path, document_size, document_hash, current_version_number, status, contract_date, expiration_date,
              external_reference, notes, created_at, updated_at, created_by, updated_by, is_deleted)
             VALUES
             (@Id, @ClientId, @CompanyId, @Title, @Description, @ContractType, @TemplateId,
-             @DocumentPath, @DocumentSize, @DocumentHash, @Status, @ContractDate, @ExpirationDate,
+             @DocumentPath, @DocumentSize, @DocumentHash, @CurrentVersionNumber, @Status, @ContractDate, @ExpirationDate,
              @ExternalReference, @Notes, @CreatedAt, @UpdatedAt, @CreatedBy, @UpdatedBy, @IsDeleted)";
 
         await Connection.ExecuteAsync(sql, new
@@ -268,6 +269,7 @@ public class ContractRepository : IContractRepository
             contract.DocumentPath,
             contract.DocumentSize,
             contract.DocumentHash,
+            contract.CurrentVersionNumber,
             Status = contract.Status.ToString(),
             contract.ContractDate,
             contract.ExpirationDate,
@@ -295,6 +297,7 @@ public class ContractRepository : IContractRepository
                 expiration_date = @ExpirationDate,
                 notes = @Notes,
                 external_reference = @ExternalReference,
+                current_version_number = @CurrentVersionNumber,
                 updated_at = @UpdatedAt,
                 updated_by = @UpdatedBy
             WHERE id = @Id AND client_id = @ClientId";
@@ -311,6 +314,7 @@ public class ContractRepository : IContractRepository
             contract.ExpirationDate,
             contract.Notes,
             contract.ExternalReference,
+            contract.CurrentVersionNumber,
             contract.UpdatedAt,
             UpdatedBy = contract.UpdatedBy?.ToString(),
             Id = contract.Id.ToString(),

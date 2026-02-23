@@ -15,6 +15,7 @@ import { Plans, ClientsSubscriptions, BillingDashboard, Invoices } from './pages
 import { ShareholdersListPage, ShareholderDetailPage } from './pages/shareholders';
 import ContractsListPage from './pages/contracts';
 import ContractTemplatesPage from './pages/contracts/templates';
+import ClausesPage from './pages/contracts/clauses';
 import ContractBuilderPage from './pages/contracts/builder';
 import ContractDetailsPage from './pages/contracts/[id]';
 
@@ -49,6 +50,7 @@ function App() {
         <Route path="/contracts" element={<ContractsListPage />} />
         <Route path="/contracts/:id" element={<ContractDetailsPage />} />
         <Route path="/contracts/templates" element={<ContractTemplatesPage />} />
+        <Route path="/contracts/clauses" element={<ClausesPage />} />
         <Route path="/contracts/builder" element={<ContractBuilderPage />} />
         
         {/* Settings Routes */}
