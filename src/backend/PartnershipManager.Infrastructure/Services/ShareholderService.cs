@@ -80,6 +80,13 @@ public class ShareholderService : IShareholderService
             request.MaritalStatus,
             request.Gender,
             request.BirthDate,
+            request.EarnOut,
+            request.TagAlong,
+            request.DragAlong,
+            request.ShareholdersAgreement,
+            request.RightOfFirstRefusal,
+            request.LiquidationPreferenceRight,
+            request.AntiDilution,
             userId);
 
         shareholder.SetCompanyName(company.Name);
@@ -133,6 +140,13 @@ public class ShareholderService : IShareholderService
             request.MaritalStatus ?? shareholder.MaritalStatus,
             request.Gender ?? shareholder.Gender,
             request.BirthDate ?? shareholder.BirthDate,
+            request.EarnOut,
+            request.TagAlong,
+            request.DragAlong,
+            request.ShareholdersAgreement,
+            request.RightOfFirstRefusal,
+            request.LiquidationPreferenceRight,
+            request.AntiDilution,
             userId);
 
         await _shareholderRepository.UpdateAsync(shareholder);
@@ -176,6 +190,13 @@ public class ShareholderService : IShareholderService
             MaritalStatus = shareholder.MaritalStatus,
             Gender = shareholder.Gender,
             BirthDate = shareholder.BirthDate,
+            EarnOut = shareholder.EarnOut,
+            TagAlong = shareholder.TagAlong,
+            DragAlong = shareholder.DragAlong,
+            ShareholdersAgreement = shareholder.ShareholdersAgreement,
+            RightOfFirstRefusal = shareholder.RightOfFirstRefusal,
+            LiquidationPreferenceRight = shareholder.LiquidationPreferenceRight,
+            AntiDilution = shareholder.AntiDilution,
             CreatedAt = shareholder.CreatedAt,
             UpdatedAt = shareholder.UpdatedAt
         };

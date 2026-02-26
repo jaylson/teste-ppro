@@ -27,6 +27,13 @@ public record ShareholderResponse
     public MaritalStatus? MaritalStatus { get; init; }
     public Gender? Gender { get; init; }
     public DateTime? BirthDate { get; init; }
+    public bool EarnOut { get; init; }
+    public bool TagAlong { get; init; }
+    public bool DragAlong { get; init; }
+    public bool ShareholdersAgreement { get; init; }
+    public bool RightOfFirstRefusal { get; init; }
+    public bool LiquidationPreferenceRight { get; init; }
+    public bool AntiDilution { get; init; }
     public DateTime CreatedAt { get; init; }
     public DateTime UpdatedAt { get; init; }
 }
@@ -58,6 +65,13 @@ public record CreateShareholderRequest
     public MaritalStatus? MaritalStatus { get; init; }
     public Gender? Gender { get; init; }
     public DateTime? BirthDate { get; init; }
+    public bool EarnOut { get; init; }
+    public bool TagAlong { get; init; }
+    public bool DragAlong { get; init; }
+    public bool ShareholdersAgreement { get; init; }
+    public bool RightOfFirstRefusal { get; init; }
+    public bool LiquidationPreferenceRight { get; init; }
+    public bool AntiDilution { get; init; }
 }
 
 public record UpdateShareholderRequest
@@ -80,4 +94,11 @@ public record UpdateShareholderRequest
     public MaritalStatus? MaritalStatus { get; init; }
     public Gender? Gender { get; init; }
     public DateTime? BirthDate { get; init; }
+    public bool EarnOut { get; init; }
+    public bool TagAlong { get; init; }
+    public bool DragAlong { get; init; }
+    public bool ShareholdersAgreement { get; init; }
+    public bool RightOfFirstRefusal { get; init; }
+    public bool LiquidationPreferenceRight { get; init; }
+    public bool AntiDilution { get; init; }
 }

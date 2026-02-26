@@ -25,18 +25,22 @@ public class RoundSimulatorService : IRoundSimulatorService
     private readonly IShareholderRepository _shareholderRepository;
     private readonly ICompanyRepository _companyRepository;
     private readonly IShareClassRepository _shareClassRepository;
+    private readonly IVestingGrantRepository _vestingGrantRepository;
 
     public RoundSimulatorService(
         IShareRepository shareRepository,
         IShareholderRepository shareholderRepository,
         ICompanyRepository companyRepository,
-        IShareClassRepository shareClassRepository)
+        IShareClassRepository shareClassRepository,
+        IVestingGrantRepository vestingGrantRepository)
     {
         _shareRepository = shareRepository;
         _shareholderRepository = shareholderRepository;
         _companyRepository = companyRepository;
         _shareClassRepository = shareClassRepository;
+        _vestingGrantRepository = vestingGrantRepository;
     }
+
 
     public async Task<RoundSimulationResponse> SimulateRoundAsync(Guid clientId, RoundSimulationRequest request)
     {
@@ -69,16 +73,31 @@ public class RoundSimulatorService : IRoundSimulatorService
         
         // Calcular post-money valuation
         var postMoneyValuation = request.PreMoneyValuation + request.InvestmentAmount;
+
+        // ── Lógica por tipo de aquisição ──────────────────────────────────────
+        decimal newShares;
+        decimal totalSharesAfter;
+        decimal totalDilution;
+
+        if (request.AcquisitionType == AcquisitionType.Secondary)
+        {
+            // Aquisição secundária: compra de ações existentes — total de ações não muda
+            newShares = 0;
+            totalSharesAfter = totalSharesBefore;
+            totalDilution = 0;
+        }
+        else
+        {
+            // Emissão primária: novas ações são criadas
+            newShares = request.InvestmentAmount / pricePerShare;
+            totalSharesAfter = totalSharesBefore + newShares;
+            totalDilution = 1 - (totalSharesBefore / totalSharesAfter);
+        }
         
-        // Calcular novas ações a serem emitidas
-        var newShares = request.InvestmentAmount / pricePerShare;
-        
-        // Total de ações após a rodada
-        var totalSharesAfter = totalSharesBefore + newShares;
-        
-        // Calcular pool de opções se aplicável
+        // Calcular pool de opções se aplicável (apenas em emissão primária)
         OptionPoolInfo? optionPoolInfo = null;
-        if (request.IncludeOptionPool && request.OptionPoolPercentage > 0)
+        if (request.AcquisitionType == AcquisitionType.Primary &&
+            request.IncludeOptionPool && request.OptionPoolPercentage > 0)
         {
             var poolShares = CalculateOptionPoolShares(
                 totalSharesBefore, 
@@ -95,100 +114,250 @@ public class RoundSimulatorService : IRoundSimulatorService
             };
             
             totalSharesAfter += poolShares;
+            totalDilution = 1 - (totalSharesBefore / totalSharesAfter);
         }
-        
-        // Calcular diluição total
-        var totalDilution = 1 - (totalSharesBefore / totalSharesAfter);
         
         // Construir cap table antes
         var capTableBefore = await BuildCapTableEntries(currentShares, totalSharesBefore, pricePerShare);
         
-        // Construir cap table depois (com diluição aplicada)
-        var capTableAfter = capTableBefore.Select(entry => entry with
-        {
-            Ownership = (entry.Shares / totalSharesAfter) * 100,
-            Value = entry.Shares * pricePerShare,
-            DilutionPercentage = entry.Ownership - ((entry.Shares / totalSharesAfter) * 100)
-        }).ToList();
-        
-        // Adicionar novos investidores
+        List<SimulatedShareholderEntry> capTableAfter;
         var newInvestors = new List<SimulatedNewInvestor>();
-        foreach (var investor in request.NewInvestors)
+
+        if (request.AcquisitionType == AcquisitionType.Secondary)
         {
-            var investorShares = investor.InvestmentAmount / pricePerShare;
-            var investorOwnership = (investorShares / totalSharesAfter) * 100;
+            // Secundária: investidores compram de holders existentes (pro-rata)
+            var investorSharesTotal = request.InvestmentAmount / pricePerShare;
             
-            newInvestors.Add(new SimulatedNewInvestor
+            // Todos os holders atuais vendem proporcionalmente
+            capTableAfter = capTableBefore.Select(entry =>
             {
-                Name = investor.Name,
-                InvestmentAmount = investor.InvestmentAmount,
-                SharesReceived = investorShares,
-                OwnershipPercentage = investorOwnership,
-                ValueAtRound = investor.InvestmentAmount
-            });
-            
-            // Adicionar ao cap table after
-            capTableAfter.Add(new SimulatedShareholderEntry
+                var sharesSold = entry.Shares * (investorSharesTotal / totalSharesBefore);
+                var sharesKept = entry.Shares - sharesSold;
+                return entry with
+                {
+                    Shares = sharesKept,
+                    Ownership = (sharesKept / totalSharesAfter) * 100,
+                    Value = sharesKept * pricePerShare,
+                    DilutionPercentage = entry.Ownership - ((sharesKept / totalSharesAfter) * 100)
+                };
+            }).ToList();
+
+            // Adicionar novos investidores (compram pro-rata do pool existente)
+            foreach (var investor in request.NewInvestors)
             {
-                ShareholderId = null,
-                ShareholderName = investor.Name,
-                ShareholderType = "Investidor",
-                Shares = investorShares,
-                Ownership = investorOwnership,
-                Value = investor.InvestmentAmount,
-                DilutionPercentage = 0,
-                IsNewInvestor = true
-            });
+                var investorShares = investor.InvestmentAmount / pricePerShare;
+                var investorOwnership = (investorShares / totalSharesAfter) * 100;
+                
+                newInvestors.Add(new SimulatedNewInvestor
+                {
+                    Name = investor.Name,
+                    InvestmentAmount = investor.InvestmentAmount,
+                    SharesReceived = investorShares,
+                    OwnershipPercentage = investorOwnership,
+                    ValueAtRound = investor.InvestmentAmount
+                });
+                
+                capTableAfter.Add(new SimulatedShareholderEntry
+                {
+                    ShareholderId = null,
+                    ShareholderName = investor.Name,
+                    ShareholderType = "Investidor",
+                    Shares = investorShares,
+                    Ownership = investorOwnership,
+                    Value = investor.InvestmentAmount,
+                    DilutionPercentage = 0,
+                    IsNewInvestor = true
+                });
+            }
         }
-        
-        // Se não há investidores específicos, criar um genérico
-        if (request.NewInvestors.Count == 0)
+        else
         {
-            var totalInvestorShares = newShares;
-            var investorOwnership = (totalInvestorShares / totalSharesAfter) * 100;
+            // Primária: diluição aplicada
+            capTableAfter = capTableBefore.Select(entry => entry with
+            {
+                Ownership = (entry.Shares / totalSharesAfter) * 100,
+                Value = entry.Shares * pricePerShare,
+                DilutionPercentage = entry.Ownership - ((entry.Shares / totalSharesAfter) * 100)
+            }).ToList();
             
-            newInvestors.Add(new SimulatedNewInvestor
+            // Adicionar novos investidores
+            foreach (var investor in request.NewInvestors)
             {
-                Name = "Novo Investidor",
-                InvestmentAmount = request.InvestmentAmount,
-                SharesReceived = totalInvestorShares,
-                OwnershipPercentage = investorOwnership,
-                ValueAtRound = request.InvestmentAmount
-            });
-            
-            capTableAfter.Add(new SimulatedShareholderEntry
+                var investorShares = investor.InvestmentAmount / pricePerShare;
+                var investorOwnership = (investorShares / totalSharesAfter) * 100;
+                
+                newInvestors.Add(new SimulatedNewInvestor
+                {
+                    Name = investor.Name,
+                    InvestmentAmount = investor.InvestmentAmount,
+                    SharesReceived = investorShares,
+                    OwnershipPercentage = investorOwnership,
+                    ValueAtRound = investor.InvestmentAmount
+                });
+                
+                capTableAfter.Add(new SimulatedShareholderEntry
+                {
+                    ShareholderId = null,
+                    ShareholderName = investor.Name,
+                    ShareholderType = "Investidor",
+                    Shares = investorShares,
+                    Ownership = investorOwnership,
+                    Value = investor.InvestmentAmount,
+                    DilutionPercentage = 0,
+                    IsNewInvestor = true
+                });
+            }
+
+            // Se não há investidores específicos, criar um genérico
+            if (request.NewInvestors.Count == 0)
             {
-                ShareholderId = null,
-                ShareholderName = "Novo Investidor",
-                ShareholderType = "Investidor",
-                Shares = totalInvestorShares,
-                Ownership = investorOwnership,
-                Value = request.InvestmentAmount,
-                DilutionPercentage = 0,
-                IsNewInvestor = true
-            });
-        }
-        
-        // Adicionar pool de opções ao cap table after se aplicável
-        if (optionPoolInfo != null)
-        {
-            var poolOwnership = (optionPoolInfo.Shares / totalSharesAfter) * 100;
-            capTableAfter.Add(new SimulatedShareholderEntry
+                var totalInvestorShares = newShares;
+                var investorOwnership = (totalInvestorShares / totalSharesAfter) * 100;
+                
+                newInvestors.Add(new SimulatedNewInvestor
+                {
+                    Name = "Novo Investidor",
+                    InvestmentAmount = request.InvestmentAmount,
+                    SharesReceived = totalInvestorShares,
+                    OwnershipPercentage = investorOwnership,
+                    ValueAtRound = request.InvestmentAmount
+                });
+                
+                capTableAfter.Add(new SimulatedShareholderEntry
+                {
+                    ShareholderId = null,
+                    ShareholderName = "Novo Investidor",
+                    ShareholderType = "Investidor",
+                    Shares = totalInvestorShares,
+                    Ownership = investorOwnership,
+                    Value = request.InvestmentAmount,
+                    DilutionPercentage = 0,
+                    IsNewInvestor = true
+                });
+            }
+
+            // Adicionar pool de opções ao cap table after se aplicável
+            if (optionPoolInfo != null)
             {
-                ShareholderId = null,
-                ShareholderName = "Pool de Opções",
-                ShareholderType = "ESOP",
-                Shares = optionPoolInfo.Shares,
-                Ownership = poolOwnership,
-                Value = optionPoolInfo.Value,
-                DilutionPercentage = 0,
-                IsNewInvestor = false
-            });
+                var poolOwnership = (optionPoolInfo.Shares / totalSharesAfter) * 100;
+                capTableAfter.Add(new SimulatedShareholderEntry
+                {
+                    ShareholderId = null,
+                    ShareholderName = "Pool de Opções",
+                    ShareholderType = "ESOP",
+                    Shares = optionPoolInfo.Shares,
+                    Ownership = poolOwnership,
+                    Value = optionPoolInfo.Value,
+                    DilutionPercentage = 0,
+                    IsNewInvestor = false
+                });
+            }
         }
         
         // Ordenar cap tables por ownership desc
         capTableBefore = capTableBefore.OrderByDescending(e => e.Ownership).ToList();
         capTableAfter = capTableAfter.OrderByDescending(e => e.Ownership).ToList();
+
+        // ── Vesting (Fully Diluted) ───────────────────────────────────────────
+        var vestingEntries = new List<VestingSimulationEntry>();
+        var fullyDilutedCapTable = new List<SimulatedShareholderEntry>();
+        var fullyDilutedShares = totalSharesAfter;
+
+        if (request.IncludeVesting)
+        {
+            var grants = await _vestingGrantRepository.GetActiveGrantsForCompanyAsync(clientId, request.CompanyId);
+            var now = DateTime.UtcNow;
+
+            // Total de ações não exercitadas dos grants (unvested + vested-not-exercised)
+            var vestingSharesTotal = grants.Sum(g => g.TotalShares - g.ExercisedShares);
+            fullyDilutedShares = totalSharesAfter + vestingSharesTotal;
+
+            foreach (var grant in grants)
+            {
+                var remaining = grant.TotalShares - grant.ExercisedShares;
+                if (remaining <= 0) continue;
+
+                var fdOwnership = fullyDilutedShares > 0
+                    ? (remaining / fullyDilutedShares) * 100
+                    : 0;
+
+                vestingEntries.Add(new VestingSimulationEntry
+                {
+                    GrantId = grant.Id,
+                    ShareholderName = grant.ShareholderId.ToString(), // será resolvido abaixo
+                    PlanName = grant.VestingPlanId.ToString(),        // será resolvido abaixo
+                    TotalShares = grant.TotalShares,
+                    VestedShares = grant.VestedShares,
+                    UnvestedShares = grant.UnvestedShares,
+                    ExercisedShares = grant.ExercisedShares,
+                    RemainingShares = remaining,
+                    VestedPercentage = grant.CalculateVestedPercentage(now),
+                    FullyDilutedOwnership = fdOwnership,
+                    VestingEndDate = grant.VestingEndDate,
+                    Status = grant.Status.ToString()
+                });
+            }
+
+            // Resolver nomes dos acionistas nos grants
+            var enrichedEntries = new List<VestingSimulationEntry>();
+            foreach (var entry in vestingEntries)
+            {
+                var grant = grants.First(g => g.Id == entry.GrantId);
+                var shareholder = await _shareholderRepository.GetByIdAsync(grant.ShareholderId, clientId);
+                // Para o nome do plano, usamos o ID (seria necessário resolver via VestingPlanRepository)
+                enrichedEntries.Add(entry with
+                {
+                    ShareholderName = shareholder?.Name ?? "Desconhecido"
+                });
+            }
+            vestingEntries = enrichedEntries;
+
+            // Construir fully diluted cap table (capTableAfter + vesting grants)
+            // Ajustar ownership dos holders existentes para base FD
+            fullyDilutedCapTable = capTableAfter.Select(e => e with
+            {
+                Ownership = fullyDilutedShares > 0 ? (e.Shares / fullyDilutedShares) * 100 : 0
+            }).ToList();
+
+            // Agregar vesting por acionista
+            var vestingByHolder = vestingEntries
+                .GroupBy(v => v.ShareholderName)
+                .Select(g => new SimulatedShareholderEntry
+                {
+                    ShareholderId = null,
+                    ShareholderName = g.Key,
+                    ShareholderType = "Vesting",
+                    Shares = g.Sum(v => v.RemainingShares),
+                    Ownership = g.Sum(v => v.FullyDilutedOwnership),
+                    Value = g.Sum(v => v.RemainingShares) * pricePerShare,
+                    DilutionPercentage = 0,
+                    IsNewInvestor = false
+                });
+
+            // Mesclar com holders existentes (se o acionista já está no cap table)
+            var fdDict = fullyDilutedCapTable.ToDictionary(e => e.ShareholderName, e => e);
+            foreach (var vestHolder in vestingByHolder)
+            {
+                if (fdDict.TryGetValue(vestHolder.ShareholderName, out var existing))
+                {
+                    var mergedShares = existing.Shares + vestHolder.Shares;
+                    fdDict[vestHolder.ShareholderName] = existing with
+                    {
+                        Shares = mergedShares,
+                        Ownership = fullyDilutedShares > 0 ? (mergedShares / fullyDilutedShares) * 100 : 0,
+                        Value = mergedShares * pricePerShare
+                    };
+                }
+                else
+                {
+                    fdDict[vestHolder.ShareholderName] = vestHolder;
+                }
+            }
+
+            fullyDilutedCapTable = fdDict.Values
+                .OrderByDescending(e => e.Ownership)
+                .ToList();
+        }
 
         return new RoundSimulationResponse
         {
@@ -205,6 +374,10 @@ public class RoundSimulatorService : IRoundSimulatorService
             CapTableAfter = capTableAfter,
             NewInvestors = newInvestors,
             OptionPool = optionPoolInfo,
+            AcquisitionType = request.AcquisitionType,
+            VestingEntries = vestingEntries,
+            FullyDilutedCapTable = fullyDilutedCapTable,
+            FullyDilutedShares = fullyDilutedShares,
             SimulatedAt = DateTime.UtcNow
         };
     }

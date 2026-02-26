@@ -30,16 +30,20 @@ export function CompanySwitcher() {
     }
   }, [isLoadingCompanies, isLoading, setLoading]);
 
-  // Define seleção inicial: prioriza store, depois empresa do usuário, depois primeira da lista
+  // Define seleção inicial: prioriza store, depois valida se ainda existe, depois empresa do usuário, depois primeira da lista
   useEffect(() => {
-    if (!selectedCompanyId) {
-      if (user?.companyId) {
+    if (isLoadingCompanies || companies.length === 0) return;
+
+    const isValid = selectedCompanyId && companies.some((c) => c.id === selectedCompanyId);
+
+    if (!isValid) {
+      if (user?.companyId && companies.some((c) => c.id === user.companyId)) {
         setSelectedCompanyId(user.companyId);
-      } else if (companies.length > 0) {
+      } else {
         setSelectedCompanyId(companies[0].id);
       }
     }
-  }, [selectedCompanyId, companies, setSelectedCompanyId, user]);
+  }, [selectedCompanyId, companies, setSelectedCompanyId, user, isLoadingCompanies]);
 
   const activeCompany: ClientCompany | undefined = useMemo(
     () => companies.find((company) => company.id === selectedCompanyId),

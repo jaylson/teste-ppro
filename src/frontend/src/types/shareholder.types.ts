@@ -60,6 +60,13 @@ export interface Shareholder {
   maritalStatus?: MaritalStatus;
   gender?: Gender;
   birthDate?: string;
+  earnOut: boolean;
+  tagAlong: boolean;
+  dragAlong: boolean;
+  shareholdersAgreement: boolean;
+  rightOfFirstRefusal: boolean;
+  liquidationPreferenceRight: boolean;
+  antiDilution: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -92,6 +99,13 @@ export interface CreateShareholderRequest {
   maritalStatus?: MaritalStatus;
   gender?: Gender;
   birthDate?: string;
+  earnOut?: boolean;
+  tagAlong?: boolean;
+  dragAlong?: boolean;
+  shareholdersAgreement?: boolean;
+  rightOfFirstRefusal?: boolean;
+  liquidationPreferenceRight?: boolean;
+  antiDilution?: boolean;
 }
 
 export interface UpdateShareholderRequest {
@@ -113,6 +127,13 @@ export interface UpdateShareholderRequest {
   maritalStatus?: MaritalStatus;
   gender?: Gender;
   birthDate?: string;
+  earnOut?: boolean;
+  tagAlong?: boolean;
+  dragAlong?: boolean;
+  shareholdersAgreement?: boolean;
+  rightOfFirstRefusal?: boolean;
+  liquidationPreferenceRight?: boolean;
+  antiDilution?: boolean;
 }
 
 export interface ShareholderFilters {

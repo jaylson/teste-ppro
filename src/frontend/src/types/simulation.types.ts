@@ -10,6 +10,16 @@ export enum RoundType {
   SAFE = 3,
 }
 
+export enum AcquisitionType {
+  Primary = 1,
+  Secondary = 2,
+}
+
+export const acquisitionTypeLabels: Record<AcquisitionType, string> = {
+  [AcquisitionType.Primary]: 'Emissão Primária (novas ações)',
+  [AcquisitionType.Secondary]: 'Aquisição Secundária (sem novas ações)',
+};
+
 // ============================================================================
 // REQUEST TYPES
 // ============================================================================
@@ -33,6 +43,8 @@ export interface RoundSimulationRequest {
   includeOptionPool: boolean;
   optionPoolPercentage: number;
   optionPoolPreMoney: boolean;
+  acquisitionType?: AcquisitionType;
+  includeVesting?: boolean;
 }
 
 export interface ScenarioCompareRequest {
@@ -83,7 +95,26 @@ export interface RoundSimulationResponse {
   capTableAfter: SimulatedShareholderEntry[];
   newInvestors: SimulatedNewInvestor[];
   optionPool?: OptionPoolInfo;
+  acquisitionType?: AcquisitionType;
+  vestingEntries: VestingSimulationEntry[];
+  fullyDilutedCapTable: SimulatedShareholderEntry[];
+  fullyDilutedShares: number;
   simulatedAt: string;
+}
+
+export interface VestingSimulationEntry {
+  grantId: string;
+  shareholderName: string;
+  planName: string;
+  totalShares: number;
+  vestedShares: number;
+  unvestedShares: number;
+  exercisedShares: number;
+  remainingShares: number;
+  vestedPercentage: number;
+  fullyDilutedOwnership: number;
+  vestingEndDate: string;
+  status: string;
 }
 
 export interface DilutionResponse {

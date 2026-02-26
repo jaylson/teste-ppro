@@ -156,9 +156,15 @@ export default function IssueSharesModal({
               <select
                 {...register('shareClassId')}
                 className="input"
-                disabled={loadingClasses}
+                disabled={loadingClasses || !shareClassesData?.length}
               >
-                <option value="">Selecione uma classe</option>
+                <option value="">
+                  {loadingClasses
+                    ? 'Carregando...'
+                    : !shareClassesData?.length
+                    ? 'Nenhuma classe de ações cadastrada'
+                    : 'Selecione uma classe'}
+                </option>
                 {shareClassesData?.map((shareClass) => (
                   <option key={shareClass.id} value={shareClass.id}>
                     {shareClass.code} - {shareClass.name}
@@ -167,6 +173,19 @@ export default function IssueSharesModal({
               </select>
               {errors.shareClassId && (
                 <p className="input-error-message">{errors.shareClassId.message}</p>
+              )}
+              {!loadingClasses && !shareClassesData?.length && (
+                <p className="text-xs text-amber-600 mt-1">
+                  Cadastre as classes de ações da empresa antes de emitir.{' '}
+                  <a
+                    href="/share-classes"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="font-medium underline"
+                  >
+                    Criar classes de ações
+                  </a>
+                </p>
               )}
             </div>
 

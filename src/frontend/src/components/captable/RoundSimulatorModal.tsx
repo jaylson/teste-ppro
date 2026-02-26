@@ -1,4 +1,5 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import html2canvas from 'html2canvas';
 import { useForm, useFieldArray, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -17,12 +18,16 @@ import {
   Info,
   CheckCircle2,
   AlertCircle,
+  Download,
+  Loader2,
 } from 'lucide-react';
 import { Button, Card } from '@/components/ui';
 import { useSimulateRound, useDilutionCalculation } from '@/hooks/useSimulator';
 import { useClientStore } from '@/stores/clientStore';
 import {
   RoundType,
+  AcquisitionType,
+  acquisitionTypeLabels,
   getRoundTypeLabel,
   roundNameSuggestions,
   type RoundSimulationRequest,
@@ -45,7 +50,9 @@ const simulationSchema = z.object({
   newInvestors: z.array(newInvestorSchema).min(1, 'Adicione pelo menos 1 investidor'),
   includeOptionPool: z.boolean(),
   optionPoolPercentage: z.coerce.number().min(0).max(50).optional(),
-  optionPoolPreMoney: z.boolean().optional(),
+  optionPoolPreMoney: z.preprocess(val => val === true || val === 'true', z.boolean()).optional(),
+  acquisitionType: z.nativeEnum(AcquisitionType).optional(),
+  includeVesting: z.boolean(),
 });
 
 type SimulationFormData = z.infer<typeof simulationSchema>;
@@ -69,13 +76,43 @@ export default function RoundSimulatorModal({
   const [result, setResult] = useState<RoundSimulationResponse | null>(null);
   const [showResults, setShowResults] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
+  const [isExporting, setIsExporting] = useState(false);
+  const resultsRef = useRef<HTMLDivElement>(null);
+
+  const exportJpg = useCallback(async () => {
+    if (!resultsRef.current || !result) return;
+    setIsExporting(true);
+    try {
+      const canvas = await html2canvas(resultsRef.current, {
+        backgroundColor: '#ffffff',
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        windowWidth: resultsRef.current.scrollWidth,
+        windowHeight: resultsRef.current.scrollHeight,
+        height: resultsRef.current.scrollHeight,
+        width: resultsRef.current.scrollWidth,
+      });
+      const link = document.createElement('a');
+      const roundSlug = result.roundName.replace(/\s+/g, '-').toLowerCase();
+      link.download = `simulacao-${roundSlug}.jpg`;
+      link.href = canvas.toDataURL('image/jpeg', 0.92);
+      link.click();
+    } finally {
+      setIsExporting(false);
+    }
+  }, [result]);
 
   const simulateRound = useSimulateRound();
+
+  const [preMoneyDisplay, setPreMoneyDisplay] = useState('');
+  const [investorDisplays, setInvestorDisplays] = useState<string[]>(['']);
 
   const {
     register,
     handleSubmit,
     control,
+    setValue,
     formState: { errors },
     reset,
     trigger,
@@ -90,8 +127,42 @@ export default function RoundSimulatorModal({
       includeOptionPool: false,
       optionPoolPercentage: 10,
       optionPoolPreMoney: true,
+      acquisitionType: AcquisitionType.Primary,
+      includeVesting: false,
     },
   });
+
+  // Formatar número como moeda BRL (sem prefixo R$) para exibição no input
+  const formatPreMoneyDisplay = (value: number) => {
+    if (!value) return '';
+    return value.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  };
+
+  const handlePreMoneyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const digits = e.target.value.replace(/\D/g, '');
+    if (!digits) {
+      setPreMoneyDisplay('');
+      setValue('preMoneyValuation', 0, { shouldValidate: true });
+      return;
+    }
+    const numValue = parseInt(digits, 10) / 100;
+    setValue('preMoneyValuation', numValue, { shouldValidate: true });
+    setPreMoneyDisplay(formatPreMoneyDisplay(numValue));
+  };
+
+  const formatCurrencyDisplay = (value: number) =>
+    value ? value.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '';
+
+  const handleInvestorAmountChange = (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
+    const digits = e.target.value.replace(/\D/g, '');
+    const numValue = digits ? parseInt(digits, 10) / 100 : 0;
+    setValue(`newInvestors.${index}.investmentAmount`, numValue, { shouldValidate: true });
+    setInvestorDisplays(prev => {
+      const next = [...prev];
+      next[index] = formatCurrencyDisplay(numValue);
+      return next;
+    });
+  };
 
   const { fields, append, remove } = useFieldArray({
     control,
@@ -103,6 +174,9 @@ export default function RoundSimulatorModal({
   const watchIncludePool = useWatch({ control, name: 'includeOptionPool' });
   const watchNewInvestors = useWatch({ control, name: 'newInvestors' });
   const watchRoundName = useWatch({ control, name: 'roundName' });
+  const watchAcquisitionType = useWatch({ control, name: 'acquisitionType' });
+  const watchIncludeVesting = useWatch({ control, name: 'includeVesting' });
+  const watchOptionPoolPreMoney = useWatch({ control, name: 'optionPoolPreMoney' });
 
   // Calcular valor total do investimento de forma reativa
   const totalInvestment = useMemo(() => {
@@ -124,6 +198,8 @@ export default function RoundSimulatorModal({
       setResult(null);
       setShowResults(false);
       setCurrentStep(1);
+      setPreMoneyDisplay('');
+      setInvestorDisplays(['']);
       reset();
     }
   }, [isOpen, reset]);
@@ -143,6 +219,8 @@ export default function RoundSimulatorModal({
       includeOptionPool: data.includeOptionPool,
       optionPoolPercentage: data.optionPoolPercentage || 0,
       optionPoolPreMoney: data.optionPoolPreMoney ?? true,
+      acquisitionType: data.acquisitionType ?? AcquisitionType.Primary,
+      includeVesting: data.includeVesting ?? false,
     };
 
     try {
@@ -235,7 +313,9 @@ export default function RoundSimulatorModal({
         {/* Content */}
         <div className="flex-1 overflow-y-auto p-6">
           {showResults && result ? (
-            <SimulationResultsView result={result} onBack={handleBack} />
+            <div ref={resultsRef} className="bg-white">
+              <SimulationResultsView result={result} onBack={handleBack} />
+            </div>
           ) : (
             <form id="simulation-form" onSubmit={handleSubmit(onSubmit)} className="space-y-6">
               {/* Step 1: Round Info */}
@@ -322,11 +402,11 @@ export default function RoundSimulatorModal({
                         R$
                       </span>
                       <input
-                        {...register('preMoneyValuation')}
-                        type="number"
-                        min="0"
-                        step="100000"
-                        placeholder="10.000.000"
+                        type="text"
+                        inputMode="numeric"
+                        value={preMoneyDisplay}
+                        onChange={handlePreMoneyChange}
+                        placeholder="10.000.000,00"
                         className="input w-full pl-12 text-lg font-semibold"
                       />
                     </div>
@@ -339,6 +419,66 @@ export default function RoundSimulatorModal({
                     <p className="text-xs text-gray-500 mt-1">
                       Valor acordado da empresa <strong>antes</strong> de receber o investimento
                     </p>
+                  </div>
+
+                  {/* Acquisition Type */}
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-3">
+                      Tipo de Aquisição *
+                    </label>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {Object.entries(acquisitionTypeLabels).map(([value, label]) => {
+                        const numValue = Number(value) as AcquisitionType;
+                        const isSelected = watchAcquisitionType === numValue;
+                        const isPrimary = numValue === AcquisitionType.Primary;
+                        return (
+                          <label
+                            key={value}
+                            className={`relative flex flex-col gap-2 p-4 rounded-xl border-2 cursor-pointer transition-all ${
+                              isSelected
+                                ? isPrimary
+                                  ? 'border-primary-500 bg-primary-50'
+                                  : 'border-amber-500 bg-amber-50'
+                                : 'border-gray-200 hover:border-gray-300 bg-white'
+                            }`}
+                          >
+                            <input
+                              type="radio"
+                              className="sr-only"
+                              name="acquisitionType"
+                              value={numValue}
+                              checked={watchAcquisitionType === numValue}
+                              onChange={() => setValue('acquisitionType', numValue, { shouldValidate: true })}
+                            />
+                            <div className="flex items-center gap-2">
+                              <div
+                                className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
+                                  isSelected
+                                    ? isPrimary
+                                      ? 'border-primary-500'
+                                      : 'border-amber-500'
+                                    : 'border-gray-400'
+                                }`}
+                              >
+                                {isSelected && (
+                                  <div
+                                    className={`w-2 h-2 rounded-full ${
+                                      isPrimary ? 'bg-primary-500' : 'bg-amber-500'
+                                    }`}
+                                  />
+                                )}
+                              </div>
+                              <span className="font-semibold text-sm text-gray-900">{label}</span>
+                            </div>
+                            <p className="text-xs text-gray-500 pl-6">
+                              {isPrimary
+                                ? 'Novas ações são emitidas. Os sócios atuais são diluídos proporcionalmente.'
+                                : 'O investidor compra ações de sócios existentes. O total de ações não muda e não há diluição geral.'}
+                            </p>
+                          </label>
+                        );
+                      })}
+                    </div>
                   </div>
 
                   {/* Option Pool */}
@@ -378,15 +518,64 @@ export default function RoundSimulatorModal({
                               />
                             </div>
                             <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-1">
+                              <label className="block text-sm font-medium text-gray-700 mb-2">
                                 Momento da Diluição
                               </label>
-                              <select {...register('optionPoolPreMoney')} className="input w-full">
-                                <option value="true">Pre-Money (dilui fundadores)</option>
-                                <option value="">Post-Money (dilui todos)</option>
-                              </select>
+                              <div className="flex gap-2">
+                                {[
+                                  { value: true, label: 'Pre-Money', desc: 'dilui fundadores' },
+                                  { value: false, label: 'Post-Money', desc: 'dilui todos' },
+                                ].map(opt => {
+                                  const isActive = (watchOptionPoolPreMoney ?? true) === opt.value;
+                                  return (
+                                    <button
+                                      key={String(opt.value)}
+                                      type="button"
+                                      onClick={() => setValue('optionPoolPreMoney', opt.value, { shouldValidate: true })}
+                                      className={`flex-1 text-left p-3 rounded-lg border-2 transition-all text-sm ${
+                                        isActive
+                                          ? 'border-primary-500 bg-primary-50'
+                                          : 'border-gray-200 hover:border-gray-300 bg-white'
+                                      }`}
+                                    >
+                                      <span className="font-semibold block">{opt.label}</span>
+                                      <span className="text-xs text-gray-500">{opt.desc}</span>
+                                    </button>
+                                  );
+                                })}
+                              </div>
                             </div>
                           </div>
+                        )}
+                      </div>
+                    </div>
+                  </Card>
+
+                  {/* Vesting Toggle */}
+                  <Card className="p-5 border-2 border-dashed border-gray-200 hover:border-gray-300 transition-colors">
+                    <div className="flex items-start gap-4">
+                      <input
+                        {...register('includeVesting')}
+                        type="checkbox"
+                        id="includeVesting"
+                        className="w-5 h-5 rounded border-gray-300 text-primary-600 focus:ring-primary-500 mt-0.5"
+                      />
+                      <div className="flex-1">
+                        <label
+                          htmlFor="includeVesting"
+                          className="block text-sm font-semibold text-gray-900 cursor-pointer"
+                        >
+                          Incluir Projeção de Vesting (Cap Table Fully Diluted)
+                        </label>
+                        <p className="text-sm text-gray-500 mt-1">
+                          Exibe o cap table considerando todas as ações previstas em vesting (ainda não exercidas),
+                          mostrando a participação futura real de cada acionista caso todos os grants sejam exercidos.
+                        </p>
+                        {watchIncludeVesting && (
+                          <p className="text-xs text-blue-600 mt-2 flex items-center gap-1">
+                            <Info className="w-3 h-3" />
+                            O resultado mostrará dois cap tables: o padrão (pós-rodada) e o fully diluted.
+                          </p>
                         )}
                       </div>
                     </div>
@@ -432,7 +621,10 @@ export default function RoundSimulatorModal({
                       type="button"
                       variant="secondary"
                       size="sm"
-                      onClick={() => append({ name: '', investmentAmount: 0, email: '', document: '' })}
+                      onClick={() => {
+                        append({ name: '', investmentAmount: 0, email: '', document: '' });
+                        setInvestorDisplays(prev => [...prev, '']);
+                      }}
                       icon={<Plus className="w-4 h-4" />}
                     >
                       Adicionar Investidor
@@ -468,14 +660,17 @@ export default function RoundSimulatorModal({
                               <label className="block text-xs font-medium text-gray-500 mb-1">
                                 Valor do Aporte (R$) *
                               </label>
-                              <input
-                                {...register(`newInvestors.${index}.investmentAmount`)}
-                                type="number"
-                                min="0"
-                                step="1000"
-                                placeholder="500.000"
-                                className="input w-full"
-                              />
+                              <div className="relative">
+                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm font-medium">R$</span>
+                                <input
+                                  type="text"
+                                  inputMode="numeric"
+                                  value={investorDisplays[index] ?? ''}
+                                  onChange={e => handleInvestorAmountChange(index, e)}
+                                  placeholder="500.000,00"
+                                  className="input w-full pl-10"
+                                />
+                              </div>
                               {errors.newInvestors?.[index]?.investmentAmount && (
                                 <p className="text-xs text-red-500 mt-1">
                                   {errors.newInvestors[index]?.investmentAmount?.message}
@@ -498,7 +693,10 @@ export default function RoundSimulatorModal({
                           {fields.length > 1 && (
                             <button
                               type="button"
-                              onClick={() => remove(index)}
+                              onClick={() => {
+                                remove(index);
+                                setInvestorDisplays(prev => prev.filter((_, i) => i !== index));
+                              }}
                               className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
                               title="Remover investidor"
                             >
@@ -554,13 +752,23 @@ export default function RoundSimulatorModal({
         {/* Footer */}
         <div className="border-t border-gray-200 p-6 bg-gray-50">
           {showResults ? (
-            <div className="flex justify-between">
+            <div className="flex justify-between items-center">
               <Button variant="secondary" onClick={handleBack} icon={<ArrowLeft className="w-4 h-4" />}>
                 Nova Simulação
               </Button>
-              <Button variant="primary" onClick={onClose}>
-                Fechar
-              </Button>
+              <div className="flex gap-3">
+                <Button
+                  variant="secondary"
+                  onClick={exportJpg}
+                  disabled={isExporting}
+                  icon={isExporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+                >
+                  {isExporting ? 'Exportando...' : 'Exportar JPG'}
+                </Button>
+                <Button variant="primary" onClick={onClose}>
+                  Fechar
+                </Button>
+              </div>
             </div>
           ) : (
             <div className="flex justify-between items-center">
@@ -613,6 +821,9 @@ interface SimulationResultsViewProps {
 }
 
 function SimulationResultsView({ result }: SimulationResultsViewProps) {
+  const isSecondary = result.acquisitionType === AcquisitionType.Secondary;
+  const hasVesting = (result.vestingEntries?.length ?? 0) > 0;
+
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Success Banner */}
@@ -624,6 +835,13 @@ function SimulationResultsView({ result }: SimulationResultsViewProps) {
             Abaixo você pode ver como ficará o Cap Table após a rodada "{result.roundName}".
             Lembre-se: esta é apenas uma simulação e não afeta seus dados reais.
           </p>
+          {isSecondary && (
+            <div className="mt-2 flex items-center gap-2">
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 border border-amber-200">
+                🔁 Aquisição Secundária — sem emissão de novas ações
+              </span>
+            </div>
+          )}
         </div>
       </div>
 
@@ -642,15 +860,17 @@ function SimulationResultsView({ result }: SimulationResultsViewProps) {
           </p>
         </Card>
         <Card className="p-4 text-center bg-gradient-to-br from-green-50 to-emerald-50 border-green-200">
-          <p className="text-xs text-green-600 uppercase font-medium">Novas Ações</p>
+          <p className="text-xs text-green-600 uppercase font-medium">
+            {isSecondary ? 'Ações Transferidas' : 'Novas Ações'}
+          </p>
           <p className="text-xl font-bold text-green-700 mt-1">
-            +{result.newSharesIssued.toLocaleString('pt-BR')}
+            {isSecondary ? '—' : `+${result.newSharesIssued.toLocaleString('pt-BR')}`}
           </p>
         </Card>
         <Card className="p-4 text-center bg-gradient-to-br from-orange-50 to-amber-50 border-orange-200">
           <p className="text-xs text-orange-600 uppercase font-medium">Diluição Total</p>
           <p className="text-xl font-bold text-orange-600 mt-1">
-            {formatPercentage(result.totalDilution)}
+            {isSecondary ? '0%' : formatPercentage(result.totalDilution)}
           </p>
         </Card>
       </div>
@@ -802,6 +1022,108 @@ function SimulationResultsView({ result }: SimulationResultsViewProps) {
           </Card>
         </div>
       </div>
+
+      {/* Vesting Projection */}
+      {hasVesting && (
+        <div>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+            <TrendingDown className="w-5 h-5 text-indigo-600" />
+            Projeção de Vesting (Grants Ativos)
+          </h3>
+          <Card className="overflow-hidden">
+            <div className="px-4 py-3 bg-indigo-50 border-b border-indigo-200">
+              <p className="text-xs text-indigo-700">
+                Ações previstas em vesting ainda não exercidas. O "% FD" mostra a participação no cap table
+                fully diluted (considerando o exercício de todos os grants).
+              </p>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200 text-sm">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Beneficiário</th>
+                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Total</th>
+                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Vestidas</th>
+                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">A Vestir</th>
+                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">% Vestido</th>
+                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">% FD</th>
+                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Status</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {result.vestingEntries.map((entry, idx) => (
+                    <tr key={idx} className="bg-white hover:bg-indigo-50/30">
+                      <td className="px-4 py-3 font-medium text-gray-900">{entry.shareholderName}</td>
+                      <td className="px-4 py-3 text-right text-gray-600">{entry.totalShares.toLocaleString('pt-BR')}</td>
+                      <td className="px-4 py-3 text-right text-green-700 font-medium">{entry.vestedShares.toLocaleString('pt-BR')}</td>
+                      <td className="px-4 py-3 text-right text-orange-600">{entry.unvestedShares.toLocaleString('pt-BR')}</td>
+                      <td className="px-4 py-3 text-right">
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-green-100 text-green-700">
+                          {formatPercentage(entry.vestedPercentage)}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-indigo-100 text-indigo-700">
+                          {formatPercentage(entry.fullyDilutedOwnership)}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        <span className="text-xs text-gray-500">{entry.status}</span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+                <tfoot className="bg-indigo-50 border-t-2 border-indigo-200">
+                  <tr>
+                    <td className="px-4 py-3 font-semibold text-indigo-900 text-sm" colSpan={1}>
+                      Total Fully Diluted
+                    </td>
+                    <td className="px-4 py-3 text-right font-bold text-indigo-900" colSpan={6}>
+                      {(result.fullyDilutedShares ?? 0).toLocaleString('pt-BR')} ações
+                    </td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </Card>
+        </div>
+      )}
+
+      {/* Fully Diluted Cap Table */}
+      {hasVesting && (result.fullyDilutedCapTable?.length ?? 0) > 0 && (
+        <div>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+            <PieChart className="w-5 h-5 text-indigo-600" />
+            Cap Table Fully Diluted (pós-rodada + vesting)
+          </h3>
+          <Card className="p-4 border-2 border-indigo-300 bg-indigo-50/30">
+            <div className="space-y-2 max-h-64 overflow-y-auto">
+              {result.fullyDilutedCapTable.map((entry, idx) => (
+                <div key={idx} className="flex justify-between items-center text-sm py-1">
+                  <div className="flex items-center gap-2">
+                    <span className="text-gray-700">{entry.shareholderName}</span>
+                    {entry.shareholderType === 'Vesting' && (
+                      <span className="text-xs px-1.5 py-0.5 bg-indigo-100 text-indigo-700 rounded-full font-medium">
+                        Vesting
+                      </span>
+                    )}
+                    {entry.isNewInvestor && (
+                      <span className="text-xs px-1.5 py-0.5 bg-green-100 text-green-700 rounded-full font-medium">
+                        Novo
+                      </span>
+                    )}
+                  </div>
+                  <span className="font-semibold text-indigo-900">{formatPercentage(entry.ownership)}</span>
+                </div>
+              ))}
+            </div>
+            <div className="mt-3 pt-3 border-t border-indigo-200 flex justify-between text-sm font-semibold">
+              <span className="text-indigo-700">Total Fully Diluted</span>
+              <span className="text-indigo-900">{(result.fullyDilutedShares ?? 0).toLocaleString('pt-BR')} ações</span>
+            </div>
+          </Card>
+        </div>
+      )}
     </div>
   );
 }

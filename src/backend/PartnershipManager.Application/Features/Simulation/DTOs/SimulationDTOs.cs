@@ -1,6 +1,17 @@
 namespace PartnershipManager.Application.Features.Simulation.DTOs;
 
 /// <summary>
+/// Tipo de aquisição na rodada
+/// </summary>
+public enum AcquisitionType
+{
+    /// <summary>Emissão primária: novas ações são criadas (diluição)</summary>
+    Primary = 1,
+    /// <summary>Aquisição secundária: compra de ações existentes (sem novas ações, sem diluição geral)</summary>
+    Secondary = 2,
+}
+
+/// <summary>
 /// Request para simular uma rodada de investimento
 /// </summary>
 public record RoundSimulationRequest
@@ -29,6 +40,11 @@ public record RoundSimulationRequest
     /// Tipo da rodada
     /// </summary>
     public RoundType RoundType { get; init; } = RoundType.Equity;
+
+    /// <summary>
+    /// Tipo de aquisição: Primary (novas ações) ou Secondary (compra de ações existentes)
+    /// </summary>
+    public AcquisitionType AcquisitionType { get; init; } = AcquisitionType.Primary;
     
     /// <summary>
     /// ID da classe de ação a ser emitida (opcional, usa Common se não informado)
@@ -59,6 +75,11 @@ public record RoundSimulationRequest
     /// Se o pool de opções é pré-money (diluição ocorre antes da rodada)
     /// </summary>
     public bool OptionPoolPreMoney { get; init; } = true;
+
+    /// <summary>
+    /// Incluir grants de vesting na simulação (cap table fully diluted)
+    /// </summary>
+    public bool IncludeVesting { get; init; } = false;
 }
 
 /// <summary>
@@ -153,6 +174,26 @@ public record RoundSimulationResponse
     public OptionPoolInfo? OptionPool { get; init; }
     
     /// <summary>
+    /// Tipo de aquisição utilizado
+    /// </summary>
+    public AcquisitionType AcquisitionType { get; init; } = AcquisitionType.Primary;
+
+    /// <summary>
+    /// Grants de vesting ativos (se IncludeVesting = true)
+    /// </summary>
+    public List<VestingSimulationEntry> VestingEntries { get; init; } = new();
+
+    /// <summary>
+    /// Cap Table fully diluted (incluindo todos os grants de vesting não exercidos)
+    /// </summary>
+    public List<SimulatedShareholderEntry> FullyDilutedCapTable { get; init; } = new();
+
+    /// <summary>
+    /// Total de ações fully diluted (shares after + unvested vesting grants)
+    /// </summary>
+    public decimal FullyDilutedShares { get; init; }
+    
+    /// <summary>
     /// Data da simulação
     /// </summary>
     public DateTime SimulatedAt { get; init; } = DateTime.UtcNow;
@@ -194,4 +235,23 @@ public record OptionPoolInfo
     public decimal Shares { get; init; }
     public bool IsPreMoney { get; init; }
     public decimal Value { get; init; }
+}
+/// <summary>
+/// Entrada de vesting na simulação de rodada (fully diluted)
+/// </summary>
+public record VestingSimulationEntry
+{
+    public Guid GrantId { get; init; }
+    public string ShareholderName { get; init; } = string.Empty;
+    public string PlanName { get; init; } = string.Empty;
+    public decimal TotalShares { get; init; }
+    public decimal VestedShares { get; init; }
+    public decimal UnvestedShares { get; init; }
+    public decimal ExercisedShares { get; init; }
+    public decimal RemainingShares { get; init; }  // TotalShares - ExercisedShares
+    public decimal VestedPercentage { get; init; }
+    /// <summary>Participação no cap table fully diluted pós-rodada</summary>
+    public decimal FullyDilutedOwnership { get; init; }
+    public DateTime VestingEndDate { get; init; }
+    public string Status { get; init; } = string.Empty;
 }

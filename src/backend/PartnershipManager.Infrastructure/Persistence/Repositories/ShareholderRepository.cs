@@ -88,6 +88,13 @@ public class ShareholderRepository : IShareholderRepository
                         sh.marital_status AS MaritalStatus,
                         sh.gender AS Gender,
                         sh.birth_date AS BirthDate,
+                        sh.earn_out AS EarnOut,
+                        sh.tag_along AS TagAlong,
+                        sh.drag_along AS DragAlong,
+                        sh.shareholders_agreement AS ShareholdersAgreement,
+                        sh.right_of_first_refusal AS RightOfFirstRefusal,
+                        sh.liquidation_preference_right AS LiquidationPreferenceRight,
+                        sh.anti_dilution AS AntiDilution,
                         sh.created_at AS CreatedAt,
                         sh.updated_at AS UpdatedAt,
                         sh.created_by AS CreatedBy,
@@ -126,6 +133,13 @@ public class ShareholderRepository : IShareholderRepository
                         sh.marital_status AS MaritalStatus,
                         sh.gender AS Gender,
                         sh.birth_date AS BirthDate,
+                        sh.earn_out AS EarnOut,
+                        sh.tag_along AS TagAlong,
+                        sh.drag_along AS DragAlong,
+                        sh.shareholders_agreement AS ShareholdersAgreement,
+                        sh.right_of_first_refusal AS RightOfFirstRefusal,
+                        sh.liquidation_preference_right AS LiquidationPreferenceRight,
+                        sh.anti_dilution AS AntiDilution,
                         sh.created_at AS CreatedAt,
                         sh.updated_at AS UpdatedAt,
                         sh.created_by AS CreatedBy,
@@ -171,6 +185,13 @@ public class ShareholderRepository : IShareholderRepository
                         sh.marital_status AS MaritalStatus,
                         sh.gender AS Gender,
                         sh.birth_date AS BirthDate,
+                        sh.earn_out AS EarnOut,
+                        sh.tag_along AS TagAlong,
+                        sh.drag_along AS DragAlong,
+                        sh.shareholders_agreement AS ShareholdersAgreement,
+                        sh.right_of_first_refusal AS RightOfFirstRefusal,
+                        sh.liquidation_preference_right AS LiquidationPreferenceRight,
+                        sh.anti_dilution AS AntiDilution,
                         sh.created_at AS CreatedAt,
                         sh.updated_at AS UpdatedAt,
                         sh.created_by AS CreatedBy,
@@ -218,11 +239,17 @@ public class ShareholderRepository : IShareholderRepository
         var sql = @"INSERT INTO shareholders
                 (id, client_id, company_id, name, document, document_type, email, phone, type, status, notes,
                  address_street, address_number, address_complement, address_zip_code, address_city, address_state,
-                 marital_status, gender, birth_date, created_at, updated_at, created_by, updated_by, is_deleted)
+                 marital_status, gender, birth_date,
+                 earn_out, tag_along, drag_along, shareholders_agreement,
+                 right_of_first_refusal, liquidation_preference_right, anti_dilution,
+                 created_at, updated_at, created_by, updated_by, is_deleted)
                 VALUES
                 (@Id, @ClientId, @CompanyId, @Name, @Document, @DocumentType, @Email, @Phone, @Type, @Status, @Notes,
                  @AddressStreet, @AddressNumber, @AddressComplement, @AddressZipCode, @AddressCity, @AddressState,
-                 @MaritalStatus, @Gender, @BirthDate, @CreatedAt, @UpdatedAt, @CreatedBy, @UpdatedBy, @IsDeleted)";
+                 @MaritalStatus, @Gender, @BirthDate,
+                 @EarnOut, @TagAlong, @DragAlong, @ShareholdersAgreement,
+                 @RightOfFirstRefusal, @LiquidationPreferenceRight, @AntiDilution,
+                 @CreatedAt, @UpdatedAt, @CreatedBy, @UpdatedBy, @IsDeleted)";
 
         await Connection.ExecuteAsync(sql, new
         {
@@ -246,6 +273,13 @@ public class ShareholderRepository : IShareholderRepository
             MaritalStatus = shareholder.MaritalStatus?.ToString(),
             Gender = shareholder.Gender?.ToString(),
             BirthDate = shareholder.BirthDate,
+            EarnOut = shareholder.EarnOut,
+            TagAlong = shareholder.TagAlong,
+            DragAlong = shareholder.DragAlong,
+            ShareholdersAgreement = shareholder.ShareholdersAgreement,
+            RightOfFirstRefusal = shareholder.RightOfFirstRefusal,
+            LiquidationPreferenceRight = shareholder.LiquidationPreferenceRight,
+            AntiDilution = shareholder.AntiDilution,
             shareholder.CreatedAt,
             shareholder.UpdatedAt,
             CreatedBy = shareholder.CreatedBy?.ToString(),
@@ -275,6 +309,13 @@ public class ShareholderRepository : IShareholderRepository
                         marital_status = @MaritalStatus,
                         gender = @Gender,
                         birth_date = @BirthDate,
+                        earn_out = @EarnOut,
+                        tag_along = @TagAlong,
+                        drag_along = @DragAlong,
+                        shareholders_agreement = @ShareholdersAgreement,
+                        right_of_first_refusal = @RightOfFirstRefusal,
+                        liquidation_preference_right = @LiquidationPreferenceRight,
+                        anti_dilution = @AntiDilution,
                         updated_at = @UpdatedAt,
                         updated_by = @UpdatedBy
                     WHERE id = @Id AND client_id = @ClientId";
@@ -301,6 +342,13 @@ public class ShareholderRepository : IShareholderRepository
             MaritalStatus = shareholder.MaritalStatus?.ToString(),
             Gender = shareholder.Gender?.ToString(),
             BirthDate = shareholder.BirthDate,
+            EarnOut = shareholder.EarnOut,
+            TagAlong = shareholder.TagAlong,
+            DragAlong = shareholder.DragAlong,
+            ShareholdersAgreement = shareholder.ShareholdersAgreement,
+            RightOfFirstRefusal = shareholder.RightOfFirstRefusal,
+            LiquidationPreferenceRight = shareholder.LiquidationPreferenceRight,
+            AntiDilution = shareholder.AntiDilution,
             shareholder.UpdatedAt,
             UpdatedBy = shareholder.UpdatedBy?.ToString()
         }, Transaction);
@@ -360,9 +408,16 @@ public class ShareholderRepository : IShareholderRepository
             (string?)row.AddressZipCode,
             (string?)row.AddressCity,
             (string?)row.AddressState,
-            row.MaritalStatus == null ? null : Enum.Parse<MaritalStatus>((string)row.MaritalStatus, true),
-            row.Gender == null ? null : Enum.Parse<Gender>((string)row.Gender, true),
+            row.MaritalStatus == null ? (MaritalStatus?)null : Enum.Parse<MaritalStatus>((string)row.MaritalStatus, true),
+            row.Gender == null ? (Gender?)null : Enum.Parse<Gender>((string)row.Gender, true),
             row.BirthDate as DateTime?,
+            row.EarnOut is bool earnOut ? earnOut : Convert.ToInt32(row.EarnOut) != 0,
+            row.TagAlong is bool tagAlong ? tagAlong : Convert.ToInt32(row.TagAlong) != 0,
+            row.DragAlong is bool dragAlong ? dragAlong : Convert.ToInt32(row.DragAlong) != 0,
+            row.ShareholdersAgreement is bool shAgreement ? shAgreement : Convert.ToInt32(row.ShareholdersAgreement) != 0,
+            row.RightOfFirstRefusal is bool rofr ? rofr : Convert.ToInt32(row.RightOfFirstRefusal) != 0,
+            row.LiquidationPreferenceRight is bool liqPref ? liqPref : Convert.ToInt32(row.LiquidationPreferenceRight) != 0,
+            row.AntiDilution is bool antiDil ? antiDil : Convert.ToInt32(row.AntiDilution) != 0,
             ParseNullableGuid(row.CreatedBy));
 
         shareholder.Id = ParseGuid(row.Id);

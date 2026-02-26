@@ -25,6 +25,15 @@ public class Shareholder : BaseEntity
     public Gender? Gender { get; private set; }
     public DateTime? BirthDate { get; private set; }
 
+    // Configuração societária
+    public bool EarnOut { get; private set; }
+    public bool TagAlong { get; private set; }
+    public bool DragAlong { get; private set; }
+    public bool ShareholdersAgreement { get; private set; }
+    public bool RightOfFirstRefusal { get; private set; }
+    public bool LiquidationPreferenceRight { get; private set; }
+    public bool AntiDilution { get; private set; }
+
     public string DocumentFormatted => DocumentType == DocumentType.Cnpj
         ? Convert.ToUInt64(Document).ToString(@"00\.000\.000\/0000\-00")
         : Convert.ToUInt64(Document).ToString(@"000\.000\.000\-00");
@@ -51,6 +60,13 @@ public class Shareholder : BaseEntity
         MaritalStatus? maritalStatus = null,
         Gender? gender = null,
         DateTime? birthDate = null,
+        bool earnOut = false,
+        bool tagAlong = false,
+        bool dragAlong = false,
+        bool shareholdersAgreement = false,
+        bool rightOfFirstRefusal = false,
+        bool liquidationPreferenceRight = false,
+        bool antiDilution = false,
         Guid? createdBy = null)
     {
         var normalizedDocument = NormalizeDocument(document);
@@ -81,6 +97,13 @@ public class Shareholder : BaseEntity
             MaritalStatus = maritalStatus,
             Gender = gender,
             BirthDate = birthDate,
+            EarnOut = earnOut,
+            TagAlong = tagAlong,
+            DragAlong = dragAlong,
+            ShareholdersAgreement = shareholdersAgreement,
+            RightOfFirstRefusal = rightOfFirstRefusal,
+            LiquidationPreferenceRight = liquidationPreferenceRight,
+            AntiDilution = antiDilution,
             CompanyName = null,
             CreatedBy = createdBy,
             UpdatedBy = createdBy
@@ -103,6 +126,13 @@ public class Shareholder : BaseEntity
         MaritalStatus? maritalStatus,
         Gender? gender,
         DateTime? birthDate,
+        bool earnOut = false,
+        bool tagAlong = false,
+        bool dragAlong = false,
+        bool shareholdersAgreement = false,
+        bool rightOfFirstRefusal = false,
+        bool liquidationPreferenceRight = false,
+        bool antiDilution = false,
         Guid? updatedBy = null)
     {
         Name = name.Trim();
@@ -120,6 +150,13 @@ public class Shareholder : BaseEntity
         MaritalStatus = maritalStatus;
         Gender = gender;
         BirthDate = birthDate;
+        EarnOut = earnOut;
+        TagAlong = tagAlong;
+        DragAlong = dragAlong;
+        ShareholdersAgreement = shareholdersAgreement;
+        RightOfFirstRefusal = rightOfFirstRefusal;
+        LiquidationPreferenceRight = liquidationPreferenceRight;
+        AntiDilution = antiDilution;
         UpdatedBy = updatedBy;
         UpdatedAt = DateTime.UtcNow;
     }
