@@ -7,6 +7,7 @@ export * from './shareholder.types';
 export * from './share.types';
 export * from './contract.types';
 export * from './simulation.types';
+export * from './vesting.types';
 
 // Common types
 export interface ApiResponse<T> {

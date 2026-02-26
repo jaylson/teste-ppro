@@ -198,7 +198,7 @@ export const contractTemplateService = {
     if (filters?.tags && filters.tags.length > 0) params.tags = filters.tags.join(',');
     
     const response = await api.get<ApiResponse<ContractTemplateListResponse>>(
-      '/contracttemplates',
+      '/contract-templates',
       { params }
     );
     return response.data.data;
@@ -208,7 +208,7 @@ export const contractTemplateService = {
    * Obter um template específico pelo ID
    */
   async getTemplateById(id: string): Promise<ContractTemplate> {
-    const response = await api.get<ApiResponse<ContractTemplate>>(`/contracttemplates/${id}`);
+    const response = await api.get<ApiResponse<ContractTemplate>>(`/contract-templates/${id}`);
     return response.data.data;
   },
 
@@ -216,7 +216,7 @@ export const contractTemplateService = {
    * Criar um novo template
    */
   async createTemplate(data: CreateContractTemplateRequest): Promise<ContractTemplate> {
-    const response = await api.post<ApiResponse<ContractTemplate>>('/contracttemplates', data);
+    const response = await api.post<ApiResponse<ContractTemplate>>('/contract-templates', data);
     return response.data.data;
   },
 
@@ -225,7 +225,7 @@ export const contractTemplateService = {
    */
   async updateTemplate(id: string, data: UpdateContractTemplateRequest): Promise<ContractTemplate> {
     const response = await api.put<ApiResponse<ContractTemplate>>(
-      `/contracttemplates/${id}`,
+      `/contract-templates/${id}`,
       data
     );
     return response.data.data;
@@ -235,7 +235,7 @@ export const contractTemplateService = {
    * Excluir um template (soft delete)
    */
   async deleteTemplate(id: string): Promise<void> {
-    await api.delete(`/contracttemplates/${id}`);
+    await api.delete(`/contract-templates/${id}`);
   },
 
   /**
@@ -243,7 +243,7 @@ export const contractTemplateService = {
    */
   async activateTemplate(id: string): Promise<ContractTemplate> {
     const response = await api.patch<ApiResponse<ContractTemplate>>(
-      `/contracttemplates/${id}/activate`
+      `/contract-templates/${id}/activate`
     );
     return response.data.data;
   },
@@ -253,7 +253,7 @@ export const contractTemplateService = {
    */
   async deactivateTemplate(id: string): Promise<ContractTemplate> {
     const response = await api.patch<ApiResponse<ContractTemplate>>(
-      `/contracttemplates/${id}/deactivate`
+      `/contract-templates/${id}/deactivate`
     );
     return response.data.data;
   },
@@ -263,7 +263,7 @@ export const contractTemplateService = {
    */
   async cloneTemplate(id: string, newName: string): Promise<ContractTemplate> {
     const response = await api.post<ApiResponse<ContractTemplate>>(
-      `/contracttemplates/${id}/clone`,
+      `/contract-templates/${id}/clone`,
       { newName }
     );
     return response.data.data;
@@ -482,5 +482,90 @@ export const contractBuilderService = {
    */
   async cancelSession(sessionId: string): Promise<void> {
     await api.delete(`/contractbuilder/${sessionId}`);
+  },
+};
+
+/**
+ * ====================================
+ * CONTRACT VERSION SERVICE
+ * ====================================
+ */
+export const contractVersionService = {
+  /**
+   * Create a new contract from an uploaded DOCX file
+   */
+  async createFromUpload(
+    requestData: { companyId: string; title: string; contractType: string; description?: string; notes?: string },
+    file: File
+  ): Promise<import('@/types/contract.types').Contract> {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('companyId', requestData.companyId);
+    formData.append('title', requestData.title);
+    formData.append('contractType', requestData.contractType);
+    if (requestData.description) formData.append('description', requestData.description);
+    if (requestData.notes) formData.append('notes', requestData.notes);
+
+    const response = await api.post<ApiResponse<import('@/types/contract.types').Contract>>(
+      '/contracts/upload',
+      formData,
+      { headers: { 'Content-Type': 'multipart/form-data' } }
+    );
+    return response.data.data;
+  },
+
+  /**
+   * Upload a new version of a contract
+   */
+  async uploadVersion(contractId: string, file: File, notes?: string): Promise<Contract> {
+    const formData = new FormData();
+    formData.append('file', file);
+    if (notes) {
+      formData.append('notes', notes);
+    }
+
+    const response = await api.post<ApiResponse<Contract>>(
+      `/contracts/${contractId}/versions`,
+      formData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      }
+    );
+    return response.data.data;
+  },
+
+  /**
+   * Get version history for a contract
+   */
+  async getVersions(contractId: string): Promise<import('@/types/contract.types').ContractVersion[]> {
+    const response = await api.get<ApiResponse<import('@/types/contract.types').ContractVersion[]>>(
+      `/contracts/${contractId}/versions`
+    );
+    return response.data.data;
+  },
+
+  /**
+   * Get a specific version of a contract
+   */
+  async getVersion(contractId: string, versionId: string): Promise<any> {
+    const response = await api.get<ApiResponse<any>>(
+      `/contracts/${contractId}/versions/${versionId}`
+    );
+    return response.data.data;
+  },
+
+  /**
+   * Download a specific version
+   */
+  async downloadVersion(contractId: string, versionId: string): Promise<Blob> {
+    const response = await api.get(
+      `/contracts/${contractId}/versions/${versionId}/download`,
+      {
+        responseType: 'blob',
+      }
+    );
+    return response.data;
   },
 };

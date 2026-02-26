@@ -5,6 +5,7 @@ using PartnershipManager.API.Middlewares;
 using PartnershipManager.Application.Common.Models;
 using PartnershipManager.Application.Features.Contracts.DTOs;
 using PartnershipManager.Domain.Constants;
+using PartnershipManager.Domain.Entities;
 using PartnershipManager.Domain.Enums;
 using PartnershipManager.Infrastructure.Services;
 
@@ -20,13 +21,16 @@ namespace PartnershipManager.API.Controllers;
 public class ContractsController : ControllerBase
 {
     private readonly IContractService _contractService;
+    private readonly IContractVersionService _versionService;
     private readonly ILogger<ContractsController> _logger;
 
     public ContractsController(
-        IContractService contractService, 
+        IContractService contractService,
+        IContractVersionService versionService,
         ILogger<ContractsController> logger)
     {
         _contractService = contractService;
+        _versionService = versionService;
         _logger = logger;
     }
 
@@ -365,6 +369,92 @@ public class ContractsController : ControllerBase
             id, request.DocumentPath);
 
         return Ok(ApiResponse<ContractResponse>.Ok(contract, "Documento anexado com sucesso"));
+    }
+
+    #endregion
+
+    #region Versionamento de Contratos
+
+    /// <summary>
+    /// Cria um novo contrato a partir de um arquivo DOCX enviado via upload
+    /// </summary>
+    [HttpPost("upload")]
+    [ProducesResponseType(typeof(ApiResponse<ContractResponse>), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> CreateFromUpload(
+        [FromForm] CreateContractFromUploadRequest request,
+        IFormFile file)
+    {
+        if (file is null || file.Length == 0)
+            return BadRequest(ApiResponse.Error("Nenhum arquivo enviado."));
+
+        var clientId = HttpContext.GetRequiredClientId();
+        var userId = GetUserId();
+
+        using var stream = file.OpenReadStream();
+        var contract = await _versionService.CreateFromUploadAsync(
+            clientId, request, stream, file.FileName, userId?.ToString());
+
+        _logger.LogInformation("Contrato criado via upload: {ContractId} - {Title}", contract.Id, contract.Title);
+        return CreatedAtAction(nameof(GetById), new { id = contract.Id },
+            ApiResponse<ContractResponse>.Ok(contract, "Contrato criado com sucesso"));
+    }
+
+    /// <summary>
+    /// Lista o histórico de versões de um contrato
+    /// </summary>
+    [HttpGet("{id:guid}/versions")]
+    [ProducesResponseType(typeof(ApiResponse<IEnumerable<ContractVersionResponse>>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetVersions(Guid id)
+    {
+        var clientId = HttpContext.GetRequiredClientId();
+        var versions = await _versionService.GetVersionsAsync(id, clientId);
+        return Ok(ApiResponse<IEnumerable<ContractVersionResponse>>.Ok(versions));
+    }
+
+    /// <summary>
+    /// Faz upload de uma nova versão DOCX para um contrato existente
+    /// </summary>
+    [HttpPost("{id:guid}/versions")]
+    [ProducesResponseType(typeof(ApiResponse<ContractVersionResponse>), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> UploadVersion(
+        Guid id,
+        [FromForm] UploadContractVersionRequest request,
+        IFormFile file)
+    {
+        if (file is null || file.Length == 0)
+            return BadRequest(ApiResponse.Error("Nenhum arquivo enviado."));
+
+        var clientId = HttpContext.GetRequiredClientId();
+        var userId = GetUserId();
+
+        using var stream = file.OpenReadStream();
+        var version = await _versionService.UploadNewVersionAsync(
+            id, clientId, request, stream, file.FileName, userId?.ToString());
+
+        _logger.LogInformation("Nova versão enviada para contrato {ContractId}: v{Version}", id, version.VersionNumber);
+        return CreatedAtAction(nameof(GetVersions), new { id }, ApiResponse<ContractVersionResponse>.Ok(version, "Versão enviada com sucesso"));
+    }
+
+    /// <summary>
+    /// Faz download do arquivo de uma versão específica
+    /// </summary>
+    [HttpGet("{id:guid}/versions/{versionId:guid}/download")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> DownloadVersion(Guid id, Guid versionId)
+    {
+        var clientId = HttpContext.GetRequiredClientId();
+        var (stream, fileType, fileName) = await _versionService.GetVersionFileAsync(id, versionId, clientId);
+
+        var contentType = fileType == DocumentFileType.Pdf
+            ? "application/pdf"
+            : "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+
+        return File(stream, contentType, fileName);
     }
 
     #endregion

@@ -5,6 +5,8 @@
         "dotnet build": true,
         "docker exec": true,
         "docker-compose": true,
-        "awk": true
+        "awk": true,
+        "dotnet test": true,
+        "npm run build": true
     }
 }

@@ -298,6 +298,106 @@ public interface IAuditLogRepository
 }
 
 // =====================================================
+// VESTING MODULE
+// =====================================================
+
+/// <summary>
+/// Repositório de planos de vesting
+/// </summary>
+public interface IVestingPlanRepository
+{
+    Task<(IEnumerable<VestingPlan> Items, int Total)> GetPagedAsync(
+        Guid clientId,
+        Guid companyId,
+        int page,
+        int pageSize,
+        string? search = null,
+        string? status = null);
+
+    Task<VestingPlan?> GetByIdAsync(Guid id, Guid clientId);
+    Task<IEnumerable<VestingPlan>> GetByCompanyAsync(Guid clientId, Guid companyId, string? status = null);
+    Task AddAsync(VestingPlan plan);
+    Task UpdateAsync(VestingPlan plan);
+    Task SoftDeleteAsync(Guid id, Guid clientId, Guid? deletedBy = null);
+    Task<bool> ExistsAsync(Guid id, Guid clientId);
+    Task<bool> NameExistsAsync(Guid clientId, Guid companyId, string name, Guid? excludeId = null);
+}
+
+/// <summary>
+/// Repositório de grants de vesting
+/// </summary>
+public interface IVestingGrantRepository
+{
+    Task<(IEnumerable<VestingGrant> Items, int Total)> GetPagedAsync(
+        Guid clientId,
+        Guid? companyId,
+        int page,
+        int pageSize,
+        Guid? vestingPlanId = null,
+        Guid? shareholderId = null,
+        string? status = null);
+
+    Task<VestingGrant?> GetByIdAsync(Guid id, Guid clientId);
+    Task<IEnumerable<VestingGrant>> GetByShareholderAsync(Guid clientId, Guid shareholderId, Guid? companyId = null);
+    Task<IEnumerable<VestingGrant>> GetByPlanAsync(Guid clientId, Guid vestingPlanId);
+    Task<IEnumerable<VestingGrant>> GetActiveGrantsForCompanyAsync(Guid clientId, Guid companyId);
+    Task AddAsync(VestingGrant grant);
+    Task UpdateAsync(VestingGrant grant);
+    Task SoftDeleteAsync(Guid id, Guid clientId, Guid? deletedBy = null);
+    Task<bool> ExistsAsync(Guid id, Guid clientId);
+}
+
+/// <summary>
+/// Repositório de schedules de vesting (cronograma periódico)
+/// </summary>
+public interface IVestingScheduleRepository
+{
+    Task<IEnumerable<VestingSchedule>> GetByGrantAsync(Guid clientId, Guid vestingGrantId);
+    Task<IEnumerable<VestingSchedule>> GetUpcomingAsync(Guid clientId, Guid companyId, DateTime fromDate, DateTime toDate);
+    Task AddRangeAsync(IEnumerable<VestingSchedule> schedules);
+    Task UpdateAsync(VestingSchedule schedule);
+    Task DeleteByGrantAsync(Guid vestingGrantId);
+}
+
+/// <summary>
+/// Repositório de milestones de vesting
+/// </summary>
+public interface IVestingMilestoneRepository
+{
+    Task<IEnumerable<VestingMilestone>> GetByPlanAsync(Guid clientId, Guid vestingPlanId);
+    Task<(IEnumerable<VestingMilestone> Items, int Total)> GetPagedAsync(
+        Guid clientId,
+        Guid companyId,
+        int page,
+        int pageSize,
+        Guid? vestingPlanId = null,
+        string? status = null);
+    Task<VestingMilestone?> GetByIdAsync(Guid id, Guid clientId);
+    Task AddAsync(VestingMilestone milestone);
+    Task UpdateAsync(VestingMilestone milestone);
+    Task SoftDeleteAsync(Guid id, Guid clientId, Guid? deletedBy = null);
+}
+
+/// <summary>
+/// Repositório de transações de exercício de vesting (append-only ledger)
+/// </summary>
+public interface IVestingTransactionRepository
+{
+    Task<IEnumerable<VestingTransaction>> GetByGrantAsync(Guid vestingGrantId);
+    Task<IEnumerable<VestingTransaction>> GetByShareholderAsync(Guid clientId, Guid shareholderId, DateTime? fromDate = null, DateTime? toDate = null);
+    Task<(IEnumerable<VestingTransaction> Items, int Total)> GetPagedAsync(
+        Guid clientId,
+        Guid companyId,
+        int page,
+        int pageSize,
+        Guid? shareholderId = null,
+        DateTime? fromDate = null,
+        DateTime? toDate = null);
+    Task AddAsync(VestingTransaction transaction);
+    Task UpdateShareTransactionLinkAsync(Guid id, Guid shareTransactionId);
+}
+
+// =====================================================
 // UNIT OF WORK
 // =====================================================
 
@@ -310,7 +410,11 @@ public interface IUnitOfWork : IDisposable
     IUserRepository Users { get; }
     IUserRoleRepository UserRoles { get; }
     IAuditLogRepository AuditLogs { get; }
-    
+    IVestingPlanRepository VestingPlans { get; }
+    IVestingGrantRepository VestingGrants { get; }
+    IVestingMilestoneRepository VestingMilestones { get; }
+    IVestingTransactionRepository VestingTransactions { get; }
+
     Task BeginTransactionAsync();
     Task CommitTransactionAsync();
     Task RollbackTransactionAsync();

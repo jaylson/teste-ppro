@@ -4,3 +4,6 @@ export * from './useShareholders';
 export * from './useCapTable';
 export * from './useSimulator';
 export * from './useShareClasses';
+export * from './useVestingPlans';
+export * from './useVestingGrants';
+export * from './useVestingMilestones';

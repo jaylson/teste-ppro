@@ -131,6 +131,10 @@ public class UnitOfWork : IUnitOfWork
     private IUserRepository? _users;
     private IUserRoleRepository? _userRoles;
     private IAuditLogRepository? _auditLogs;
+    private IVestingPlanRepository? _vestingPlans;
+    private IVestingGrantRepository? _vestingGrants;
+    private IVestingMilestoneRepository? _vestingMilestones;
+    private IVestingTransactionRepository? _vestingTransactions;
     private bool _disposed;
 
     public UnitOfWork(DapperContext context)
@@ -142,6 +146,10 @@ public class UnitOfWork : IUnitOfWork
     public IUserRepository Users => _users ??= new UserRepository(_context);
     public IUserRoleRepository UserRoles => _userRoles ??= new UserRoleRepository(_context);
     public IAuditLogRepository AuditLogs => _auditLogs ??= new AuditLogRepository(_context);
+    public IVestingPlanRepository VestingPlans => _vestingPlans ??= new VestingPlanRepository(_context);
+    public IVestingGrantRepository VestingGrants => _vestingGrants ??= new VestingGrantRepository(_context);
+    public IVestingMilestoneRepository VestingMilestones => _vestingMilestones ??= new VestingMilestoneRepository(_context);
+    public IVestingTransactionRepository VestingTransactions => _vestingTransactions ??= new VestingTransactionRepository(_context);
 
     public async Task BeginTransactionAsync()
     {

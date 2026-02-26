@@ -107,6 +107,18 @@ public static class InfrastructureServiceExtensions
         services.AddScoped<IContractVersionService, ContractVersionService>();
         services.AddScoped<IClickSignWebhookService, ClickSignWebhookService>();
         services.AddHttpClient<IClickSignService, ClickSignService>();
+
+        // Vesting Module - Repositories
+        services.AddScoped<IVestingPlanRepository, VestingPlanRepository>();
+        services.AddScoped<IVestingGrantRepository, VestingGrantRepository>();
+        services.AddScoped<IVestingScheduleRepository, VestingScheduleRepository>();
+        services.AddScoped<IVestingMilestoneRepository, VestingMilestoneRepository>();
+        services.AddScoped<IVestingTransactionRepository, VestingTransactionRepository>();
+
+        // Vesting Module - Services
+        services.AddScoped<IVestingPlanService, VestingPlanService>();
+        services.AddScoped<IVestingGrantService, VestingGrantService>();
+        services.AddScoped<IVestingMilestoneService, VestingMilestoneService>();
         
         // PDF Generator Service  
         services.AddScoped<IPdfGeneratorService, PdfGeneratorService>();

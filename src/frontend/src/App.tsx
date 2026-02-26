@@ -18,6 +18,7 @@ import ContractTemplatesPage from './pages/contracts/templates';
 import ClausesPage from './pages/contracts/clauses';
 import ContractBuilderPage from './pages/contracts/builder';
 import ContractDetailsPage from './pages/contracts/[id]';
+import { VestingPage, VestingGrantDetailPage, MyVestingPage } from './pages/vesting';
 
 function App() {
   const { isAuthenticated } = useAuthStore();
@@ -52,6 +53,12 @@ function App() {
         <Route path="/contracts/templates" element={<ContractTemplatesPage />} />
         <Route path="/contracts/clauses" element={<ClausesPage />} />
         <Route path="/contracts/builder" element={<ContractBuilderPage />} />
+        
+        {/* Vesting Routes */}
+        <Route path="/vesting" element={<VestingPage />} />
+        <Route path="/vesting/:id" element={<VestingPage />} />
+        <Route path="/vesting/grant/:id" element={<VestingGrantDetailPage />} />
+        <Route path="/my-vesting" element={<MyVestingPage />} />
         
         {/* Settings Routes */}
         <Route path="/settings/users" element={<Users />} />

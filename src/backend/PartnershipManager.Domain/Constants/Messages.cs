@@ -149,6 +149,9 @@ public static class TableNames
     public const string Contracts = "contracts";
     public const string VestingPlans = "vesting_plans";
     public const string VestingGrants = "vesting_grants";
+    public const string VestingSchedules = "vesting_schedules";
+    public const string VestingMilestones = "vesting_milestones";
+    public const string VestingTransactions = "vesting_transactions";
     public const string Valuations = "valuations";
     public const string Workflows = "workflows";
 }

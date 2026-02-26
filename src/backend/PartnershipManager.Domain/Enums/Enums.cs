@@ -168,3 +168,65 @@ public enum TransactionType
     Split = 5,
     ReverseSplit = 6
 }
+
+// ─── Vesting Module ───────────────────────────────────────────────────────────
+
+public enum VestingType
+{
+    TimeBasedLinear = 1,
+    TimeBasedCliff = 2,
+    MilestoneBasedOnly = 3,
+    HybridTimeMilestone = 4
+}
+
+public enum VestingPlanStatus
+{
+    Draft = 1,
+    Active = 2,
+    Inactive = 3,
+    Archived = 4
+}
+
+/// <summary>
+/// Detailed status for individual grants (separate from VestingGrantStatus which
+/// tracks the overall lifecycle Active/Completed/Terminated/Forfeited).
+/// </summary>
+public enum VestingGrantDetailStatus
+{
+    Pending = 1,
+    Approved = 2,
+    Active = 3,
+    Exercised = 4,
+    Expired = 5,
+    Cancelled = 6
+}
+
+public enum VestingScheduleStatus
+{
+    Pending = 1,
+    Vested = 2,
+    Skipped = 3
+}
+
+public enum MilestoneStatus
+{
+    Pending = 1,
+    Achieved = 2,
+    Failed = 3,
+    Cancelled = 4
+}
+
+public enum MilestoneType
+{
+    Financial = 1,
+    Product = 2,
+    Operational = 3,
+    Custom = 4
+}
+
+public enum VestingTransactionType
+{
+    Exercise = 1,
+    EarlyExercise = 2,
+    AcceleratedExercise = 3
+}

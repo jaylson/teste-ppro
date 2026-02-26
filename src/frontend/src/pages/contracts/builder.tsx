@@ -104,8 +104,7 @@ function ContractBuilderPage() {
             }
 
             const session = await contractBuilderService.startBuilder({
-              templateId: selectedTemplateId,
-              companyId,
+              templateId: selectedTemplateId ?? undefined,
             });
             setSessionId(session.sessionId);
           }
@@ -115,19 +114,14 @@ function ContractBuilderPage() {
           break;
         case 2:
           if (sessionId) {
-            const clauses = selectedClauseIds.map((id, index) => ({
-              clauseId: id,
-              displayOrder: index + 1,
-              isMandatory: false,
-              variables: {},
-            }));
-            await contractBuilderService.selectClauses({ sessionId, clauses });
+            await contractBuilderService.selectClauses({ sessionId, clauseIds: selectedClauseIds });
           }
           break;
         case 3:
           if (sessionId) {
             await contractBuilderService.fillData({
               sessionId,
+              title: metadata.title,
               description: metadata.description,
               contractDate: metadata.contractDate,
               expirationDate: metadata.expirationDate,
