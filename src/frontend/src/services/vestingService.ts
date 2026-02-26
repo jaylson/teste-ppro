@@ -17,7 +17,6 @@ import type {
   VestingMilestoneFilters,
   VestingCalculationResult,
   VestingProjectionResponse,
-  VestingTransactionListResponse,
   VestingTransaction,
 } from '@/types';
 
@@ -171,12 +170,12 @@ export const vestingGrantService = {
     id: string,
     page = 1,
     pageSize = 10
-  ): Promise<VestingTransactionListResponse> {
-    const response = await api.get<ApiResponse<VestingTransactionListResponse>>(
+  ): Promise<VestingTransaction[]> {
+    const response = await api.get<ApiResponse<VestingTransaction[]>>(
       `/vesting-grants/${id}/transactions`,
       { params: { page, pageSize } }
     );
-    return response.data.data;
+    return response.data.data ?? [];
   },
 
   async deleteGrant(id: string): Promise<void> {

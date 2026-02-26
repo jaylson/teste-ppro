@@ -157,6 +157,7 @@ public class VestingGrantRepository : IVestingGrantRepository
                  vesting_start_date, vesting_end_date, cliff_date,
                  status, vested_shares, exercised_shares,
                  approved_at, approved_by, notes,
+                 created_by, updated_by,
                  created_at, updated_at, is_deleted)
             VALUES
                 (@Id, @ClientId, @VestingPlanId, @ShareholderId, @CompanyId,
@@ -164,6 +165,7 @@ public class VestingGrantRepository : IVestingGrantRepository
                  @VestingStartDate, @VestingEndDate, @CliffDate,
                  @Status, @VestedShares, @ExercisedShares,
                  @ApprovedAt, @ApprovedBy, @Notes,
+                 @CreatedBy, @UpdatedBy,
                  @CreatedAt, @UpdatedAt, 0)";
 
         await _context.Connection.ExecuteAsync(sql, new
@@ -180,12 +182,14 @@ public class VestingGrantRepository : IVestingGrantRepository
             grant.VestingStartDate,
             grant.VestingEndDate,
             grant.CliffDate,
-            Status = (int)grant.Status,
+            Status = grant.Status.ToString(),
             grant.VestedShares,
             grant.ExercisedShares,
             grant.ApprovedAt,
             ApprovedBy = grant.ApprovedBy?.ToString(),
             grant.Notes,
+            CreatedBy = grant.CreatedBy?.ToString(),
+            UpdatedBy = grant.UpdatedBy?.ToString(),
             grant.CreatedAt,
             grant.UpdatedAt
         }, _context.Transaction);
@@ -206,7 +210,7 @@ public class VestingGrantRepository : IVestingGrantRepository
 
         await _context.Connection.ExecuteAsync(sql, new
         {
-            Status = (int)grant.Status,
+            Status = grant.Status.ToString(),
             grant.VestedShares,
             grant.ExercisedShares,
             grant.ApprovedAt,

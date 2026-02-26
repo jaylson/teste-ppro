@@ -281,7 +281,7 @@ export default function VestingGrantDetailPage() {
       )}
 
       {/* Transactions */}
-      {transactions && transactions.items.length > 0 && (
+      {transactions && transactions.length > 0 && (
         <Card className="p-5">
           <h2 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
             <DollarSign size={17} className="text-indigo-500" />
@@ -300,7 +300,7 @@ export default function VestingGrantDetailPage() {
                 </tr>
               </thead>
               <tbody>
-                {transactions.items.map((tx) => (
+                {transactions.map((tx) => (
                   <tr key={tx.id} className="border-b border-gray-50 hover:bg-gray-50">
                     <td className="py-2.5 px-3 text-gray-600">
                       {new Date(tx.transactionDate).toLocaleDateString('pt-BR')}

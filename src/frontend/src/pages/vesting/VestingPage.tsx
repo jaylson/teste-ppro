@@ -419,7 +419,7 @@ export default function VestingPage() {
               <VestingPlanCard
                 key={plan.id}
                 plan={plan}
-                onClick={(p) => navigate(`/vesting/${p.id}`)}
+                onClick={(p) => navigate(`/vesting/plans/${p.id}`)}
                 onEdit={handleEdit}
                 onActivate={(id) => activateMutation.mutate(id)}
                 onDeactivate={(id) => deactivateMutation.mutate(id)}
