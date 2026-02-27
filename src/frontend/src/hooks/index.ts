@@ -7,3 +7,6 @@ export * from './useShareClasses';
 export * from './useVestingPlans';
 export * from './useVestingGrants';
 export * from './useVestingMilestones';
+export * from './useMilestoneTemplates';
+export * from './useGrantMilestones';
+export * from './useVestingAcceleration';

@@ -211,9 +211,10 @@ public enum VestingScheduleStatus
 public enum MilestoneStatus
 {
     Pending = 1,
-    Achieved = 2,
-    Failed = 3,
-    Cancelled = 4
+    InProgress = 2,
+    Achieved = 3,
+    Failed = 4,
+    Cancelled = 5
 }
 
 public enum MilestoneType
@@ -222,6 +223,67 @@ public enum MilestoneType
     Product = 2,
     Operational = 3,
     Custom = 4
+}
+
+// ─── Grant Milestones Module ──────────────────────────────────────────────────
+
+/// <summary>Category for performance milestones (5-category model).</summary>
+public enum MilestoneCategory
+{
+    Financial = 1,
+    Operational = 2,
+    Product = 3,
+    Market = 4,
+    Strategic = 5
+}
+
+/// <summary>Type of measurement metric for a milestone target.</summary>
+public enum MetricType
+{
+    Currency = 1,
+    Percentage = 2,
+    Count = 3,
+    Boolean = 4
+}
+
+/// <summary>Comparison operator used to evaluate whether the target is met.</summary>
+public enum TargetOperator
+{
+    GreaterThan = 1,
+    LessThan = 2,
+    Equals = 3,
+    GreaterOrEqual = 4,
+    LessOrEqual = 5
+}
+
+/// <summary>How often progress is measured / recorded.</summary>
+public enum MeasurementFrequency
+{
+    Daily = 1,
+    Weekly = 2,
+    Monthly = 3,
+    Quarterly = 4,
+    Annually = 5,
+    OneTime = 6
+}
+
+/// <summary>Mechanism used to accelerate the vesting schedule.</summary>
+public enum VestingAccelerationType
+{
+    /// <summary>Accelerate by a percentage of the total vesting period.</summary>
+    Percentage = 1,
+    /// <summary>Accelerate by a fixed number of months.</summary>
+    Months = 2,
+    /// <summary>Immediately unlock a specific number of shares.</summary>
+    Shares = 3
+}
+
+/// <summary>Source system that submitted a progress measurement.</summary>
+public enum ProgressDataSource
+{
+    Manual = 1,
+    ApiIntegration = 2,
+    SystemCalculation = 3
 }
 
 public enum VestingTransactionType

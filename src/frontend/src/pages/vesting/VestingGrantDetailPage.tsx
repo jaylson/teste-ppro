@@ -9,6 +9,7 @@ import {
   Play,
   XCircle,
   BadgeCheck,
+  Target,
 } from 'lucide-react';
 import { Button, Card, Spinner } from '@/components/ui';
 import {
@@ -17,6 +18,7 @@ import {
   MilestoneList,
   ExerciseSharesModal,
 } from '@/components/vesting';
+import GrantMilestonesPage from './GrantMilestonesPage';
 import {
   useVestingGrant,
   useVestingProjection,
@@ -338,6 +340,15 @@ export default function VestingGrantDetailPage() {
           </div>
         </Card>
       )}
+
+      {/* Grant-level Performance Milestones */}
+      <Card className="p-5">
+        <h2 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
+          <Target size={17} className="text-purple-500" />
+          Milestones de Performance do Grant
+        </h2>
+        <GrantMilestonesPage grantId={grant.id} />
+      </Card>
 
       {/* Exercise Modal */}
       <ExerciseSharesModal

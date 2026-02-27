@@ -156,3 +156,136 @@ public class AchieveMilestoneValidator : AbstractValidator<AchieveMilestoneReque
             .WithMessage("Data de atingimento não pode ser futura.");
     }
 }
+// ─── Grant Milestones Validators ──────────────────────────────────────────────
+
+public class CreateMilestoneTemplateValidator : AbstractValidator<CreateMilestoneTemplateRequest>
+{
+    public CreateMilestoneTemplateValidator()
+    {
+        RuleFor(x => x.CompanyId)
+            .NotEmpty().WithMessage("Empresa é obrigatória.");
+
+        RuleFor(x => x.Name)
+            .NotEmpty().WithMessage("Nome do template é obrigatório.")
+            .MaximumLength(200).WithMessage("Nome não pode ultrapassar 200 caracteres.");
+
+        RuleFor(x => x.Category)
+            .IsInEnum().WithMessage("Categoria inválida.");
+
+        RuleFor(x => x.MetricType)
+            .IsInEnum().WithMessage("Tipo de métrica inválido.");
+
+        RuleFor(x => x.TargetOperator)
+            .IsInEnum().WithMessage("Operador alvo inválido.");
+
+        RuleFor(x => x.MeasurementFrequency)
+            .IsInEnum().WithMessage("Frequência de medição inválida.");
+
+        RuleFor(x => x.AccelerationType)
+            .IsInEnum().WithMessage("Tipo de aceleração inválido.");
+
+        RuleFor(x => x.AccelerationAmount)
+            .GreaterThan(0).WithMessage("Valor de aceleração deve ser maior que 0.")
+            .LessThanOrEqualTo(100).WithMessage("Valor de aceleração não pode ultrapassar 100.");
+
+        RuleFor(x => x.MaxAccelerationCap)
+            .GreaterThanOrEqualTo(x => x.AccelerationAmount)
+            .WithMessage("Cap máximo não pode ser menor que o valor de aceleração individual.")
+            .LessThanOrEqualTo(100).WithMessage("Cap máximo não pode ultrapassar 100.")
+            .When(x => x.MaxAccelerationCap.HasValue);
+
+        RuleFor(x => x.Description)
+            .MaximumLength(2000).WithMessage("Descrição não pode ultrapassar 2000 caracteres.")
+            .When(x => !string.IsNullOrWhiteSpace(x.Description));
+    }
+}
+
+public class UpdateMilestoneTemplateValidator : AbstractValidator<UpdateMilestoneTemplateRequest>
+{
+    public UpdateMilestoneTemplateValidator()
+    {
+        RuleFor(x => x.Name)
+            .NotEmpty().WithMessage("Nome do template é obrigatório.")
+            .MaximumLength(200).WithMessage("Nome não pode ultrapassar 200 caracteres.");
+
+        RuleFor(x => x.Category).IsInEnum().WithMessage("Categoria inválida.");
+        RuleFor(x => x.MetricType).IsInEnum().WithMessage("Tipo de métrica inválido.");
+        RuleFor(x => x.TargetOperator).IsInEnum().WithMessage("Operador alvo inválido.");
+        RuleFor(x => x.MeasurementFrequency).IsInEnum().WithMessage("Frequência de medição inválida.");
+        RuleFor(x => x.AccelerationType).IsInEnum().WithMessage("Tipo de aceleração inválido.");
+
+        RuleFor(x => x.AccelerationAmount)
+            .GreaterThan(0).WithMessage("Valor de aceleração deve ser maior que 0.")
+            .LessThanOrEqualTo(100).WithMessage("Valor de aceleração não pode ultrapassar 100.");
+
+        RuleFor(x => x.MaxAccelerationCap)
+            .GreaterThanOrEqualTo(x => x.AccelerationAmount)
+            .WithMessage("Cap máximo não pode ser menor que o valor de aceleração individual.")
+            .When(x => x.MaxAccelerationCap.HasValue);
+    }
+}
+
+public class CreateGrantMilestoneValidator : AbstractValidator<CreateGrantMilestoneRequest>
+{
+    public CreateGrantMilestoneValidator()
+    {
+        RuleFor(x => x.VestingGrantId)
+            .NotEmpty().WithMessage("Grant de vesting é obrigatório.");
+
+        RuleFor(x => x.Name)
+            .NotEmpty().WithMessage("Nome do milestone é obrigatório.")
+            .MaximumLength(200).WithMessage("Nome não pode ultrapassar 200 caracteres.");
+
+        RuleFor(x => x.Category).IsInEnum().WithMessage("Categoria inválida.");
+        RuleFor(x => x.MetricType).IsInEnum().WithMessage("Tipo de métrica inválido.");
+        RuleFor(x => x.TargetOperator).IsInEnum().WithMessage("Operador alvo inválido.");
+        RuleFor(x => x.MeasurementFrequency).IsInEnum().WithMessage("Frequência de medição inválida.");
+        RuleFor(x => x.AccelerationType).IsInEnum().WithMessage("Tipo de aceleração inválido.");
+
+        RuleFor(x => x.TargetValue)
+            .GreaterThan(0).WithMessage("Valor alvo deve ser positivo.")
+            .When(x => x.MetricType != MetricType.Boolean);
+
+        RuleFor(x => x.TargetDate)
+            .NotEmpty().WithMessage("Data alvo é obrigatória.")
+            .GreaterThan(DateTime.UtcNow.Date).WithMessage("Data alvo deve ser futura.");
+
+        RuleFor(x => x.AccelerationAmount)
+            .GreaterThan(0).WithMessage("Valor de aceleração deve ser maior que 0.")
+            .LessThanOrEqualTo(100).WithMessage("Valor de aceleração não pode ultrapassar 100.");
+
+        RuleFor(x => x.Description)
+            .MaximumLength(2000).WithMessage("Descrição não pode ultrapassar 2000 caracteres.")
+            .When(x => !string.IsNullOrWhiteSpace(x.Description));
+    }
+}
+
+public class AchieveGrantMilestoneValidator : AbstractValidator<AchieveGrantMilestoneRequest>
+{
+    public AchieveGrantMilestoneValidator()
+    {
+        RuleFor(x => x.AchievedValue)
+            .GreaterThanOrEqualTo(0).WithMessage("Valor atingido não pode ser negativo.");
+    }
+}
+
+public class RecordMilestoneProgressValidator : AbstractValidator<RecordMilestoneProgressRequest>
+{
+    public RecordMilestoneProgressValidator()
+    {
+        RuleFor(x => x.RecordedDate)
+            .NotEmpty().WithMessage("Data de registro é obrigatória.")
+            .LessThanOrEqualTo(DateTime.UtcNow.Date.AddDays(1))
+            .WithMessage("Data de registro não pode ser futura.");
+
+        RuleFor(x => x.RecordedValue)
+            .GreaterThanOrEqualTo(0).WithMessage("Valor registrado não pode ser negativo.");
+
+        RuleFor(x => x.DataSource)
+            .IsInEnum().WithMessage("Fonte de dados inválida.");
+
+        RuleFor(x => x.Notes)
+            .MaximumLength(1000).WithMessage("Notas não podem ultrapassar 1000 caracteres.")
+            .When(x => !string.IsNullOrWhiteSpace(x.Notes));
+    }
+}

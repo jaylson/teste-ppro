@@ -18,6 +18,21 @@ import type {
   VestingCalculationResult,
   VestingProjectionResponse,
   VestingTransaction,
+  MilestoneTemplate,
+  MilestoneTemplateListResponse,
+  CreateMilestoneTemplateRequest,
+  UpdateMilestoneTemplateRequest,
+  MilestoneTemplateFilters,
+  GrantMilestone,
+  GrantMilestoneListResponse,
+  CreateGrantMilestoneRequest,
+  AchieveGrantMilestoneRequest,
+  GrantMilestoneFilters,
+  MilestoneProgress,
+  RecordMilestoneProgressRequest,
+  VestingAcceleration,
+  AccelerationPreview,
+  MilestoneProgressDashboard,
 } from '@/types';
 
 interface ApiResponse<T> {
@@ -229,5 +244,181 @@ export const vestingMilestoneService = {
 
   async deleteMilestone(id: string): Promise<void> {
     await api.delete(`/milestones/${id}`);
+  },
+};
+
+// ─── Milestone Templates ──────────────────────────────────────────────────────
+
+export const milestoneTemplateService = {
+  async getTemplates(filters?: MilestoneTemplateFilters): Promise<MilestoneTemplateListResponse> {
+    const params: Record<string, string | number | boolean | undefined> = {};
+    if (filters?.companyId) params.companyId = filters.companyId;
+    if (filters?.category) params.category = filters.category;
+    if (filters?.isActive !== undefined) params.isActive = filters.isActive;
+    if (filters?.page) params.page = filters.page;
+    if (filters?.pageSize) params.pageSize = filters.pageSize;
+    const response = await api.get<ApiResponse<MilestoneTemplateListResponse>>('/milestone-templates', { params });
+    return response.data.data;
+  },
+
+  async getAllByCompany(companyId: string, activeOnly = true): Promise<MilestoneTemplate[]> {
+    const response = await api.get<ApiResponse<MilestoneTemplate[]>>(
+      '/milestone-templates/all',
+      { params: { companyId, activeOnly } }
+    );
+    return response.data.data;
+  },
+
+  async getTemplateById(id: string): Promise<MilestoneTemplate> {
+    const response = await api.get<ApiResponse<MilestoneTemplate>>(`/milestone-templates/${id}`);
+    return response.data.data;
+  },
+
+  async createTemplate(companyId: string, data: CreateMilestoneTemplateRequest): Promise<MilestoneTemplate> {
+    const response = await api.post<ApiResponse<MilestoneTemplate>>(
+      `/milestone-templates?companyId=${companyId}`,
+      data
+    );
+    return response.data.data;
+  },
+
+  async updateTemplate(id: string, data: UpdateMilestoneTemplateRequest): Promise<MilestoneTemplate> {
+    const response = await api.put<ApiResponse<MilestoneTemplate>>(`/milestone-templates/${id}`, data);
+    return response.data.data;
+  },
+
+  async activateTemplate(id: string): Promise<void> {
+    await api.patch(`/milestone-templates/${id}/activate`);
+  },
+
+  async deactivateTemplate(id: string): Promise<void> {
+    await api.patch(`/milestone-templates/${id}/deactivate`);
+  },
+
+  async deleteTemplate(id: string): Promise<void> {
+    await api.delete(`/milestone-templates/${id}`);
+  },
+};
+
+// ─── Grant Milestones ─────────────────────────────────────────────────────────
+
+export const grantMilestoneService = {
+  async getMilestones(filters?: GrantMilestoneFilters): Promise<GrantMilestoneListResponse> {
+    const params: Record<string, string | number | undefined> = {};
+    if (filters?.companyId) params.companyId = filters.companyId;
+    if (filters?.grantId) params.grantId = filters.grantId;
+    if (filters?.status) params.status = filters.status;
+    if (filters?.category) params.category = filters.category;
+    if (filters?.page) params.page = filters.page;
+    if (filters?.pageSize) params.pageSize = filters.pageSize;
+    const response = await api.get<ApiResponse<GrantMilestoneListResponse>>('/grant-milestones', { params });
+    return response.data.data;
+  },
+
+  async getMilestonesByGrant(grantId: string): Promise<GrantMilestone[]> {
+    const response = await api.get<ApiResponse<GrantMilestone[]>>(`/grants/${grantId}/milestones`);
+    return response.data.data;
+  },
+
+  async getMilestoneById(id: string): Promise<GrantMilestone> {
+    const response = await api.get<ApiResponse<GrantMilestone>>(`/grant-milestones/${id}`);
+    return response.data.data;
+  },
+
+  async createMilestone(companyId: string, data: CreateGrantMilestoneRequest): Promise<GrantMilestone> {
+    const response = await api.post<ApiResponse<GrantMilestone>>(
+      `/grant-milestones?companyId=${companyId}`,
+      data
+    );
+    return response.data.data;
+  },
+
+  async recordProgress(id: string, data: RecordMilestoneProgressRequest): Promise<GrantMilestone> {
+    const response = await api.post<ApiResponse<GrantMilestone>>(
+      `/grant-milestones/${id}/progress`,
+      data
+    );
+    return response.data.data;
+  },
+
+  async getProgressHistory(id: string): Promise<MilestoneProgress[]> {
+    const response = await api.get<ApiResponse<MilestoneProgress[]>>(
+      `/grant-milestones/${id}/progress`
+    );
+    return response.data.data;
+  },
+
+  async getProgressTimeline(
+    id: string,
+    from?: string,
+    to?: string
+  ): Promise<MilestoneProgress[]> {
+    const response = await api.get<ApiResponse<MilestoneProgress[]>>(
+      `/grant-milestones/${id}/progress/timeline`,
+      { params: { from, to } }
+    );
+    return response.data.data;
+  },
+
+  async achieveMilestone(id: string, data: AchieveGrantMilestoneRequest): Promise<GrantMilestone> {
+    const response = await api.patch<ApiResponse<GrantMilestone>>(
+      `/grant-milestones/${id}/achieve`,
+      data
+    );
+    return response.data.data;
+  },
+
+  async verifyMilestone(id: string): Promise<GrantMilestone> {
+    const response = await api.patch<ApiResponse<GrantMilestone>>(
+      `/grant-milestones/${id}/verify`,
+      {}
+    );
+    return response.data.data;
+  },
+
+  async failMilestone(id: string): Promise<GrantMilestone> {
+    const response = await api.patch<ApiResponse<GrantMilestone>>(`/grant-milestones/${id}/fail`);
+    return response.data.data;
+  },
+
+  async cancelMilestone(id: string): Promise<GrantMilestone> {
+    const response = await api.patch<ApiResponse<GrantMilestone>>(`/grant-milestones/${id}/cancel`);
+    return response.data.data;
+  },
+
+  async deleteMilestone(id: string): Promise<void> {
+    await api.delete(`/grant-milestones/${id}`);
+  },
+
+  async getDashboard(grantId: string): Promise<MilestoneProgressDashboard> {
+    const response = await api.get<ApiResponse<MilestoneProgressDashboard>>(
+      `/grants/${grantId}/milestones/dashboard`
+    );
+    return response.data.data;
+  },
+};
+
+// ─── Vesting Accelerations ────────────────────────────────────────────────────
+
+export const vestingAccelerationService = {
+  async getByGrant(grantId: string): Promise<VestingAcceleration[]> {
+    const response = await api.get<ApiResponse<VestingAcceleration[]>>(
+      `/grants/${grantId}/accelerations`
+    );
+    return response.data.data;
+  },
+
+  async getPreview(milestoneId: string): Promise<AccelerationPreview> {
+    const response = await api.get<ApiResponse<AccelerationPreview>>(
+      `/grant-milestones/${milestoneId}/acceleration-preview`
+    );
+    return response.data.data;
+  },
+
+  async applyAcceleration(milestoneId: string): Promise<VestingAcceleration> {
+    const response = await api.post<ApiResponse<VestingAcceleration>>(
+      `/grant-milestones/${milestoneId}/apply-acceleration`
+    );
+    return response.data.data;
   },
 };

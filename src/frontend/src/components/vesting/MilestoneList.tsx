@@ -11,6 +11,7 @@ interface MilestoneListProps {
 
 const statusIcons: Record<MilestoneStatus, React.ReactNode> = {
   [MilestoneStatus.Pending]: <Clock size={16} className="text-amber-500" />,
+  [MilestoneStatus.InProgress]: <Clock size={16} className="text-blue-500" />,
   [MilestoneStatus.Achieved]: <CheckCircle size={16} className="text-green-500" />,
   [MilestoneStatus.Failed]: <XCircle size={16} className="text-red-500" />,
   [MilestoneStatus.Cancelled]: <XCircle size={16} className="text-gray-400" />,
@@ -18,6 +19,7 @@ const statusIcons: Record<MilestoneStatus, React.ReactNode> = {
 
 const statusBg: Record<MilestoneStatus, string> = {
   [MilestoneStatus.Pending]: 'border-amber-200 bg-amber-50',
+  [MilestoneStatus.InProgress]: 'border-blue-200 bg-blue-50',
   [MilestoneStatus.Achieved]: 'border-green-200 bg-green-50',
   [MilestoneStatus.Failed]: 'border-red-200 bg-red-50',
   [MilestoneStatus.Cancelled]: 'border-gray-200 bg-gray-50',

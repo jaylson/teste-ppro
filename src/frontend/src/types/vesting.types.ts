@@ -27,9 +27,61 @@ export enum VestingGrantDetailStatus {
 
 export enum MilestoneStatus {
   Pending = 'Pending',
+  InProgress = 'InProgress',
   Achieved = 'Achieved',
   Failed = 'Failed',
   Cancelled = 'Cancelled',
+}
+
+// ─── Enums — Grant Milestones & Acceleration ──────────────────────────────────
+
+export enum MilestoneCategory {
+  Financial = 'Financial',
+  Operational = 'Operational',
+  Product = 'Product',
+  Market = 'Market',
+  Strategic = 'Strategic',
+}
+
+export enum MetricType {
+  Revenue = 'Revenue',
+  Profit = 'Profit',
+  Ebitda = 'Ebitda',
+  UserCount = 'UserCount',
+  Mrr = 'Mrr',
+  Arr = 'Arr',
+  CustomerCount = 'CustomerCount',
+  Nps = 'Nps',
+  MarketShare = 'MarketShare',
+  ProductMilestone = 'ProductMilestone',
+  Custom = 'Custom',
+}
+
+export enum TargetOperator {
+  GreaterThan = 'GreaterThan',
+  GreaterThanOrEqual = 'GreaterThanOrEqual',
+  LessThan = 'LessThan',
+  LessThanOrEqual = 'LessThanOrEqual',
+  Equal = 'Equal',
+}
+
+export enum MeasurementFrequency {
+  OneTime = 'OneTime',
+  Monthly = 'Monthly',
+  Quarterly = 'Quarterly',
+  Annual = 'Annual',
+}
+
+export enum VestingAccelerationType {
+  Percentage = 'Percentage',
+  Months = 'Months',
+  Shares = 'Shares',
+}
+
+export enum ProgressDataSource {
+  Manual = 'Manual',
+  Automatic = 'Automatic',
+  Audited = 'Audited',
 }
 
 export enum MilestoneType {
@@ -281,6 +333,211 @@ export interface VestingMilestoneFilters {
   pageSize?: number;
 }
 
+// ─── Milestone Templates ──────────────────────────────────────────────────────
+
+export interface MilestoneTemplate {
+  id: string;
+  clientId: string;
+  companyId: string;
+  name: string;
+  description?: string;
+  category: MilestoneCategory;
+  metricType: MetricType;
+  targetOperator: TargetOperator;
+  targetValue: number;
+  targetUnit?: string;
+  measurementFrequency: MeasurementFrequency;
+  accelerationType: VestingAccelerationType;
+  accelerationAmount: number;
+  maxAccelerationCap?: number;
+  effectiveCap: number;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface MilestoneTemplateListResponse {
+  items: MilestoneTemplate[];
+  totalCount: number;
+  pageNumber: number;
+  pageSize: number;
+  totalPages: number;
+  hasPreviousPage: boolean;
+  hasNextPage: boolean;
+}
+
+export interface CreateMilestoneTemplateRequest {
+  name: string;
+  description?: string;
+  category: MilestoneCategory;
+  metricType: MetricType;
+  targetOperator: TargetOperator;
+  targetValue: number;
+  targetUnit?: string;
+  measurementFrequency: MeasurementFrequency;
+  accelerationType: VestingAccelerationType;
+  accelerationAmount: number;
+  maxAccelerationCap?: number;
+}
+
+export interface UpdateMilestoneTemplateRequest extends CreateMilestoneTemplateRequest {}
+
+export interface MilestoneTemplateFilters {
+  companyId?: string;
+  category?: string;
+  isActive?: boolean;
+  page?: number;
+  pageSize?: number;
+}
+
+// ─── Grant Milestones ─────────────────────────────────────────────────────────
+
+export interface GrantMilestone {
+  id: string;
+  clientId: string;
+  vestingGrantId: string;
+  milestoneTemplateId?: string;
+  name: string;
+  description?: string;
+  category: MilestoneCategory;
+  metricType: MetricType;
+  targetOperator: TargetOperator;
+  targetValue: number;
+  targetUnit?: string;
+  measurementFrequency: MeasurementFrequency;
+  accelerationType: VestingAccelerationType;
+  accelerationAmount: number;
+  maxAccelerationCap?: number;
+  effectiveCap: number;
+  status: MilestoneStatus;
+  currentValue?: number;
+  progressPercentage: number;
+  targetDate?: string;
+  achievedDate?: string;
+  verifiedAt?: string;
+  verifiedBy?: string;
+  accelerationApplied: boolean;
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface GrantMilestoneListResponse {
+  items: GrantMilestone[];
+  totalCount: number;
+  pageNumber: number;
+  pageSize: number;
+  totalPages: number;
+  hasPreviousPage: boolean;
+  hasNextPage: boolean;
+}
+
+export interface CreateGrantMilestoneRequest {
+  vestingGrantId: string;
+  milestoneTemplateId?: string;
+  name: string;
+  description?: string;
+  category: MilestoneCategory;
+  metricType: MetricType;
+  targetOperator: TargetOperator;
+  targetValue: number;
+  targetUnit?: string;
+  measurementFrequency: MeasurementFrequency;
+  accelerationType: VestingAccelerationType;
+  accelerationAmount: number;
+  maxAccelerationCap?: number;
+  targetDate?: string;
+  notes?: string;
+}
+
+export interface AchieveGrantMilestoneRequest {
+  achievedDate: string;
+  achievedValue?: number;
+  notes?: string;
+}
+
+export interface VerifyGrantMilestoneRequest {
+  notes?: string;
+}
+
+export interface GrantMilestoneFilters {
+  companyId?: string;
+  grantId?: string;
+  status?: string;
+  category?: string;
+  page?: number;
+  pageSize?: number;
+}
+
+// ─── Milestone Progress ───────────────────────────────────────────────────────
+
+export interface MilestoneProgress {
+  id: string;
+  clientId: string;
+  grantMilestoneId: string;
+  recordedDate: string;
+  recordedValue: number;
+  progressPercentage: number;
+  notes?: string;
+  dataSource?: ProgressDataSource;
+  recordedBy?: string;
+  createdAt: string;
+}
+
+export interface RecordMilestoneProgressRequest {
+  recordedDate: string;
+  recordedValue: number;
+  notes?: string;
+  dataSource?: ProgressDataSource;
+}
+
+// ─── Vesting Accelerations ────────────────────────────────────────────────────
+
+export interface VestingAcceleration {
+  id: string;
+  clientId: string;
+  vestingGrantId: string;
+  grantMilestoneId: string;
+  originalVestingEndDate: string;
+  newVestingEndDate: string;
+  sharesAccelerated: number;
+  accelerationType: VestingAccelerationType;
+  accelerationAmount: number;
+  appliedAt: string;
+  appliedBy: string;
+  monthsAccelerated: number;
+}
+
+export interface AccelerationPreview {
+  milestoneId: string;
+  milestoneName: string;
+  vestingGrantId: string;
+  accelerationType: VestingAccelerationType;
+  accelerationAmount: number;
+  effectiveCap: number;
+  currentEndDate: string;
+  projectedNewEndDate: string;
+  sharesUnlocked: number;
+  monthsAccelerated: number;
+  cappedByMaximum: boolean;
+}
+
+// ─── Dashboard ────────────────────────────────────────────────────────────────
+
+export interface MilestoneProgressDashboard {
+  vestingGrantId: string;
+  totalMilestones: number;
+  pendingCount: number;
+  inProgressCount: number;
+  achievedCount: number;
+  failedCount: number;
+  cancelledCount: number;
+  totalPossibleAcceleration: number;
+  pendingAcceleration: number;
+  appliedAcceleration: number;
+  milestones: GrantMilestone[];
+}
+
 // ─── Labels helpers ───────────────────────────────────────────────────────────
 
 export const vestingTypeLabels: Record<VestingType, string> = {
@@ -308,9 +565,53 @@ export const vestingGrantStatusLabels: Record<VestingGrantDetailStatus, string> 
 
 export const milestoneStatusLabels: Record<MilestoneStatus, string> = {
   [MilestoneStatus.Pending]: 'Pendente',
+  [MilestoneStatus.InProgress]: 'Em Andamento',
   [MilestoneStatus.Achieved]: 'Atingido',
   [MilestoneStatus.Failed]: 'Falhou',
   [MilestoneStatus.Cancelled]: 'Cancelado',
+};
+
+export const milestoneCategoryLabels: Record<MilestoneCategory, string> = {
+  [MilestoneCategory.Financial]: 'Financeiro',
+  [MilestoneCategory.Operational]: 'Operacional',
+  [MilestoneCategory.Product]: 'Produto',
+  [MilestoneCategory.Market]: 'Mercado',
+  [MilestoneCategory.Strategic]: 'Estratégico',
+};
+
+export const metricTypeLabels: Record<MetricType, string> = {
+  [MetricType.Revenue]: 'Receita',
+  [MetricType.Profit]: 'Lucro',
+  [MetricType.Ebitda]: 'EBITDA',
+  [MetricType.UserCount]: 'Nº de Usuários',
+  [MetricType.Mrr]: 'MRR',
+  [MetricType.Arr]: 'ARR',
+  [MetricType.CustomerCount]: 'Nº de Clientes',
+  [MetricType.Nps]: 'NPS',
+  [MetricType.MarketShare]: 'Market Share',
+  [MetricType.ProductMilestone]: 'Marco de Produto',
+  [MetricType.Custom]: 'Personalizado',
+};
+
+export const targetOperatorLabels: Record<TargetOperator, string> = {
+  [TargetOperator.GreaterThan]: '>',
+  [TargetOperator.GreaterThanOrEqual]: '≥',
+  [TargetOperator.LessThan]: '<',
+  [TargetOperator.LessThanOrEqual]: '≤',
+  [TargetOperator.Equal]: '=',
+};
+
+export const measurementFrequencyLabels: Record<MeasurementFrequency, string> = {
+  [MeasurementFrequency.OneTime]: 'Único',
+  [MeasurementFrequency.Monthly]: 'Mensal',
+  [MeasurementFrequency.Quarterly]: 'Trimestral',
+  [MeasurementFrequency.Annual]: 'Anual',
+};
+
+export const vestingAccelerationTypeLabels: Record<VestingAccelerationType, string> = {
+  [VestingAccelerationType.Percentage]: 'Porcentagem do período',
+  [VestingAccelerationType.Months]: 'Meses adiantados',
+  [VestingAccelerationType.Shares]: 'Ações desbloqueadas',
 };
 
 export const milestoneTypeLabels: Record<MilestoneType, string> = {

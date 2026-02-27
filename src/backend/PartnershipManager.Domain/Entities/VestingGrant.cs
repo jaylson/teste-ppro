@@ -212,6 +212,38 @@ public class VestingGrant : BaseEntity
         UpdatedAt = DateTime.UtcNow;
     }
 
+    /// <summary>Applies an approved acceleration, moving the vesting end date forward.</summary>
+    public void ApplyAcceleration(DateTime newVestingEndDate, Guid appliedBy)
+    {
+        if (newVestingEndDate >= VestingEndDate)
+            throw new ArgumentOutOfRangeException(nameof(newVestingEndDate),
+                "Nova data de término do vesting deve ser anterior à data atual.");
+
+        VestingEndDate = newVestingEndDate.Date;
+        UpdatedBy = appliedBy;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    // ─── Grant Milestones (navigation + helpers) ─────────────────────────────
+
+    /// <summary>Navigation property: performance milestones attached to this grant.</summary>
+    public virtual ICollection<GrantMilestone> GrantMilestones { get; private set; } = new List<GrantMilestone>();
+
+    /// <summary>Returns true if any milestone is still pending or in-progress.</summary>
+    public bool HasPendingMilestones() =>
+        GrantMilestones.Any(m =>
+            m.Status == MilestoneStatus.Pending || m.Status == MilestoneStatus.InProgress);
+
+    /// <summary>Sum of acceleration amounts already applied.</summary>
+    public decimal GetTotalAppliedAcceleration() =>
+        GrantMilestones.Where(m => m.AccelerationApplied).Sum(m => m.AccelerationAmount);
+
+    /// <summary>Sum of acceleration amounts available but not yet applied (verified achievements).</summary>
+    public decimal GetPendingAcceleration() =>
+        GrantMilestones
+            .Where(m => m.IsAchieved && m.VerifiedAt.HasValue && !m.AccelerationApplied)
+            .Sum(m => m.AccelerationAmount);
+
     /// <summary>
     /// Reconstitutes a VestingGrant from persistence without domain validation.
     /// For use by repositories only.

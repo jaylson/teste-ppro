@@ -115,10 +115,21 @@ public static class InfrastructureServiceExtensions
         services.AddScoped<IVestingMilestoneRepository, VestingMilestoneRepository>();
         services.AddScoped<IVestingTransactionRepository, VestingTransactionRepository>();
 
+        // Grant Milestones Module - Repositories
+        services.AddScoped<IMilestoneTemplateRepository, MilestoneTemplateRepository>();
+        services.AddScoped<IGrantMilestoneRepository, GrantMilestoneRepository>();
+        services.AddScoped<IMilestoneProgressRepository, MilestoneProgressRepository>();
+        services.AddScoped<IVestingAccelerationRepository, VestingAccelerationRepository>();
+
         // Vesting Module - Services
         services.AddScoped<IVestingPlanService, VestingPlanService>();
         services.AddScoped<IVestingGrantService, VestingGrantService>();
         services.AddScoped<IVestingMilestoneService, VestingMilestoneService>();
+
+        // Grant Milestones Module - Services
+        services.AddScoped<IMilestoneTemplateService, MilestoneTemplateService>();
+        services.AddScoped<IMilestoneTrackingService, MilestoneTrackingService>();
+        services.AddScoped<IVestingAccelerationEngine, VestingAccelerationEngine>();
         
         // PDF Generator Service  
         services.AddScoped<IPdfGeneratorService, PdfGeneratorService>();

@@ -378,6 +378,62 @@ public interface IVestingMilestoneRepository
     Task SoftDeleteAsync(Guid id, Guid clientId, Guid? deletedBy = null);
 }
 
+// ─── Grant Milestones Module ──────────────────────────────────────────────────
+
+/// <summary>
+/// Repositório de templates de milestones reutilizáveis por empresa.
+/// </summary>
+public interface IMilestoneTemplateRepository
+{
+    Task<IEnumerable<MilestoneTemplate>> GetByCompanyAsync(Guid clientId, Guid companyId, bool activeOnly = true);
+    Task<IEnumerable<MilestoneTemplate>> GetByCategoryAsync(Guid clientId, Guid companyId, MilestoneCategory category);
+    Task<(IEnumerable<MilestoneTemplate> Items, int Total)> GetPagedAsync(
+        Guid clientId, Guid companyId, int page, int pageSize, string? category = null, bool? isActive = null);
+    Task<MilestoneTemplate?> GetByIdAsync(Guid id, Guid clientId);
+    Task AddAsync(MilestoneTemplate template);
+    Task UpdateAsync(MilestoneTemplate template);
+    Task SoftDeleteAsync(Guid id, Guid clientId, Guid? deletedBy = null);
+}
+
+/// <summary>
+/// Repositório de milestones por grant (performance-based vesting).
+/// </summary>
+public interface IGrantMilestoneRepository
+{
+    Task<IEnumerable<GrantMilestone>> GetByGrantAsync(Guid clientId, Guid vestingGrantId);
+    Task<(IEnumerable<GrantMilestone> Items, int Total)> GetPagedAsync(
+        Guid clientId, Guid companyId, int page, int pageSize,
+        Guid? vestingGrantId = null, string? status = null, string? category = null);
+    Task<GrantMilestone?> GetByIdAsync(Guid id, Guid clientId);
+    Task<IEnumerable<GrantMilestone>> GetPendingAccelerationsAsync(Guid clientId, Guid companyId);
+    Task AddAsync(GrantMilestone milestone);
+    Task UpdateAsync(GrantMilestone milestone);
+    Task SoftDeleteAsync(Guid id, Guid clientId, Guid? deletedBy = null);
+}
+
+/// <summary>
+/// Repositório de progresso de milestones — série temporal imutável.
+/// </summary>
+public interface IMilestoneProgressRepository
+{
+    Task<IEnumerable<MilestoneProgress>> GetByMilestoneAsync(Guid clientId, Guid grantMilestoneId);
+    Task<MilestoneProgress?> GetLatestAsync(Guid clientId, Guid grantMilestoneId);
+    Task<IEnumerable<MilestoneProgress>> GetTimeSeriesAsync(
+        Guid clientId, Guid grantMilestoneId, DateTime from, DateTime to);
+    Task AddAsync(MilestoneProgress progress);
+}
+
+/// <summary>
+/// Repositório de acelerações de vesting — ledger imutável.
+/// </summary>
+public interface IVestingAccelerationRepository
+{
+    Task<IEnumerable<VestingAcceleration>> GetByGrantAsync(Guid clientId, Guid vestingGrantId);
+    Task<VestingAcceleration?> GetByMilestoneAsync(Guid clientId, Guid grantMilestoneId);
+    Task<decimal> GetTotalAccelerationForGrantAsync(Guid clientId, Guid vestingGrantId);
+    Task AddAsync(VestingAcceleration acceleration);
+}
+
 /// <summary>
 /// Repositório de transações de exercício de vesting (append-only ledger)
 /// </summary>
@@ -414,6 +470,12 @@ public interface IUnitOfWork : IDisposable
     IVestingGrantRepository VestingGrants { get; }
     IVestingMilestoneRepository VestingMilestones { get; }
     IVestingTransactionRepository VestingTransactions { get; }
+
+    // Grant Milestones module
+    IMilestoneTemplateRepository MilestoneTemplates { get; }
+    IGrantMilestoneRepository GrantMilestones { get; }
+    IMilestoneProgressRepository MilestoneProgress { get; }
+    IVestingAccelerationRepository VestingAccelerations { get; }
 
     Task BeginTransactionAsync();
     Task CommitTransactionAsync();

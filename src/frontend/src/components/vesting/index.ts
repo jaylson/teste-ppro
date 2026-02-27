@@ -4,3 +4,8 @@ export { VestingScheduleTimeline } from './VestingScheduleTimeline';
 export { MilestoneList } from './MilestoneList';
 export { ExerciseSharesModal } from './ExerciseSharesModal';
 export { default as CreateGrantModal } from './CreateGrantModal';
+export { MilestoneCard } from './MilestoneCard';
+export { MilestoneProgressTracker } from './MilestoneProgressTracker';
+export { AccelerationCalculator } from './AccelerationCalculator';
+export { MilestoneTemplateList } from './MilestoneTemplateList';
+export { CreateMilestoneTemplateForm } from './CreateMilestoneTemplateForm';

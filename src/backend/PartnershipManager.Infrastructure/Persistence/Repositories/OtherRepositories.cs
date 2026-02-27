@@ -135,6 +135,11 @@ public class UnitOfWork : IUnitOfWork
     private IVestingGrantRepository? _vestingGrants;
     private IVestingMilestoneRepository? _vestingMilestones;
     private IVestingTransactionRepository? _vestingTransactions;
+    // Grant Milestones module
+    private IMilestoneTemplateRepository? _milestoneTemplates;
+    private IGrantMilestoneRepository? _grantMilestones;
+    private IMilestoneProgressRepository? _milestoneProgress;
+    private IVestingAccelerationRepository? _vestingAccelerations;
     private bool _disposed;
 
     public UnitOfWork(DapperContext context)
@@ -150,6 +155,10 @@ public class UnitOfWork : IUnitOfWork
     public IVestingGrantRepository VestingGrants => _vestingGrants ??= new VestingGrantRepository(_context);
     public IVestingMilestoneRepository VestingMilestones => _vestingMilestones ??= new VestingMilestoneRepository(_context);
     public IVestingTransactionRepository VestingTransactions => _vestingTransactions ??= new VestingTransactionRepository(_context);
+    public IMilestoneTemplateRepository MilestoneTemplates => _milestoneTemplates ??= new MilestoneTemplateRepository(_context);
+    public IGrantMilestoneRepository GrantMilestones => _grantMilestones ??= new GrantMilestoneRepository(_context);
+    public IMilestoneProgressRepository MilestoneProgress => _milestoneProgress ??= new MilestoneProgressRepository(_context);
+    public IVestingAccelerationRepository VestingAccelerations => _vestingAccelerations ??= new VestingAccelerationRepository(_context);
 
     public async Task BeginTransactionAsync()
     {
