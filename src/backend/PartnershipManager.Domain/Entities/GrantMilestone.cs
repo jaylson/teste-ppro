@@ -73,8 +73,8 @@ public class GrantMilestone : BaseEntity
     {
         if (string.IsNullOrWhiteSpace(name))
             throw new ArgumentException("Nome do milestone é obrigatório.", nameof(name));
-        if (targetValue <= 0 && metricType != MetricType.Boolean)
-            throw new ArgumentOutOfRangeException(nameof(targetValue), "TargetValue deve ser positivo para métricas não-booleanas.");
+        if (targetValue <= 0)
+            throw new ArgumentOutOfRangeException(nameof(targetValue), "TargetValue deve ser positivo.");
         if (accelerationAmount <= 0 || accelerationAmount > 100)
             throw new ArgumentOutOfRangeException(nameof(accelerationAmount), "AccelerationAmount deve ser entre 0 e 100.");
         if (targetDate.Date <= DateTime.UtcNow.Date)
@@ -116,9 +116,7 @@ public class GrantMilestone : BaseEntity
             throw new InvalidOperationException($"Não é possível registrar progresso em milestone com status '{Status}'.");
 
         CurrentValue = value;
-        ProgressPercentage = MetricType == MetricType.Boolean
-            ? (value >= 1 ? 100m : 0m)
-            : CalculateProgress(value);
+        ProgressPercentage = CalculateProgress(value);
 
         if (Status == MilestoneStatus.Pending && ProgressPercentage > 0)
             Status = MilestoneStatus.InProgress;
@@ -199,7 +197,7 @@ public class GrantMilestone : BaseEntity
 
         var raw = TargetOperator switch
         {
-            TargetOperator.LessThan or TargetOperator.LessOrEqual =>
+            TargetOperator.LessThan or TargetOperator.LessThanOrEqual =>
                 (TargetValue / Math.Max(currentValue, 0.0001m)) * 100m,
             _ => (currentValue / TargetValue) * 100m
         };

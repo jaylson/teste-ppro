@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { Target, Zap } from 'lucide-react';
+import { Target, Zap, Plus } from 'lucide-react';
 import { Card } from '@/components/ui';
 import {
   MilestoneCard,
   MilestoneProgressTracker,
   AccelerationCalculator,
+  AddMilestoneToGrantModal,
 } from '@/components/vesting';
 import {
   useGrantMilestonesByGrant,
@@ -20,14 +21,19 @@ import { useAchieveGrantMilestone } from '@/hooks';
 
 interface GrantMilestonesPageProps {
   grantId?: string;
+  companyId?: string;
 }
 
-export default function GrantMilestonesPage({ grantId: propGrantId }: GrantMilestonesPageProps) {
+export default function GrantMilestonesPage({
+  grantId: propGrantId,
+  companyId,
+}: GrantMilestonesPageProps) {
   const { grantId: paramGrantId } = useParams<{ grantId: string }>();
   const grantId = propGrantId ?? paramGrantId ?? '';
 
   const [trackingMilestone, setTrackingMilestone] = useState<GrantMilestone | null>(null);
   const [acceleratingMilestone, setAcceleratingMilestone] = useState<GrantMilestone | null>(null);
+  const [addModalOpen, setAddModalOpen] = useState(false);
 
   const { data: milestones, isLoading } = useGrantMilestonesByGrant(grantId);
   const { data: dashboard } = useMilestoneProgressDashboard(grantId);
@@ -85,11 +91,33 @@ export default function GrantMilestonesPage({ grantId: propGrantId }: GrantMiles
         </div>
       )}
 
+      {/* Add button */}
+      {companyId && (
+        <div className="flex justify-end">
+          <button
+            onClick={() => setAddModalOpen(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
+          >
+            <Plus size={14} />
+            Adicionar Milestone
+          </button>
+        </div>
+      )}
+
       {/* Milestones list */}
       {!milestones || milestones.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-12 text-gray-400">
           <Target size={32} className="mb-3 opacity-40" />
-          <p className="text-sm">Nenhum milestone de performance configurado.</p>
+          <p className="text-sm">Nenhum milestone configurado.</p>
+          {companyId && (
+            <button
+              onClick={() => setAddModalOpen(true)}
+              className="mt-3 flex items-center gap-1.5 px-3 py-1.5 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
+            >
+              <Plus size={14} />
+              Adicionar primeiro milestone
+            </button>
+          )}
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -122,6 +150,14 @@ export default function GrantMilestonesPage({ grantId: propGrantId }: GrantMiles
         <AccelerationCalculator
           milestone={acceleratingMilestone}
           onClose={() => setAcceleratingMilestone(null)}
+        />
+      )}
+
+      {addModalOpen && companyId && (
+        <AddMilestoneToGrantModal
+          grantId={grantId}
+          companyId={companyId}
+          onClose={() => setAddModalOpen(false)}
         />
       )}
     </div>

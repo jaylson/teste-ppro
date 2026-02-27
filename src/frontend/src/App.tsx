@@ -18,7 +18,7 @@ import ContractTemplatesPage from './pages/contracts/templates';
 import ClausesPage from './pages/contracts/clauses';
 import ContractBuilderPage from './pages/contracts/builder';
 import ContractDetailsPage from './pages/contracts/[id]';
-import { VestingPage, VestingGrantDetailPage, MyVestingPage, VestingPlanDetailPage, VestingGrantsPage, GrantMilestonesPage } from './pages/vesting';
+import { VestingPage, VestingGrantDetailPage, MyVestingPage, VestingPlanDetailPage, VestingGrantsPage, GrantMilestonesPage, MilestoneTemplatesPage } from './pages/vesting';
 
 function App() {
   const { isAuthenticated } = useAuthStore();
@@ -59,6 +59,7 @@ function App() {
         <Route path="/vesting/grants" element={<VestingGrantsPage />} />
         <Route path="/vesting/grant/:id" element={<VestingGrantDetailPage />} />
         <Route path="/vesting/grant/:grantId/milestones" element={<GrantMilestonesPage />} />
+        <Route path="/vesting/milestone-templates" element={<MilestoneTemplatesPage />} />
         <Route path="/vesting/plans/:id" element={<VestingPlanDetailPage />} />
         <Route path="/my-vesting" element={<MyVestingPage />} />
         

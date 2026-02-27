@@ -9,3 +9,4 @@ export { MilestoneProgressTracker } from './MilestoneProgressTracker';
 export { AccelerationCalculator } from './AccelerationCalculator';
 export { MilestoneTemplateList } from './MilestoneTemplateList';
 export { CreateMilestoneTemplateForm } from './CreateMilestoneTemplateForm';
+export { AddMilestoneToGrantModal } from './AddMilestoneToGrantModal';

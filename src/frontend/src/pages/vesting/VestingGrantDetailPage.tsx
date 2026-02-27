@@ -347,7 +347,7 @@ export default function VestingGrantDetailPage() {
           <Target size={17} className="text-purple-500" />
           Milestones de Performance do Grant
         </h2>
-        <GrantMilestonesPage grantId={grant.id} />
+        <GrantMilestonesPage grantId={grant.id} companyId={grant.companyId} />
       </Card>
 
       {/* Exercise Modal */}

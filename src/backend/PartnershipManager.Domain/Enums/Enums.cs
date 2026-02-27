@@ -240,31 +240,36 @@ public enum MilestoneCategory
 /// <summary>Type of measurement metric for a milestone target.</summary>
 public enum MetricType
 {
-    Currency = 1,
-    Percentage = 2,
-    Count = 3,
-    Boolean = 4
+    Revenue = 1,
+    Profit = 2,
+    Ebitda = 3,
+    UserCount = 4,
+    Mrr = 5,
+    Arr = 6,
+    CustomerCount = 7,
+    Nps = 8,
+    MarketShare = 9,
+    ProductMilestone = 10,
+    Custom = 11
 }
 
 /// <summary>Comparison operator used to evaluate whether the target is met.</summary>
 public enum TargetOperator
 {
     GreaterThan = 1,
-    LessThan = 2,
-    Equals = 3,
-    GreaterOrEqual = 4,
-    LessOrEqual = 5
+    GreaterThanOrEqual = 2,
+    LessThan = 3,
+    LessThanOrEqual = 4,
+    Equal = 5
 }
 
 /// <summary>How often progress is measured / recorded.</summary>
 public enum MeasurementFrequency
 {
-    Daily = 1,
-    Weekly = 2,
-    Monthly = 3,
-    Quarterly = 4,
-    Annually = 5,
-    OneTime = 6
+    OneTime = 1,
+    Monthly = 2,
+    Quarterly = 3,
+    Annual = 4
 }
 
 /// <summary>Mechanism used to accelerate the vesting schedule.</summary>

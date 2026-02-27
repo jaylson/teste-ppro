@@ -243,8 +243,7 @@ public class CreateGrantMilestoneValidator : AbstractValidator<CreateGrantMilest
         RuleFor(x => x.AccelerationType).IsInEnum().WithMessage("Tipo de aceleração inválido.");
 
         RuleFor(x => x.TargetValue)
-            .GreaterThan(0).WithMessage("Valor alvo deve ser positivo.")
-            .When(x => x.MetricType != MetricType.Boolean);
+            .GreaterThan(0).WithMessage("Valor alvo deve ser positivo.");
 
         RuleFor(x => x.TargetDate)
             .NotEmpty().WithMessage("Data alvo é obrigatória.")

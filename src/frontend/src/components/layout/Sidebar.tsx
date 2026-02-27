@@ -15,6 +15,7 @@ import {
   CreditCard,
   Building2,
   List,
+  Layers,
   LucideIcon,
 } from 'lucide-react';
 import { useAuthStore } from '@/stores/authStore';
@@ -47,6 +48,7 @@ const settingsNavigation: NavigationItem[] = [
   { name: 'Billing', href: '/billing', icon: CreditCard },
   { name: 'Templates de Contratos', href: '/contracts/templates', icon: FileText, requiresRole: ['Admin', 'Legal'] },
   { name: 'Cláusulas', href: '/contracts/clauses', icon: List, requiresRole: ['Admin', 'Legal'] },
+  { name: 'Templates de Milestone', href: '/vesting/milestone-templates', icon: Layers, requiresRole: ['Admin'] },
 ];
 
 const languages = [
@@ -82,7 +84,12 @@ export default function Sidebar() {
       {/* Navigation */}
       <nav className="sidebar-nav">
         <ul className="space-y-1">
-          {navigation.map((item) => (
+          {navigation
+            .filter((item) => {
+              if (!item.requiresRole) return true;
+              return item.requiresRole.some((role) => user?.roles?.includes(role));
+            })
+            .map((item) => (
             <li key={item.name}>
               <NavLink
                 to={item.href}

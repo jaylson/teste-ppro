@@ -82,7 +82,9 @@ public class MilestoneTemplatesController : ControllerBase
     {
         var clientId = HttpContext.GetRequiredClientId();
         var userId = GetUserId();
-        var result = await _templateService.CreateAsync(clientId, request, userId);
+        // companyId vem como query param; garante que o DTO também o tenha para o validator
+        var mergedRequest = request with { CompanyId = companyId };
+        var result = await _templateService.CreateAsync(clientId, mergedRequest, userId);
         _logger.LogInformation("Template de milestone criado: {TemplateId}", result.Id);
         return CreatedAtAction(nameof(GetById), new { id = result.Id },
             ApiResponse<MilestoneTemplateResponse>.Ok(result, "Template criado com sucesso"));
