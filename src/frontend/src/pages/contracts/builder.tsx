@@ -104,6 +104,7 @@ function ContractBuilderPage() {
             }
 
             const session = await contractBuilderService.startBuilder({
+              companyId,
               templateId: selectedTemplateId ?? undefined,
             });
             setSessionId(session.sessionId);
@@ -114,7 +115,13 @@ function ContractBuilderPage() {
           break;
         case 2:
           if (sessionId) {
-            await contractBuilderService.selectClauses({ sessionId, clauseIds: selectedClauseIds });
+            await contractBuilderService.selectClauses({
+              sessionId,
+              clauses: selectedClauseIds.map((id, idx) => ({
+                clauseId: id,
+                displayOrder: idx,
+              })),
+            });
           }
           break;
         case 3:

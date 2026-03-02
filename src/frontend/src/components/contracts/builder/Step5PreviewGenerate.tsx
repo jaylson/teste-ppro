@@ -13,7 +13,7 @@ import {
   FileText,
   Loader2,
 } from 'lucide-react';
-import { Button } from '@/components/ui';
+import { Button, Card } from '@/components/ui';
 import { contractBuilderService } from '@/services/contractService';
 
 interface Step5PreviewGenerateProps {
@@ -40,8 +40,8 @@ export const Step5PreviewGenerate: React.FC<Step5PreviewGenerateProps> = ({
         setIsLoadingPreview(true);
         setPreviewError(null);
         const result = await contractBuilderService.previewContract({ sessionId });
-        setHtmlContent(result.htmlContent);
-        setMissingVariables(result.missingVariables ?? []);
+        setHtmlContent(result.htmlPreview);
+        setMissingVariables(result.validationErrors ?? []);
       } catch (err) {
         console.error('Erro ao carregar preview:', err);
         setPreviewError('Não foi possível carregar o preview do contrato. Verifique os dados das etapas anteriores.');
@@ -57,8 +57,8 @@ export const Step5PreviewGenerate: React.FC<Step5PreviewGenerateProps> = ({
     try {
       setIsGenerating(true);
       setGenerateError(null);
-      const contract = await contractBuilderService.generateContract({ sessionId, format: 'pdf' });
-      onContractGenerated(contract.id);
+      const contract = await contractBuilderService.generateContract({ sessionId, sendForSignature: false });
+      onContractGenerated(contract.contractId);
     } catch (err) {
       console.error('Erro ao gerar contrato:', err);
       setGenerateError('Erro ao gerar o contrato. Tente novamente.');
@@ -68,8 +68,8 @@ export const Step5PreviewGenerate: React.FC<Step5PreviewGenerateProps> = ({
 
   return (
     <div className="space-y-6">
-      {/* Header description */}
-      <div className="text-center mb-6">
+      {/* Header - same pattern as all other steps */}
+      <div className="text-center mb-8">
         <Eye className="w-16 h-16 text-cyan-600 mx-auto mb-4" />
         <h3 className="text-lg font-medium text-gray-900 mb-2">
           Revise e gere seu contrato
@@ -79,7 +79,7 @@ export const Step5PreviewGenerate: React.FC<Step5PreviewGenerateProps> = ({
         </p>
       </div>
 
-      {/* Missing variables warning */}
+      {/* Status banners */}
       {missingVariables.length > 0 && (
         <div className="flex items-start gap-3 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
           <AlertCircle className="w-5 h-5 text-yellow-600 mt-0.5 shrink-0" />
@@ -102,7 +102,6 @@ export const Step5PreviewGenerate: React.FC<Step5PreviewGenerateProps> = ({
         </div>
       )}
 
-      {/* All variables filled */}
       {!isLoadingPreview && !previewError && missingVariables.length === 0 && (
         <div className="flex items-center gap-3 p-4 bg-green-50 border border-green-200 rounded-lg">
           <CheckCircle className="w-5 h-5 text-green-600 shrink-0" />
@@ -112,7 +111,6 @@ export const Step5PreviewGenerate: React.FC<Step5PreviewGenerateProps> = ({
         </div>
       )}
 
-      {/* Generate error */}
       {generateError && (
         <div className="flex items-start gap-3 p-4 bg-red-50 border border-red-200 rounded-lg">
           <AlertCircle className="w-5 h-5 text-red-600 mt-0.5 shrink-0" />
@@ -120,16 +118,14 @@ export const Step5PreviewGenerate: React.FC<Step5PreviewGenerateProps> = ({
         </div>
       )}
 
-      {/* Preview panel */}
-      <div className="border border-gray-200 rounded-xl overflow-hidden shadow-sm">
-        {/* Panel header */}
-        <div className="flex items-center gap-2 px-4 py-3 bg-gray-50 border-b border-gray-200">
-          <FileText className="w-4 h-4 text-gray-500" />
-          <span className="text-sm font-medium text-gray-700">Preview do Contrato</span>
-        </div>
+      {/* Preview card - same Card component as other steps use for their content */}
+      <Card className="p-6">
+        <h4 className="text-md font-semibold text-gray-900 mb-4 flex items-center gap-2">
+          <FileText className="w-5 h-5" />
+          Preview do Contrato
+        </h4>
 
-        {/* Panel body */}
-        <div className="bg-white min-h-64 p-6">
+        <div className="min-h-[300px]">
           {isLoadingPreview ? (
             <div className="flex flex-col items-center justify-center py-16 text-gray-500">
               <Loader2 className="w-8 h-8 animate-spin mb-3 text-cyan-600" />
@@ -148,7 +144,7 @@ export const Step5PreviewGenerate: React.FC<Step5PreviewGenerateProps> = ({
             </div>
           ) : htmlContent ? (
             <div
-              className="prose prose-sm max-w-none text-gray-800"
+              className="text-sm text-gray-800 leading-relaxed [&_h1]:text-2xl [&_h1]:font-bold [&_h1]:mb-4 [&_h2]:text-xl [&_h2]:font-semibold [&_h2]:mb-3 [&_p]:mb-3 [&_ul]:list-disc [&_ul]:pl-6 [&_ul]:mb-3 [&_ol]:list-decimal [&_ol]:pl-6 [&_ol]:mb-3"
               dangerouslySetInnerHTML={{ __html: htmlContent }}
             />
           ) : (
@@ -158,7 +154,7 @@ export const Step5PreviewGenerate: React.FC<Step5PreviewGenerateProps> = ({
             </div>
           )}
         </div>
-      </div>
+      </Card>
 
       {/* Action buttons */}
       <div className="flex items-center justify-between pt-2">

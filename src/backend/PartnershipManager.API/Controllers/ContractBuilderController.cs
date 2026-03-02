@@ -61,7 +61,7 @@ public class ContractBuilderController : ControllerBase
     /// <param name="request">Template and company info</param>
     /// <returns>Builder session initialized</returns>
     [HttpPost("start")]
-    [ProducesResponseType(typeof(BuilderSessionResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<BuilderSessionResponse>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> StartBuilder([FromBody] StartBuilderRequest request)
@@ -132,7 +132,7 @@ public class ContractBuilderController : ControllerBase
                 UpdatedAt = session.UpdatedAt
             };
 
-            return Ok(response);
+            return Ok(ApiResponse<BuilderSessionResponse>.Ok(response));
         }
         catch (Exception ex)
         {
@@ -151,7 +151,7 @@ public class ContractBuilderController : ControllerBase
     /// <param name="request">Parties information</param>
     /// <returns>Updated session with parties</returns>
     [HttpPost("parties")]
-    [ProducesResponseType(typeof(PartiesResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<PartiesResponse>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public IActionResult AddParties([FromBody] AddPartiesRequest request)
@@ -202,7 +202,7 @@ public class ContractBuilderController : ControllerBase
                 CurrentStep = session.CurrentStep
             };
 
-            return Ok(response);
+            return Ok(ApiResponse<PartiesResponse>.Ok(response));
         }
         catch (Exception ex)
         {
@@ -221,7 +221,7 @@ public class ContractBuilderController : ControllerBase
     /// <param name="request">Clause selections</param>
     /// <returns>Updated session with clauses</returns>
     [HttpPost("clauses")]
-    [ProducesResponseType(typeof(ClausesResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<ClausesResponse>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> SelectClauses([FromBody] SelectClausesRequest request)
@@ -264,7 +264,7 @@ public class ContractBuilderController : ControllerBase
                 CurrentStep = session.CurrentStep
             };
 
-            return Ok(response);
+            return Ok(ApiResponse<ClausesResponse>.Ok(response));
         }
         catch (Exception ex)
         {
@@ -283,7 +283,7 @@ public class ContractBuilderController : ControllerBase
     /// <param name="request">Variables and metadata</param>
     /// <returns>Updated session with data</returns>
     [HttpPost("data")]
-    [ProducesResponseType(typeof(DataResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<DataResponse>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> FillData([FromBody] FillDataRequest request)
@@ -344,6 +344,10 @@ public class ContractBuilderController : ControllerBase
                 .ToList();
 
             // Update session
+            if (!string.IsNullOrWhiteSpace(request.Title))
+            {
+                session.Title = request.Title;
+            }
             session.Variables = request.Variables ?? new Dictionary<string, string>();
             session.ContractDate = request.ContractDate;
             session.ExpirationDate = request.ExpirationDate;
@@ -358,6 +362,7 @@ public class ContractBuilderController : ControllerBase
             var response = new DataResponse
             {
                 SessionId = session.SessionId,
+                Title = session.Title,
                 Variables = session.Variables,
                 ContractDate = session.ContractDate,
                 ExpirationDate = session.ExpirationDate,
@@ -368,7 +373,7 @@ public class ContractBuilderController : ControllerBase
                 CurrentStep = session.CurrentStep
             };
 
-            return Ok(response);
+            return Ok(ApiResponse<DataResponse>.Ok(response));
         }
         catch (Exception ex)
         {
@@ -387,7 +392,7 @@ public class ContractBuilderController : ControllerBase
     /// <param name="request">Session to preview</param>
     /// <returns>HTML preview of contract</returns>
     [HttpPost("preview")]
-    [ProducesResponseType(typeof(PreviewContractResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<PreviewContractResponse>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> PreviewContract([FromBody] PreviewContractRequest request)
@@ -473,7 +478,7 @@ public class ContractBuilderController : ControllerBase
                 CurrentStep = session.CurrentStep
             };
 
-            return Ok(response);
+            return Ok(ApiResponse<PreviewContractResponse>.Ok(response));
         }
         catch (Exception ex)
         {
@@ -488,7 +493,7 @@ public class ContractBuilderController : ControllerBase
     /// <param name="request">Session to generate</param>
     /// <returns>Generated contract information</returns>
     [HttpPost("generate")]
-    [ProducesResponseType(typeof(GenerateContractResponse), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(ApiResponse<GenerateContractResponse>), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GenerateContract([FromBody] GenerateContractRequest request)
@@ -613,7 +618,7 @@ public class ContractBuilderController : ControllerBase
                 GeneratedAt = DateTime.UtcNow
             };
 
-            return CreatedAtAction("GetById", "Contracts", new { id = contract.Id }, response);
+            return CreatedAtAction("GetById", "Contracts", new { id = contract.Id }, ApiResponse<GenerateContractResponse>.Ok(response));
         }
         catch (Exception ex)
         {
@@ -632,7 +637,7 @@ public class ContractBuilderController : ControllerBase
     /// <param name="sessionId">Session ID</param>
     /// <returns>Complete session data</returns>
     [HttpGet("{sessionId}")]
-    [ProducesResponseType(typeof(CompleteSessionResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<CompleteSessionResponse>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public IActionResult GetSession(Guid sessionId)
     {
@@ -649,7 +654,7 @@ public class ContractBuilderController : ControllerBase
 
         session.Touch();
 
-        return Ok(session.ToResponse());
+        return Ok(ApiResponse<CompleteSessionResponse>.Ok(session.ToResponse()));
     }
 
     /// <summary>

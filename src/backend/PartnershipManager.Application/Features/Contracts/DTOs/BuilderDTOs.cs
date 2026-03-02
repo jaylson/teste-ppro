@@ -116,6 +116,7 @@ public record ClausesResponse
 public record FillDataRequest
 {
     public Guid SessionId { get; init; }
+    public string? Title { get; init; }
     public Dictionary<string, string> Variables { get; init; } = new();
     public DateTime? ContractDate { get; init; }
     public DateTime? ExpirationDate { get; init; }
@@ -129,6 +130,7 @@ public record FillDataRequest
 public record DataResponse
 {
     public Guid SessionId { get; init; }
+    public string? Title { get; init; }
     public Dictionary<string, string> Variables { get; init; } = new();
     public DateTime? ContractDate { get; init; }
     public DateTime? ExpirationDate { get; init; }

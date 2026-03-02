@@ -363,7 +363,9 @@ export interface BuilderSessionResponse {
 }
 
 export interface StartBuilderRequest {
+  companyId: string;
   templateId?: string;
+  title?: string;
 }
 
 export interface AddPartiesRequest {
@@ -371,9 +373,16 @@ export interface AddPartiesRequest {
   parties: CreateContractPartyRequest[];
 }
 
+export interface ClauseSelectionItem {
+  clauseId: string;
+  displayOrder?: number;
+  customContent?: string;
+  isMandatory?: boolean;
+}
+
 export interface SelectClausesRequest {
   sessionId: string;
-  clauseIds: string[];
+  clauses: ClauseSelectionItem[];
 }
 
 export interface FillDataRequest {
@@ -391,13 +400,26 @@ export interface PreviewContractRequest {
 
 export interface GenerateContractRequest {
   sessionId: string;
-  format?: 'html' | 'pdf';
+  sendForSignature?: boolean;
 }
 
 export interface PreviewContractResponse {
-  htmlContent: string;
-  extractedVariables: string[];
-  missingVariables: string[];
+  sessionId: string;
+  htmlPreview: string;
+  isValid: boolean;
+  validationErrors: string[];
+  currentStep: number;
+}
+
+export interface GenerateContractResponse {
+  contractId: string;
+  sessionId: string;
+  title: string;
+  status: string;
+  documentPath?: string;
+  documentSize?: number;
+  sentForSignature: boolean;
+  generatedAt: string;
 }
 
 export const contractBuilderService = {
@@ -459,8 +481,8 @@ export const contractBuilderService = {
   /**
    * Step 6: Gerar contrato final
    */
-  async generateContract(data: GenerateContractRequest): Promise<Contract> {
-    const response = await api.post<ApiResponse<Contract>>(
+  async generateContract(data: GenerateContractRequest): Promise<GenerateContractResponse> {
+    const response = await api.post<ApiResponse<GenerateContractResponse>>(
       '/contractbuilder/generate',
       data
     );
