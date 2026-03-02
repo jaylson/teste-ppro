@@ -33,9 +33,9 @@
 |--------|-------|-------------|------------|------------|
 | S1 — DB + Backend Foundation | 13 | 13 | 0 | 0 |
 | S2 — Backend Services + APIs | 15 | 15 | 0 | 0 |
-| S3 — Frontend Core | 16 | 15 | 1 | 0 |
+| S3 — Frontend Core | 16 | 16 | 0 | 0 |
 | S4 — Dashboards + Testes | 8 | 1 | 0 | 7 |
-| **TOTAL** | **52** | **44** | **1** | **7** |
+| **TOTAL** | **52** | **45** | **0** | **7** |
 
 ---
 
@@ -129,12 +129,7 @@
 | F5-FE-PAG-006 | Páginas `/valuations/custom-formulas` + `/new` — Formula Builder com variáveis dinâmicas | ✅ Concluído | 2026-03-02 |
 | F5-FE-PAG-007 | Página `/documents` — repositório polimórfico com filtros e upload | ✅ Concluído | 2026-03-02 |
 | F5-FE-WIZARD-001 | Wizard Step 2 — seleção de metodologia + cálculo + fórmula customizada | ✅ Concluído | 2026-03-02 |
-| F5-GATE-FE | `npm run build` zero erros + todas as rotas acessíveis | ⚠️ Atenção | — |
-
-> **⚠️ F5-GATE-FE — 3 erros TypeScript pendentes (bloqueiam build de produção):**
-> 1. `Spinner` não aceita prop `size` — usar `className="w-8 h-8"` em `ValuationsPage.tsx` e `ValuationDetailPage.tsx`
-> 2. `useConfirm()` não retorna `ConfirmDialogComponent` nem aceita `confirmLabel` — ajustar em `ValuationsPage.tsx`
-> 3. Import `TrendingUp` declarado mas não utilizado em `ValuationDetailPage.tsx`
+| F5-GATE-FE | `npm run build` zero erros + todas as rotas acessíveis | ✅ Concluído | 2026-03-02 |
 
 ---
 
