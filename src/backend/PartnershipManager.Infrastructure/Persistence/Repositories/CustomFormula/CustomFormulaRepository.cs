@@ -131,22 +131,40 @@ public class CustomFormulaRepository : ICustomFormulaRepository
 
     // ──── Mapping ─────────────────────────────────
 
+    private static Guid ParseGuid(object? val)
+    {
+        if (val is Guid g) return g;
+        if (val is string s) return Guid.Parse(s);
+        return Guid.Empty;
+    }
+
+    private static Guid? ParseNullableGuid(object? val)
+        => val == null || val == DBNull.Value ? (Guid?)null : ParseGuid(val);
+
+    private static bool ParseBool(object? val)
+    {
+        if (val is bool b) return b;
+        if (val is sbyte sb) return sb != 0;
+        if (val is int i) return i != 0;
+        return Convert.ToBoolean(val);
+    }
+
     private static ValuationCustomFormula MapToFormula(dynamic r)
     {
         var f = (ValuationCustomFormula)Activator.CreateInstance(typeof(ValuationCustomFormula), nonPublic: true)!;
-        Set(f, "Id", Guid.Parse((string)r.id));
-        Set(f, "ClientId", Guid.Parse((string)r.client_id));
-        Set(f, "CompanyId", Guid.Parse((string)r.company_id));
+        Set(f, "Id", ParseGuid(r.id));
+        Set(f, "ClientId", ParseGuid(r.client_id));
+        Set(f, "CompanyId", ParseGuid(r.company_id));
         Set(f, "Name", (string)r.name);
         Set(f, "Description", (string?)r.description);
         Set(f, "SectorTag", (string?)r.sector_tag);
-        Set(f, "CurrentVersionId", r.current_version_id is null ? (Guid?)null : Guid.Parse((string)r.current_version_id));
-        Set(f, "IsActive", ((sbyte?)r.is_active ?? 0) == 1);
+        Set(f, "CurrentVersionId", ParseNullableGuid(r.current_version_id));
+        Set(f, "IsActive", ParseBool(r.is_active));
         Set(f, "CreatedAt", (DateTime)r.created_at);
         Set(f, "UpdatedAt", (DateTime)r.updated_at);
-        Set(f, "CreatedBy", r.created_by is null ? (Guid?)null : Guid.Parse((string)r.created_by));
-        Set(f, "UpdatedBy", r.updated_by is null ? (Guid?)null : Guid.Parse((string)r.updated_by));
-        Set(f, "IsDeleted", r.is_deleted == 1);
+        Set(f, "CreatedBy", ParseNullableGuid(r.created_by));
+        Set(f, "UpdatedBy", ParseNullableGuid(r.updated_by));
+        Set(f, "IsDeleted", ParseBool(r.is_deleted));
         return f;
     }
 

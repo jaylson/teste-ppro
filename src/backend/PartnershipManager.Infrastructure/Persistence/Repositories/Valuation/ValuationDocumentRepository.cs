@@ -103,25 +103,43 @@ public class ValuationDocumentRepository : IValuationDocumentRepository
 
     // ──── Mapping ─────────────────────────────────
 
+    private static Guid ParseGuid(object? val)
+    {
+        if (val is Guid g) return g;
+        if (val is string s) return Guid.Parse(s);
+        return Guid.Empty;
+    }
+
+    private static Guid? ParseNullableGuid(object? val)
+        => val == null || val == DBNull.Value ? (Guid?)null : ParseGuid(val);
+
+    private static bool ParseBool(object? val)
+    {
+        if (val is bool b) return b;
+        if (val is sbyte sb) return sb != 0;
+        if (val is int i) return i != 0;
+        return Convert.ToBoolean(val);
+    }
+
     private static ValuationDocument MapToDocument(dynamic r)
     {
         var d = (ValuationDocument)Activator.CreateInstance(typeof(ValuationDocument), nonPublic: true)!;
-        Set(d, "Id", Guid.Parse((string)r.id));
-        Set(d, "ValuationId", Guid.Parse((string)r.valuation_id));
-        Set(d, "ClientId", Guid.Parse((string)r.client_id));
+        Set(d, "Id", ParseGuid(r.id));
+        Set(d, "ValuationId", ParseGuid(r.valuation_id));
+        Set(d, "ClientId", ParseGuid(r.client_id));
         Set(d, "FileName", (string)r.file_name);
         Set(d, "FileSizeBytes", (long)r.file_size_bytes);
         Set(d, "MimeType", (string)r.mime_type);
         Set(d, "StoragePath", (string)r.storage_path);
         Set(d, "DownloadUrl", (string?)r.download_url);
-        Set(d, "IsVerified", ((sbyte?)r.is_verified ?? 0) == 1);
+        Set(d, "IsVerified", ParseBool(r.is_verified));
         Set(d, "VerifiedAt", (DateTime?)r.verified_at);
-        Set(d, "VerifiedBy", r.verified_by is null ? (Guid?)null : Guid.Parse((string)r.verified_by));
+        Set(d, "VerifiedBy", ParseNullableGuid(r.verified_by));
         Set(d, "CreatedAt", (DateTime)r.created_at);
         Set(d, "UpdatedAt", (DateTime)r.updated_at);
-        Set(d, "CreatedBy", r.created_by is null ? (Guid?)null : Guid.Parse((string)r.created_by));
-        Set(d, "UpdatedBy", r.updated_by is null ? (Guid?)null : Guid.Parse((string)r.updated_by));
-        Set(d, "IsDeleted", r.is_deleted == 1);
+        Set(d, "CreatedBy", ParseNullableGuid(r.created_by));
+        Set(d, "UpdatedBy", ParseNullableGuid(r.updated_by));
+        Set(d, "IsDeleted", ParseBool(r.is_deleted));
         return d;
     }
 

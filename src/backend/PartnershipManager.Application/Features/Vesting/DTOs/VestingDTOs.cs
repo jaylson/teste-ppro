@@ -226,6 +226,8 @@ public record MilestoneTemplateResponse
     public MilestoneCategory Category { get; init; }
     public MetricType MetricType { get; init; }
     public TargetOperator TargetOperator { get; init; }
+    public decimal? TargetValue { get; init; }
+    public string? TargetUnit { get; init; }
     public MeasurementFrequency MeasurementFrequency { get; init; }
     public bool IsActive { get; init; }
     public VestingAccelerationType AccelerationType { get; init; }
@@ -250,6 +252,8 @@ public record CreateMilestoneTemplateRequest
     public MilestoneCategory Category { get; init; }
     public MetricType MetricType { get; init; }
     public TargetOperator TargetOperator { get; init; }
+    public decimal? TargetValue { get; init; }
+    public string? TargetUnit { get; init; }
     public MeasurementFrequency MeasurementFrequency { get; init; }
     public VestingAccelerationType AccelerationType { get; init; }
     public decimal AccelerationAmount { get; init; }
@@ -263,6 +267,8 @@ public record UpdateMilestoneTemplateRequest
     public MilestoneCategory Category { get; init; }
     public MetricType MetricType { get; init; }
     public TargetOperator TargetOperator { get; init; }
+    public decimal? TargetValue { get; init; }
+    public string? TargetUnit { get; init; }
     public MeasurementFrequency MeasurementFrequency { get; init; }
     public VestingAccelerationType AccelerationType { get; init; }
     public decimal AccelerationAmount { get; init; }

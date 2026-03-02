@@ -186,27 +186,46 @@ public class FinancialPeriodRepository : IFinancialPeriodRepository
     }
 
     // ──── Mapping ─────────────────────────────────
+
+    private static Guid ParseGuid(object? val)
+    {
+        if (val is Guid g) return g;
+        if (val is string s) return Guid.Parse(s);
+        return Guid.Empty;
+    }
+
+    private static Guid? ParseNullableGuid(object? val)
+        => val == null || val == DBNull.Value ? (Guid?)null : ParseGuid(val);
+
+    private static bool ParseBool(object? val)
+    {
+        if (val is bool b) return b;
+        if (val is sbyte sb) return sb != 0;
+        if (val is int i) return i != 0;
+        return Convert.ToBoolean(val);
+    }
+
     private static FinancialPeriod MapToPeriod(dynamic r)
     {
         var fp = (FinancialPeriod)Activator.CreateInstance(typeof(FinancialPeriod), nonPublic: true)!;
-        Set(fp, "Id", Guid.Parse((string)r.id));
-        Set(fp, "ClientId", Guid.Parse((string)r.client_id));
-        Set(fp, "CompanyId", Guid.Parse((string)r.company_id));
+        Set(fp, "Id", ParseGuid(r.id));
+        Set(fp, "ClientId", ParseGuid(r.client_id));
+        Set(fp, "CompanyId", ParseGuid(r.company_id));
         Set(fp, "Year", (short)r.year);
         Set(fp, "Month", (byte)r.month);
         Set(fp, "Status", (string)r.status);
         Set(fp, "Notes", (string?)r.notes);
         Set(fp, "SubmittedAt", (DateTime?)r.submitted_at);
-        Set(fp, "SubmittedBy", r.submitted_by is null ? (Guid?)null : Guid.Parse((string)r.submitted_by));
+        Set(fp, "SubmittedBy", ParseNullableGuid(r.submitted_by));
         Set(fp, "ApprovedAt", (DateTime?)r.approved_at);
-        Set(fp, "ApprovedBy", r.approved_by is null ? (Guid?)null : Guid.Parse((string)r.approved_by));
+        Set(fp, "ApprovedBy", ParseNullableGuid(r.approved_by));
         Set(fp, "LockedAt", (DateTime?)r.locked_at);
-        Set(fp, "LockedBy", r.locked_by is null ? (Guid?)null : Guid.Parse((string)r.locked_by));
+        Set(fp, "LockedBy", ParseNullableGuid(r.locked_by));
         Set(fp, "CreatedAt", (DateTime)r.created_at);
         Set(fp, "UpdatedAt", (DateTime)r.updated_at);
-        Set(fp, "CreatedBy", r.created_by is null ? (Guid?)null : Guid.Parse((string)r.created_by));
-        Set(fp, "UpdatedBy", r.updated_by is null ? (Guid?)null : Guid.Parse((string)r.updated_by));
-        Set(fp, "IsDeleted", r.is_deleted == 1);
+        Set(fp, "CreatedBy", ParseNullableGuid(r.created_by));
+        Set(fp, "UpdatedBy", ParseNullableGuid(r.updated_by));
+        Set(fp, "IsDeleted", ParseBool(r.is_deleted));
         return fp;
     }
 

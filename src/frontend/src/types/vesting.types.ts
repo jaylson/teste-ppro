@@ -344,7 +344,7 @@ export interface MilestoneTemplate {
   category: MilestoneCategory;
   metricType: MetricType;
   targetOperator: TargetOperator;
-  targetValue: number;
+  targetValue?: number;
   targetUnit?: string;
   measurementFrequency: MeasurementFrequency;
   accelerationType: VestingAccelerationType;

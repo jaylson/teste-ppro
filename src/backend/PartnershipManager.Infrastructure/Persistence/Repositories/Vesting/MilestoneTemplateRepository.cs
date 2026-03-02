@@ -16,7 +16,8 @@ public class MilestoneTemplateRepository : IMilestoneTemplateRepository
 
     private const string SelectColumns = @"
         id, client_id, company_id, name, description,
-        category, metric_type, target_operator, measurement_frequency, is_active,
+        category, metric_type, target_operator, target_value, target_unit,
+        measurement_frequency, is_active,
         acceleration_type, acceleration_amount, max_acceleration_cap,
         created_by, created_at, updated_at, is_deleted, deleted_at";
 
@@ -107,12 +108,14 @@ public class MilestoneTemplateRepository : IMilestoneTemplateRepository
         var sql = @"
             INSERT INTO milestone_templates
                 (id, client_id, company_id, name, description,
-                 category, metric_type, target_operator, measurement_frequency, is_active,
+                 category, metric_type, target_operator, target_value, target_unit,
+                 measurement_frequency, is_active,
                  acceleration_type, acceleration_amount, max_acceleration_cap,
                  created_by, updated_by, created_at, updated_at, is_deleted)
             VALUES
                 (@Id, @ClientId, @CompanyId, @Name, @Description,
-                 @Category, @MetricType, @TargetOperator, @MeasurementFrequency, @IsActive,
+                 @Category, @MetricType, @TargetOperator, @TargetValue, @TargetUnit,
+                 @MeasurementFrequency, @IsActive,
                  @AccelerationType, @AccelerationAmount, @MaxAccelerationCap,
                  @CreatedBy, @UpdatedBy, @CreatedAt, @UpdatedAt, 0)";
 
@@ -144,7 +147,8 @@ public class MilestoneTemplateRepository : IMilestoneTemplateRepository
             UPDATE milestone_templates SET
                 name = @Name, description = @Description,
                 category = @Category, metric_type = @MetricType,
-                target_operator = @TargetOperator, measurement_frequency = @MeasurementFrequency,
+                target_operator = @TargetOperator, target_value = @TargetValue, target_unit = @TargetUnit,
+                measurement_frequency = @MeasurementFrequency,
                 is_active = @IsActive,
                 acceleration_type = @AccelerationType, acceleration_amount = @AccelerationAmount,
                 max_acceleration_cap = @MaxAccelerationCap,
@@ -158,6 +162,8 @@ public class MilestoneTemplateRepository : IMilestoneTemplateRepository
             Category = template.Category.ToString(),
             MetricType = template.MetricType.ToString(),
             TargetOperator = template.TargetOperator.ToString(),
+            template.TargetValue,
+            template.TargetUnit,
             MeasurementFrequency = template.MeasurementFrequency.ToString(),
             template.IsActive,
             AccelerationType = template.AccelerationType.ToString(),
@@ -202,6 +208,9 @@ public class MilestoneTemplateRepository : IMilestoneTemplateRepository
             category: Enum.Parse<MilestoneCategory>(row.category.ToString()!),
             metricType: Enum.Parse<MetricType>(row.metric_type.ToString()!),
             targetOperator: Enum.Parse<TargetOperator>(row.target_operator.ToString()!),
+            targetValue: row.target_value == null || row.target_value is DBNull
+                ? null : (decimal?)Convert.ToDecimal(row.target_value),
+            targetUnit: row.target_unit == null || row.target_unit is DBNull ? null : (string)row.target_unit,
             measurementFrequency: Enum.Parse<MeasurementFrequency>(row.measurement_frequency.ToString()!),
             isActive: row.is_active is bool b ? b : Convert.ToBoolean(row.is_active),
             accelerationType: Enum.Parse<VestingAccelerationType>(row.acceleration_type.ToString()!),

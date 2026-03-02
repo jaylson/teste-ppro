@@ -211,14 +211,14 @@ export function MilestoneCard({
             style={{ width: `${Math.min(milestone.progressPercentage, 100)}%` }}
           />
         </div>
-        {milestone.currentValue !== undefined && (
+        {milestone.currentValue != null && (
           <div className="flex items-center justify-between mt-1">
             <span className="text-xs text-gray-400">
               Atual: {milestone.currentValue.toLocaleString('pt-BR')}
               {milestone.targetUnit ? ` ${milestone.targetUnit}` : ''}
             </span>
             <span className="text-xs text-gray-400">
-              Meta: {milestone.targetValue.toLocaleString('pt-BR')}
+              Meta: {milestone.targetValue != null ? milestone.targetValue.toLocaleString('pt-BR') : '—'}
               {milestone.targetUnit ? ` ${milestone.targetUnit}` : ''}
             </span>
           </div>

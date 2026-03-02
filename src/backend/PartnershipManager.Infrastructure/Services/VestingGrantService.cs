@@ -61,8 +61,29 @@ public class VestingGrantService : IVestingGrantService
         var (items, total) = await _grantRepository.GetPagedAsync(
             clientId, companyId, page, pageSize, vestingPlanId, shareholderId, status);
         var asOfDate = DateTime.UtcNow;
+        var itemsList = items.ToList();
+
+        // Busca nomes do plano e do beneficiário (deduplica por IDs únicos da página)
+        var planNameMap = new Dictionary<Guid, string>();
+        foreach (var pid in itemsList.Select(g => g.VestingPlanId).Distinct())
+        {
+            var plan = await _planRepository.GetByIdAsync(pid, clientId);
+            if (plan is not null) planNameMap[pid] = plan.Name;
+        }
+
+        var shareholderNameMap = new Dictionary<Guid, string>();
+        foreach (var sid in itemsList.Select(g => g.ShareholderId).Distinct())
+        {
+            var sh = await _shareholderRepository.GetByIdAsync(sid, clientId);
+            if (sh is not null) shareholderNameMap[sid] = sh.Name;
+        }
+
         return new VestingGrantListResponse(
-            items.Select(g => MapToResponse(g, null, null, asOfDate)),
+            itemsList.Select(g => MapToResponse(
+                g,
+                planNameMap.GetValueOrDefault(g.VestingPlanId),
+                shareholderNameMap.GetValueOrDefault(g.ShareholderId),
+                asOfDate)),
             total, page, pageSize);
     }
 
@@ -78,9 +99,24 @@ public class VestingGrantService : IVestingGrantService
     public async Task<IEnumerable<VestingGrantResponse>> GetByShareholderAsync(
         Guid clientId, Guid shareholderId, Guid? companyId = null)
     {
-        var grants = await _grantRepository.GetByShareholderAsync(clientId, shareholderId, companyId);
+        var grants = (await _grantRepository.GetByShareholderAsync(clientId, shareholderId, companyId)).ToList();
         var asOfDate = DateTime.UtcNow;
-        return grants.Select(g => MapToResponse(g, null, null, asOfDate));
+
+        var planNameMap = new Dictionary<Guid, string>();
+        foreach (var pid in grants.Select(g => g.VestingPlanId).Distinct())
+        {
+            var plan = await _planRepository.GetByIdAsync(pid, clientId);
+            if (plan is not null) planNameMap[pid] = plan.Name;
+        }
+
+        var sh = await _shareholderRepository.GetByIdAsync(shareholderId, clientId);
+        var shareholderName = sh?.Name;
+
+        return grants.Select(g => MapToResponse(
+            g,
+            planNameMap.GetValueOrDefault(g.VestingPlanId),
+            shareholderName,
+            asOfDate));
     }
 
     public async Task<VestingGrantResponse> CreateAsync(
@@ -120,7 +156,9 @@ public class VestingGrantService : IVestingGrantService
             ?? throw new NotFoundException("VestingGrant", id);
         grant.Approve(userId);
         await _grantRepository.UpdateAsync(grant);
-        return MapToResponse(grant, null, null, DateTime.UtcNow);
+        var plan = await _planRepository.GetByIdAsync(grant.VestingPlanId, clientId);
+        var sh = await _shareholderRepository.GetByIdAsync(grant.ShareholderId, clientId);
+        return MapToResponse(grant, plan?.Name, sh?.Name, DateTime.UtcNow);
     }
 
     public async Task<VestingGrantResponse> ActivateAsync(Guid id, Guid clientId, Guid userId)
@@ -129,7 +167,9 @@ public class VestingGrantService : IVestingGrantService
             ?? throw new NotFoundException("VestingGrant", id);
         grant.Activate(userId);
         await _grantRepository.UpdateAsync(grant);
-        return MapToResponse(grant, null, null, DateTime.UtcNow);
+        var plan = await _planRepository.GetByIdAsync(grant.VestingPlanId, clientId);
+        var sh = await _shareholderRepository.GetByIdAsync(grant.ShareholderId, clientId);
+        return MapToResponse(grant, plan?.Name, sh?.Name, DateTime.UtcNow);
     }
 
     public async Task<VestingGrantResponse> CancelAsync(Guid id, Guid clientId, Guid userId)
@@ -138,7 +178,9 @@ public class VestingGrantService : IVestingGrantService
             ?? throw new NotFoundException("VestingGrant", id);
         grant.Cancel(userId);
         await _grantRepository.UpdateAsync(grant);
-        return MapToResponse(grant, null, null, DateTime.UtcNow);
+        var plan = await _planRepository.GetByIdAsync(grant.VestingPlanId, clientId);
+        var sh = await _shareholderRepository.GetByIdAsync(grant.ShareholderId, clientId);
+        return MapToResponse(grant, plan?.Name, sh?.Name, DateTime.UtcNow);
     }
 
     public async Task<VestingGrantResponse> RecalculateVestingAsync(Guid id, Guid clientId, Guid userId)
@@ -148,7 +190,9 @@ public class VestingGrantService : IVestingGrantService
 
         grant.RecalculateVestedShares(DateTime.UtcNow, userId);
         await _grantRepository.UpdateAsync(grant);
-        return MapToResponse(grant, null, null, DateTime.UtcNow);
+        var plan = await _planRepository.GetByIdAsync(grant.VestingPlanId, clientId);
+        var sh = await _shareholderRepository.GetByIdAsync(grant.ShareholderId, clientId);
+        return MapToResponse(grant, plan?.Name, sh?.Name, DateTime.UtcNow);
     }
 
     public async Task<VestingTransactionResponse> ExerciseSharesAsync(

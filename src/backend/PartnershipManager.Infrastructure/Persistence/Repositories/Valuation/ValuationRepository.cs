@@ -172,14 +172,36 @@ public class ValuationRepository : IValuationRepository
 
     // ──── Mapping ─────────────────────────────────────────────
 
+    /// <summary>
+    /// Converte um valor dinâmico para Guid.
+    /// O MySqlConnector pode retornar colunas CHAR(36) como System.Guid ou como string,
+    /// dependendo da versão/configuração. Este helper aceita ambos os tipos.
+    /// </summary>
+    private static Guid ParseGuid(object? val)
+    {
+        if (val is Guid g) return g;
+        if (val is string s) return Guid.Parse(s);
+        return Guid.Empty;
+    }
+
+    private static Guid? ParseNullableGuid(object? val)
+        => val == null || val == DBNull.Value ? (Guid?)null : ParseGuid(val);
+
+    private static bool ParseBool(object? val)
+    {
+        if (val is bool b) return b;
+        if (val is sbyte sb) return sb != 0;
+        if (val is int i) return i != 0;
+        return Convert.ToBoolean(val);
+    }
+
     private static Valuation MapToValuation(dynamic r)
     {
         var v = (Valuation)Activator.CreateInstance(typeof(Valuation), nonPublic: true)!;
         // Use reflection to set private setters (same pattern as existing repositories)
-        var type = typeof(Valuation);
-        Set(v, "Id", Guid.Parse((string)r.id));
-        Set(v, "ClientId", Guid.Parse((string)r.client_id));
-        Set(v, "CompanyId", Guid.Parse((string)r.company_id));
+        Set(v, "Id", ParseGuid(r.id));
+        Set(v, "ClientId", ParseGuid(r.client_id));
+        Set(v, "CompanyId", ParseGuid(r.company_id));
         Set(v, "ValuationDate", (DateTime)r.valuation_date);
         Set(v, "EventType", (string)r.event_type);
         Set(v, "EventName", (string?)r.event_name);
@@ -189,17 +211,17 @@ public class ValuationRepository : IValuationRepository
         Set(v, "Status", (string)r.status);
         Set(v, "Notes", (string?)r.notes);
         Set(v, "SubmittedAt", (DateTime?)r.submitted_at);
-        Set(v, "SubmittedBy", r.submitted_by is null ? (Guid?)null : Guid.Parse((string)r.submitted_by));
+        Set(v, "SubmittedBy", ParseNullableGuid(r.submitted_by));
         Set(v, "ApprovedAt", (DateTime?)r.approved_at);
-        Set(v, "ApprovedBy", r.approved_by is null ? (Guid?)null : Guid.Parse((string)r.approved_by));
+        Set(v, "ApprovedBy", ParseNullableGuid(r.approved_by));
         Set(v, "RejectedAt", (DateTime?)r.rejected_at);
-        Set(v, "RejectedBy", r.rejected_by is null ? (Guid?)null : Guid.Parse((string)r.rejected_by));
+        Set(v, "RejectedBy", ParseNullableGuid(r.rejected_by));
         Set(v, "RejectionReason", (string?)r.rejection_reason);
         Set(v, "CreatedAt", (DateTime)r.created_at);
         Set(v, "UpdatedAt", (DateTime)r.updated_at);
-        Set(v, "CreatedBy", r.created_by is null ? (Guid?)null : Guid.Parse((string)r.created_by));
-        Set(v, "UpdatedBy", r.updated_by is null ? (Guid?)null : Guid.Parse((string)r.updated_by));
-        Set(v, "IsDeleted", r.is_deleted == 1);
+        Set(v, "CreatedBy", ParseNullableGuid(r.created_by));
+        Set(v, "UpdatedBy", ParseNullableGuid(r.updated_by));
+        Set(v, "IsDeleted", ParseBool(r.is_deleted));
         return v;
     }
 

@@ -99,12 +99,30 @@ public class FinancialMetricRepository : IFinancialMetricRepository
 
     // ──── Mapping ─────────────────────────────────
 
+    private static Guid ParseGuid(object? val)
+    {
+        if (val is Guid g) return g;
+        if (val is string s) return Guid.Parse(s);
+        return Guid.Empty;
+    }
+
+    private static Guid? ParseNullableGuid(object? val)
+        => val == null || val == DBNull.Value ? (Guid?)null : ParseGuid(val);
+
+    private static bool ParseBool(object? val)
+    {
+        if (val is bool b) return b;
+        if (val is sbyte sb) return sb != 0;
+        if (val is int i) return i != 0;
+        return Convert.ToBoolean(val);
+    }
+
     private static FinancialMetric MapToMetric(dynamic r)
     {
         var m = (FinancialMetric)Activator.CreateInstance(typeof(FinancialMetric), nonPublic: true)!;
-        Set(m, "Id", Guid.Parse((string)r.id));
-        Set(m, "ClientId", Guid.Parse((string)r.client_id));
-        Set(m, "PeriodId", Guid.Parse((string)r.period_id));
+        Set(m, "Id", ParseGuid(r.id));
+        Set(m, "ClientId", ParseGuid(r.client_id));
+        Set(m, "PeriodId", ParseGuid(r.period_id));
         Set(m, "GrossRevenue", (decimal?)r.gross_revenue);
         Set(m, "NetRevenue", (decimal?)r.net_revenue);
         Set(m, "Mrr", (decimal?)r.mrr);
@@ -122,8 +140,8 @@ public class FinancialMetricRepository : IFinancialMetricRepository
         Set(m, "NetIncome", (decimal?)r.net_income);
         Set(m, "CreatedAt", (DateTime)r.created_at);
         Set(m, "UpdatedAt", (DateTime)r.updated_at);
-        Set(m, "CreatedBy", r.created_by is null ? (Guid?)null : Guid.Parse((string)r.created_by));
-        Set(m, "UpdatedBy", r.updated_by is null ? (Guid?)null : Guid.Parse((string)r.updated_by));
+        Set(m, "CreatedBy", ParseNullableGuid(r.created_by));
+        Set(m, "UpdatedBy", ParseNullableGuid(r.updated_by));
         return m;
     }
 

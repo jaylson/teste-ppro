@@ -64,6 +64,8 @@ public class MilestoneTemplateService : IMilestoneTemplateService
             request.AccelerationAmount,
             request.Description,
             request.MaxAccelerationCap,
+            request.TargetValue,
+            request.TargetUnit,
             userId);
 
         await _templateRepository.AddAsync(template);
@@ -86,6 +88,8 @@ public class MilestoneTemplateService : IMilestoneTemplateService
             request.AccelerationAmount,
             request.Description,
             request.MaxAccelerationCap,
+            request.TargetValue,
+            request.TargetUnit,
             userId);
 
         await _templateRepository.UpdateAsync(template);
@@ -126,6 +130,8 @@ public class MilestoneTemplateService : IMilestoneTemplateService
             Category = t.Category,
             MetricType = t.MetricType,
             TargetOperator = t.TargetOperator,
+            TargetValue = t.TargetValue,
+            TargetUnit = t.TargetUnit,
             MeasurementFrequency = t.MeasurementFrequency,
             IsActive = t.IsActive,
             AccelerationType = t.AccelerationType,

@@ -139,23 +139,42 @@ public class ValuationMethodRepository : IValuationMethodRepository
     }
 
     // ──── Mapping ─────────────────────────────────
+
+    private static Guid ParseGuid(object? val)
+    {
+        if (val is Guid g) return g;
+        if (val is string s) return Guid.Parse(s);
+        return Guid.Empty;
+    }
+
+    private static Guid? ParseNullableGuid(object? val)
+        => val == null || val == DBNull.Value ? (Guid?)null : ParseGuid(val);
+
+    private static bool ParseBool(object? val)
+    {
+        if (val is bool b) return b;
+        if (val is sbyte sb) return sb != 0;
+        if (val is int i) return i != 0;
+        return Convert.ToBoolean(val);
+    }
+
     private static ValuationMethod MapToMethod(dynamic r)
     {
         var m = (ValuationMethod)Activator.CreateInstance(typeof(ValuationMethod), nonPublic: true)!;
-        Set(m, "Id", Guid.Parse((string)r.id));
-        Set(m, "ClientId", Guid.Parse((string)r.client_id));
-        Set(m, "ValuationId", Guid.Parse((string)r.valuation_id));
+        Set(m, "Id", ParseGuid(r.id));
+        Set(m, "ClientId", ParseGuid(r.client_id));
+        Set(m, "ValuationId", ParseGuid(r.valuation_id));
         Set(m, "MethodType", (string)r.method_type);
-        Set(m, "IsSelected", ((sbyte?)r.is_selected ?? 0) == 1);
+        Set(m, "IsSelected", ParseBool(r.is_selected));
         Set(m, "CalculatedValue", (decimal?)r.calculated_value);
         Set(m, "Inputs", (string?)r.inputs);
         Set(m, "DataSource", (string?)r.data_source);
         Set(m, "Notes", (string?)r.notes);
-        Set(m, "FormulaVersionId", r.formula_version_id is null ? (Guid?)null : Guid.Parse((string)r.formula_version_id));
+        Set(m, "FormulaVersionId", ParseNullableGuid(r.formula_version_id));
         Set(m, "CreatedAt", (DateTime)r.created_at);
         Set(m, "UpdatedAt", (DateTime)r.updated_at);
-        Set(m, "CreatedBy", r.created_by is null ? (Guid?)null : Guid.Parse((string)r.created_by));
-        Set(m, "UpdatedBy", r.updated_by is null ? (Guid?)null : Guid.Parse((string)r.updated_by));
+        Set(m, "CreatedBy", ParseNullableGuid(r.created_by));
+        Set(m, "UpdatedBy", ParseNullableGuid(r.updated_by));
         return m;
     }
 

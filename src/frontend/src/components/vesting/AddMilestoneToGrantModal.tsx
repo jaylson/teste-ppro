@@ -59,7 +59,7 @@ export function AddMilestoneToGrantModal({
       category: tpl.category,
       metricType: tpl.metricType,
       targetOperator: tpl.targetOperator,
-      targetValue: tpl.targetValue,
+      targetValue: tpl.targetValue ?? 0,
       targetUnit: tpl.targetUnit ?? '',
       measurementFrequency: tpl.measurementFrequency,
       accelerationType: tpl.accelerationType,
@@ -179,7 +179,7 @@ export function AddMilestoneToGrantModal({
                             </span>
                             <span className="text-xs bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full font-medium">
                               {targetOperatorLabels[tpl.targetOperator]}{' '}
-                              {tpl.targetValue.toLocaleString('pt-BR')}
+                              {tpl.targetValue != null ? tpl.targetValue.toLocaleString('pt-BR') : '—'}
                               {tpl.targetUnit ? ` ${tpl.targetUnit}` : ''}
                             </span>
                             <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full font-medium">

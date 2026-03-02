@@ -122,12 +122,15 @@ public class FormulaVersionRepository : IFormulaVersionRepository
 
     // ──── Mapping ─────────────────────────────────
 
+    private static Guid ParseGuid(dynamic val)
+        => val is Guid g ? g : Guid.Parse((string)val);
+
     private static ValuationFormulaVersion MapToVersion(dynamic r)
     {
         var v = (ValuationFormulaVersion)Activator.CreateInstance(typeof(ValuationFormulaVersion), nonPublic: true)!;
-        Set(v, "Id", Guid.Parse((string)r.id));
-        Set(v, "FormulaId", Guid.Parse((string)r.formula_id));
-        Set(v, "ClientId", Guid.Parse((string)r.client_id));
+        Set(v, "Id", ParseGuid(r.id));
+        Set(v, "FormulaId", ParseGuid(r.formula_id));
+        Set(v, "ClientId", ParseGuid(r.client_id));
         Set(v, "VersionNumber", (int)r.version_number);
         Set(v, "Expression", (string)r.expression);
         Set(v, "Variables", (string)r.variables);
@@ -138,7 +141,7 @@ public class FormulaVersionRepository : IFormulaVersionRepository
         Set(v, "ValidationStatus", (string)r.validation_status);
         Set(v, "ValidationErrors", (string?)r.validation_errors);
         Set(v, "CreatedAt", (DateTime)r.created_at);
-        Set(v, "CreatedBy", Guid.Parse((string)r.created_by));
+        Set(v, "CreatedBy", ParseGuid(r.created_by));
         return v;
     }
 
@@ -229,17 +232,20 @@ public class FormulaExecutionRepository : IFormulaExecutionRepository
 
     // ──── Mapping ─────────────────────────────────
 
+    private static Guid ParseGuid(dynamic val)
+        => val is Guid g ? g : Guid.Parse((string)val);
+
     private static ValuationFormulaExecution MapToExecution(dynamic r)
     {
         var e = (ValuationFormulaExecution)Activator.CreateInstance(typeof(ValuationFormulaExecution), nonPublic: true)!;
-        Set(e, "Id", Guid.Parse((string)r.id));
-        Set(e, "ClientId", Guid.Parse((string)r.client_id));
-        Set(e, "ValuationMethodId", Guid.Parse((string)r.valuation_method_id));
-        Set(e, "FormulaVersionId", Guid.Parse((string)r.formula_version_id));
+        Set(e, "Id", ParseGuid(r.id));
+        Set(e, "ClientId", ParseGuid(r.client_id));
+        Set(e, "ValuationMethodId", ParseGuid(r.valuation_method_id));
+        Set(e, "FormulaVersionId", ParseGuid(r.formula_version_id));
         Set(e, "InputsUsed", (string)r.inputs_used);
         Set(e, "CalculatedValue", (decimal)r.calculated_value);
         Set(e, "ExpressionSnapshot", (string)r.expression_snapshot);
-        Set(e, "ExecutedBy", Guid.Parse((string)r.executed_by));
+        Set(e, "ExecutedBy", ParseGuid(r.executed_by));
         Set(e, "ExecutedAt", (DateTime)r.executed_at);
         return e;
     }

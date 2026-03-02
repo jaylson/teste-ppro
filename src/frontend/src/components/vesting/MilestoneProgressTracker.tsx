@@ -58,7 +58,7 @@ export function MilestoneProgressTracker({
         <form onSubmit={handleSubmit} className="p-5 space-y-4">
           {/* Target info */}
           <div className="bg-indigo-50 rounded-lg p-3 text-sm text-indigo-700">
-            Meta: <strong>{milestone.targetValue.toLocaleString('pt-BR')}</strong>
+            Meta: <strong>{milestone.targetValue != null ? milestone.targetValue.toLocaleString('pt-BR') : '—'}</strong>
             {milestone.targetUnit ? ` ${milestone.targetUnit}` : ''}
             {' '}({milestone.targetOperator === 'GreaterThanOrEqual' ? '≥' :
               milestone.targetOperator === 'GreaterThan' ? '>' :

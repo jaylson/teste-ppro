@@ -17,6 +17,12 @@ public class MilestoneTemplate : BaseEntity
     public MilestoneCategory Category { get; private set; }
     public MetricType MetricType { get; private set; }
     public TargetOperator TargetOperator { get; private set; }
+
+    /// <summary>Default target value pre-filled when applying template to a grant.</summary>
+    public decimal? TargetValue { get; private set; }
+    /// <summary>Default target unit pre-filled when applying template to a grant.</summary>
+    public string? TargetUnit { get; private set; }
+
     public MeasurementFrequency MeasurementFrequency { get; private set; }
     public bool IsActive { get; private set; } = true;
 
@@ -47,6 +53,8 @@ public class MilestoneTemplate : BaseEntity
         decimal accelerationAmount,
         string? description = null,
         decimal? maxAccelerationCap = null,
+        decimal? targetValue = null,
+        string? targetUnit = null,
         Guid? createdBy = null)
     {
         if (string.IsNullOrWhiteSpace(name))
@@ -65,6 +73,8 @@ public class MilestoneTemplate : BaseEntity
             Category = category,
             MetricType = metricType,
             TargetOperator = targetOperator,
+            TargetValue = targetValue,
+            TargetUnit = string.IsNullOrWhiteSpace(targetUnit) ? null : targetUnit.Trim(),
             MeasurementFrequency = measurementFrequency,
             IsActive = true,
             AccelerationType = accelerationType,
@@ -85,6 +95,8 @@ public class MilestoneTemplate : BaseEntity
         decimal accelerationAmount,
         string? description = null,
         decimal? maxAccelerationCap = null,
+        decimal? targetValue = null,
+        string? targetUnit = null,
         Guid? updatedBy = null)
     {
         if (string.IsNullOrWhiteSpace(name))
@@ -103,6 +115,8 @@ public class MilestoneTemplate : BaseEntity
         AccelerationType = accelerationType;
         AccelerationAmount = accelerationAmount;
         MaxAccelerationCap = maxAccelerationCap;
+        TargetValue = targetValue;
+        TargetUnit = string.IsNullOrWhiteSpace(targetUnit) ? null : targetUnit.Trim();
         UpdatedBy = updatedBy;
         UpdatedAt = DateTime.UtcNow;
     }
@@ -133,6 +147,7 @@ public class MilestoneTemplate : BaseEntity
         bool isActive,
         VestingAccelerationType accelerationType, decimal accelerationAmount,
         decimal? maxAccelerationCap,
+        decimal? targetValue, string? targetUnit,
         Guid? createdBy, DateTime createdAt, DateTime updatedAt,
         bool isDeleted, DateTime? deletedAt)
     {
@@ -146,6 +161,8 @@ public class MilestoneTemplate : BaseEntity
             Category = category,
             MetricType = metricType,
             TargetOperator = targetOperator,
+            TargetValue = targetValue,
+            TargetUnit = targetUnit,
             MeasurementFrequency = measurementFrequency,
             IsActive = isActive,
             AccelerationType = accelerationType,

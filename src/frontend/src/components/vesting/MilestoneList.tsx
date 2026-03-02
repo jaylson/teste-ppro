@@ -63,7 +63,7 @@ export function MilestoneList({
 
             <div className="flex flex-wrap gap-3 mt-2 text-xs text-gray-500">
               <span>{milestoneTypeLabels[m.milestoneType]}</span>
-              {m.targetValue !== undefined && (
+              {m.targetValue != null && (
                 <span>
                   Meta: {m.targetValue.toLocaleString('pt-BR')} {m.targetUnit}
                 </span>
