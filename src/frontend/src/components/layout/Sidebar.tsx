@@ -16,6 +16,7 @@ import {
   Building2,
   List,
   Layers,
+  FlaskConical,
   LucideIcon,
 } from 'lucide-react';
 import { useAuthStore } from '@/stores/authStore';
@@ -38,8 +39,10 @@ const navigation: NavigationItem[] = [
   { name: 'Vesting — Planos', href: '/vesting', icon: Target },
   { name: 'Vesting — Grants', href: '/vesting/grants', icon: Users },
   { name: 'Meu Vesting', href: '/my-vesting', icon: TrendingUp },
-  { name: 'Valuation', href: '/valuation', icon: TrendingUp },
+  { name: 'Valuation', href: '/valuations', icon: TrendingUp },
   { name: 'Financeiro', href: '/financial', icon: DollarSign },
+  { name: 'Documentos', href: '/documents', icon: FileText },
+  { name: 'Fórmulas Customizadas', href: '/valuations/custom-formulas', icon: FlaskConical },
   { name: 'Portal Investidor', href: '/investor', icon: Briefcase },
 ];
 

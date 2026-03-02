@@ -10,3 +10,7 @@ export * from './useVestingMilestones';
 export * from './useMilestoneTemplates';
 export * from './useGrantMilestones';
 export * from './useVestingAcceleration';
+export * from './useValuations';
+export * from './useFinancial';
+export * from './useDocuments';
+export * from './useCustomFormulas';

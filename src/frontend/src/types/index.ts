@@ -8,6 +8,10 @@ export * from './share.types';
 export * from './contract.types';
 export * from './simulation.types';
 export * from './vesting.types';
+export * from './valuation.types';
+export * from './financial.types';
+export * from './document.types';
+export * from './customFormula.types';
 
 // Common types
 export interface ApiResponse<T> {
