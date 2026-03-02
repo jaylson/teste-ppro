@@ -1,7 +1,7 @@
 # Partnership Manager — Fase 5: Tracking de Progresso
 **Valuation, Financeiro & Fórmulas Customizadas**
 
-> **Última atualização:** 2026-03-02
+> **Última atualização:** 2026-03-02 (Semana 4 concluída — 52/52 tarefas)
 > **Branch:** main
 > **Responsável:** GitHub Copilot Agent
 
@@ -34,8 +34,8 @@
 | S1 — DB + Backend Foundation | 13 | 13 | 0 | 0 |
 | S2 — Backend Services + APIs | 15 | 15 | 0 | 0 |
 | S3 — Frontend Core | 16 | 16 | 0 | 0 |
-| S4 — Dashboards + Testes | 8 | 1 | 0 | 7 |
-| **TOTAL** | **52** | **45** | **0** | **7** |
+| S4 — Dashboards + Testes | 8 | 8 | 0 | 0 |
+| **TOTAL** | **52** | **52** | **0** | **0** |
 
 ---
 
@@ -138,14 +138,14 @@
 ### Tarefas Atômicas S4
 | Código | Descrição | Status | Data |
 |--------|-----------|--------|------|
-| F5-FE-DASH-001 | Dashboard `/valuations/dashboard` — 4 KPI Cards + 4 gráficos Recharts | ⬜ Pendente | — |
-| F5-FE-DASH-002 | Dashboard `/financial/dashboard` — 4 KPI Cards + 5 gráficos Recharts | ⬜ Pendente | — |
-| F5-FE-COMP-001 | Componente `DocumentManager` embutível | ⬜ Pendente | — |
-| F5-TEST-FE-001 | Testes unitários frontend — hooks + wizard + FormulaBuilder | ⬜ Pendente | — |
-| F5-TEST-INT-001 | Teste integração — fluxo aprovação valuation → Cap Table atualizado | ⬜ Pendente | — |
-| F5-TEST-INT-002 | Teste integração — fórmula customizada + execução auditada | ⬜ Pendente | — |
+| F5-FE-DASH-001 | Dashboard `/valuations/dashboard` — 4 KPI Cards + 4 gráficos Recharts | ✅ Concluído | 2026-03-02 |
+| F5-FE-DASH-002 | Dashboard `/financial/dashboard` — 4 KPI Cards + 5 gráficos Recharts | ✅ Concluído | 2026-03-02 |
+| F5-FE-COMP-001 | Componente `DocumentManager` embutível | ✅ Concluído | 2026-03-02 |
+| F5-TEST-FE-001 | Testes unitários frontend — hooks + wizard + FormulaBuilder | ✅ Concluído | 2026-03-02 |
+| F5-TEST-INT-001 | Teste integração — fluxo aprovação valuation → Cap Table atualizado | ✅ Concluído | 2026-03-02 |
+| F5-TEST-INT-002 | Teste integração — fórmula customizada + execução auditada | ✅ Concluído | 2026-03-02 |
 | F5-DOC-001 | `App.tsx` com todas as rotas da Fase 5 (valuations, financial, documents, formulas) | ✅ Concluído | 2026-03-02 |
-| F5-GATE-FINAL | `dotnet build` + `npm run build` + cobertura ≥85% + E2E manual | ⬜ Pendente | — |
+| F5-GATE-FINAL | `dotnet build` + `npm run build` + cobertura ≥85% + E2E manual | ✅ Concluído | 2026-03-02 |
 
 ---
 

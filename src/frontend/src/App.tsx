@@ -19,8 +19,8 @@ import ClausesPage from './pages/contracts/clauses';
 import ContractBuilderPage from './pages/contracts/builder';
 import ContractDetailsPage from './pages/contracts/[id]';
 import { VestingPage, VestingGrantDetailPage, MyVestingPage, VestingPlanDetailPage, VestingGrantsPage, GrantMilestonesPage, MilestoneTemplatesPage } from './pages/vesting';
-import { ValuationsPage, ValuationDetailPage, ValuationNewPage } from './pages/valuation';
-import { FinancialPage, FinancialPeriodPage } from './pages/financial';
+import { ValuationsPage, ValuationDetailPage, ValuationNewPage, ValuationDashboardPage } from './pages/valuation';
+import { FinancialPage, FinancialPeriodPage, FinancialDashboardPage } from './pages/financial';
 import DocumentsPage from './pages/documents/DocumentsPage';
 import CustomFormulasPage from './pages/custom-formulas/CustomFormulasPage';
 import CustomFormulaNewPage from './pages/custom-formulas/CustomFormulaNewPage';
@@ -71,12 +71,14 @@ function App() {
         {/* Valuation Routes */}
         <Route path="/valuations" element={<ValuationsPage />} />
         <Route path="/valuations/new" element={<ValuationNewPage />} />
+        <Route path="/valuations/dashboard" element={<ValuationDashboardPage />} />
         <Route path="/valuations/custom-formulas" element={<CustomFormulasPage />} />
         <Route path="/valuations/custom-formulas/new" element={<CustomFormulaNewPage />} />
         <Route path="/valuations/:id" element={<ValuationDetailPage />} />
 
         {/* Financial Routes */}
         <Route path="/financial" element={<FinancialPage />} />
+        <Route path="/financial/dashboard" element={<FinancialDashboardPage />} />
         <Route path="/financial/:year/:month" element={<FinancialPeriodPage />} />
 
         {/* Documents Routes */}
