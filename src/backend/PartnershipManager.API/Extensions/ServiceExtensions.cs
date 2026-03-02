@@ -19,6 +19,10 @@ using PartnershipManager.Infrastructure.Persistence.Repositories;
 using PartnershipManager.Infrastructure.Persistence.TypeHandlers;
 using PartnershipManager.Infrastructure.Repositories.Billing;
 using PartnershipManager.Infrastructure.Services;
+using PartnershipManager.Infrastructure.Services.CustomFormulas;
+using PartnershipManager.Infrastructure.Services.Documents;
+using PartnershipManager.Infrastructure.Services.Financial;
+using PartnershipManager.Infrastructure.Services.Valuation;
 
 namespace PartnershipManager.API.Extensions;
 
@@ -131,6 +135,31 @@ public static class InfrastructureServiceExtensions
         services.AddScoped<IMilestoneTrackingService, MilestoneTrackingService>();
         services.AddScoped<IVestingAccelerationEngine, VestingAccelerationEngine>();
         
+        // Fase 5 - Valuation Module - Repositories
+        services.AddScoped<IValuationRepository, ValuationRepository>();
+        services.AddScoped<IValuationMethodRepository, ValuationMethodRepository>();
+        services.AddScoped<IValuationDocumentRepository, ValuationDocumentRepository>();
+
+        // Fase 5 - Financial Module - Repositories
+        services.AddScoped<IFinancialPeriodRepository, FinancialPeriodRepository>();
+        services.AddScoped<IFinancialMetricRepository, FinancialMetricRepository>();
+
+        // Fase 5 - Document Module - Repositories
+        services.AddScoped<IDocumentRepository, DocumentRepository>();
+
+        // Fase 5 - Custom Formula Module - Repositories
+        services.AddScoped<ICustomFormulaRepository, CustomFormulaRepository>();
+        services.AddScoped<IFormulaVersionRepository, FormulaVersionRepository>();
+        services.AddScoped<IFormulaExecutionRepository, FormulaExecutionRepository>();
+
+        // Fase 5 - Services
+        services.AddScoped<ICustomFormulaEngine, CustomFormulaEngine>();
+        services.AddScoped<IValuationCalculationEngine, ValuationCalculationEngine>();
+        services.AddScoped<IValuationService, ValuationService>();
+        services.AddScoped<IFinancialPeriodService, FinancialPeriodService>();
+        services.AddScoped<IDocumentService, DocumentService>();
+        services.AddScoped<ICustomFormulaService, CustomFormulaService>();
+
         // PDF Generator Service  
         services.AddScoped<IPdfGeneratorService, PdfGeneratorService>();
         

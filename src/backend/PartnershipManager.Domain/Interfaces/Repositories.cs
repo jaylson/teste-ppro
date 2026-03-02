@@ -477,6 +477,23 @@ public interface IUnitOfWork : IDisposable
     IMilestoneProgressRepository MilestoneProgress { get; }
     IVestingAccelerationRepository VestingAccelerations { get; }
 
+    // Fase 5 — Valuation module
+    IValuationRepository Valuations { get; }
+    IValuationMethodRepository ValuationMethods { get; }
+    IValuationDocumentRepository ValuationDocuments { get; }
+
+    // Fase 5 — Financial module
+    IFinancialPeriodRepository FinancialPeriods { get; }
+    IFinancialMetricRepository FinancialMetrics { get; }
+
+    // Fase 5 — Documents module
+    IDocumentRepository Documents { get; }
+
+    // Fase 5 — Custom Formula module
+    ICustomFormulaRepository CustomFormulas { get; }
+    IFormulaVersionRepository FormulaVersions { get; }
+    IFormulaExecutionRepository FormulaExecutions { get; }
+
     Task BeginTransactionAsync();
     Task CommitTransactionAsync();
     Task RollbackTransactionAsync();
@@ -496,6 +513,130 @@ public interface ICacheService
     Task RemoveAsync(string key);
     Task RemoveByPrefixAsync(string prefix);
     Task<T?> GetOrSetAsync<T>(string key, Func<Task<T?>> factory, TimeSpan? expiration = null) where T : class;
+}
+
+// =====================================================
+// FASE 5 — VALUATION MODULE
+// =====================================================
+
+/// <summary>Repository for Valuation aggregate root.</summary>
+public interface IValuationRepository
+{
+    Task<(IEnumerable<Valuation> Items, int Total)> GetPagedAsync(
+        Guid clientId, Guid companyId, int page, int pageSize,
+        string? status = null, string? eventType = null);
+    Task<Valuation?> GetByIdAsync(Guid id, Guid clientId);
+    Task<Valuation?> GetLastApprovedAsync(Guid clientId, Guid companyId);
+    Task AddAsync(Valuation valuation);
+    Task UpdateAsync(Valuation valuation);
+    Task SoftDeleteAsync(Guid id, Guid clientId, Guid? deletedBy = null);
+    Task<bool> ExistsAsync(Guid id, Guid clientId);
+}
+
+/// <summary>Repository for ValuationMethod (calculation methodologies per valuation).</summary>
+public interface IValuationMethodRepository
+{
+    Task<IEnumerable<ValuationMethod>> GetByValuationAsync(Guid valuationId, Guid clientId);
+    Task<ValuationMethod?> GetByIdAsync(Guid id, Guid clientId);
+    Task<ValuationMethod?> GetSelectedAsync(Guid valuationId, Guid clientId);
+    Task AddAsync(ValuationMethod method);
+    Task UpdateAsync(ValuationMethod method);
+    Task DeleteAsync(Guid id, Guid clientId);
+    /// <summary>Sets is_selected = false for all methods of this valuation, then true for the given methodId.</summary>
+    Task SetSelectedAsync(Guid valuationId, Guid methodId, Guid clientId, Guid updatedBy);
+}
+
+/// <summary>Repository for ValuationDocument (supporting docs per valuation).</summary>
+public interface IValuationDocumentRepository
+{
+    Task<IEnumerable<ValuationDocument>> GetByValuationAsync(Guid valuationId, Guid clientId);
+    Task<ValuationDocument?> GetByIdAsync(Guid id, Guid clientId);
+    Task AddAsync(ValuationDocument doc);
+    Task UpdateAsync(ValuationDocument doc);
+    Task SoftDeleteAsync(Guid id, Guid clientId, Guid? deletedBy = null);
+}
+
+// =====================================================
+// FASE 5 — FINANCIAL MODULE
+// =====================================================
+
+/// <summary>Repository for FinancialPeriod (monthly container).</summary>
+public interface IFinancialPeriodRepository
+{
+    Task<(IEnumerable<FinancialPeriod> Items, int Total)> GetPagedAsync(
+        Guid clientId, Guid companyId, int page, int pageSize,
+        int? year = null, string? status = null);
+    Task<IEnumerable<FinancialPeriod>> GetByYearAsync(Guid clientId, Guid companyId, short year);
+    Task<FinancialPeriod?> GetByIdAsync(Guid id, Guid clientId);
+    Task<FinancialPeriod?> GetByYearMonthAsync(Guid clientId, Guid companyId, short year, byte month);
+    Task<FinancialPeriod?> GetPreviousPeriodAsync(Guid clientId, Guid companyId, short year, byte month);
+    Task AddAsync(FinancialPeriod period);
+    Task UpdateAsync(FinancialPeriod period);
+    Task SoftDeleteAsync(Guid id, Guid clientId, Guid? deletedBy = null);
+    Task<bool> ExistsAsync(Guid clientId, Guid companyId, short year, byte month);
+}
+
+/// <summary>Repository for FinancialMetric (KPIs per period — one row per period).</summary>
+public interface IFinancialMetricRepository
+{
+    Task<FinancialMetric?> GetByPeriodAsync(Guid periodId, Guid clientId);
+    Task<IEnumerable<FinancialMetric>> GetByCompanyAsync(Guid clientId, Guid companyId, int lastNPeriods = 12);
+    Task AddAsync(FinancialMetric metric);
+    Task UpdateAsync(FinancialMetric metric);
+}
+
+// =====================================================
+// FASE 5 — DOCUMENTS MODULE
+// =====================================================
+
+/// <summary>Repository for central polymorphic Document store.</summary>
+public interface IDocumentRepository
+{
+    Task<(IEnumerable<Document> Items, int Total)> GetPagedAsync(
+        Guid clientId, Guid companyId, int page, int pageSize,
+        string? documentType = null, string? visibility = null, string? search = null);
+    Task<IEnumerable<Document>> GetByEntityAsync(Guid clientId, Guid companyId, string entityType, Guid entityId);
+    Task<Document?> GetByIdAsync(Guid id, Guid clientId);
+    Task AddAsync(Document document);
+    Task UpdateAsync(Document document);
+    Task SoftDeleteAsync(Guid id, Guid clientId, Guid? deletedBy = null);
+}
+
+// =====================================================
+// FASE 5 — CUSTOM FORMULA MODULE
+// =====================================================
+
+/// <summary>Repository for ValuationCustomFormula (formula definition container).</summary>
+public interface ICustomFormulaRepository
+{
+    Task<(IEnumerable<ValuationCustomFormula> Items, int Total)> GetPagedAsync(
+        Guid clientId, Guid companyId, int page, int pageSize,
+        bool? isActive = null, string? sectorTag = null);
+    Task<IEnumerable<ValuationCustomFormula>> GetActiveByCompanyAsync(Guid clientId, Guid companyId);
+    Task<ValuationCustomFormula?> GetByIdAsync(Guid id, Guid clientId);
+    Task AddAsync(ValuationCustomFormula formula);
+    Task UpdateAsync(ValuationCustomFormula formula);
+    Task SoftDeleteAsync(Guid id, Guid clientId, Guid? deletedBy = null);
+}
+
+/// <summary>Repository for ValuationFormulaVersion (immutable versioned snapshots).</summary>
+public interface IFormulaVersionRepository
+{
+    Task<IEnumerable<ValuationFormulaVersion>> GetByFormulaAsync(Guid formulaId, Guid clientId);
+    Task<ValuationFormulaVersion?> GetByIdAsync(Guid id, Guid clientId);
+    Task<ValuationFormulaVersion?> GetCurrentVersionAsync(Guid formulaId, Guid clientId);
+    Task<int> GetNextVersionNumberAsync(Guid formulaId);
+    Task AddAsync(ValuationFormulaVersion version);
+    // Note: no Update — versions are immutable
+}
+
+/// <summary>Repository for ValuationFormulaExecution (immutable audit log).</summary>
+public interface IFormulaExecutionRepository
+{
+    Task<IEnumerable<ValuationFormulaExecution>> GetByMethodAsync(Guid valuationMethodId, Guid clientId);
+    Task<IEnumerable<ValuationFormulaExecution>> GetByVersionAsync(Guid formulaVersionId, Guid clientId);
+    Task AddAsync(ValuationFormulaExecution execution);
+    // Note: no Update or Delete — executions are immutable
 }
 
 /// <summary>

@@ -140,6 +140,16 @@ public class UnitOfWork : IUnitOfWork
     private IGrantMilestoneRepository? _grantMilestones;
     private IMilestoneProgressRepository? _milestoneProgress;
     private IVestingAccelerationRepository? _vestingAccelerations;
+    // Fase 5
+    private IValuationRepository? _valuations;
+    private IValuationMethodRepository? _valuationMethods;
+    private IValuationDocumentRepository? _valuationDocuments;
+    private IFinancialPeriodRepository? _financialPeriods;
+    private IFinancialMetricRepository? _financialMetrics;
+    private IDocumentRepository? _documents;
+    private ICustomFormulaRepository? _customFormulas;
+    private IFormulaVersionRepository? _formulaVersions;
+    private IFormulaExecutionRepository? _formulaExecutions;
     private bool _disposed;
 
     public UnitOfWork(DapperContext context)
@@ -159,6 +169,16 @@ public class UnitOfWork : IUnitOfWork
     public IGrantMilestoneRepository GrantMilestones => _grantMilestones ??= new GrantMilestoneRepository(_context);
     public IMilestoneProgressRepository MilestoneProgress => _milestoneProgress ??= new MilestoneProgressRepository(_context);
     public IVestingAccelerationRepository VestingAccelerations => _vestingAccelerations ??= new VestingAccelerationRepository(_context);
+    // Fase 5
+    public IValuationRepository Valuations => _valuations ??= new ValuationRepository(_context);
+    public IValuationMethodRepository ValuationMethods => _valuationMethods ??= new ValuationMethodRepository(_context);
+    public IValuationDocumentRepository ValuationDocuments => _valuationDocuments ??= new ValuationDocumentRepository(_context);
+    public IFinancialPeriodRepository FinancialPeriods => _financialPeriods ??= new FinancialPeriodRepository(_context);
+    public IFinancialMetricRepository FinancialMetrics => _financialMetrics ??= new FinancialMetricRepository(_context);
+    public IDocumentRepository Documents => _documents ??= new DocumentRepository(_context);
+    public ICustomFormulaRepository CustomFormulas => _customFormulas ??= new CustomFormulaRepository(_context);
+    public IFormulaVersionRepository FormulaVersions => _formulaVersions ??= new FormulaVersionRepository(_context);
+    public IFormulaExecutionRepository FormulaExecutions => _formulaExecutions ??= new FormulaExecutionRepository(_context);
 
     public async Task BeginTransactionAsync()
     {

@@ -156,7 +156,7 @@ public class ContractGenerationService : IContractGenerationService
 
             return await Task.Run(() =>
             {
-                var document = Document.Create(container =>
+                var document = QuestPDF.Fluent.Document.Create(container =>
                 {
                     container.Page(page =>
                     {
