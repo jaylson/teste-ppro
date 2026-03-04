@@ -36,40 +36,41 @@ import { useClientStore } from '@/stores/clientStore';
 
 // ─── Inputs padrão por tipo de metodologia ───────────────────────────────────
 
-const METHOD_INPUTS: Record<string, { key: string; label: string; type?: string }[]> = {
+const METHOD_INPUTS: Record<string, { key: string; label: string }[]> = {
   [ValuationMethodType.ArrMultiple]: [
-    { key: 'arr', label: 'ARR (R$)' },
-    { key: 'multiple', label: 'Múltiplo' },
+    { key: 'arr', label: 'ARR — Receita Anual Recorrente (R$)' },
+    { key: 'multiple', label: 'Múltiplo ARR' },
   ],
   [ValuationMethodType.MrrMultiple]: [
-    { key: 'mrr', label: 'MRR (R$)' },
-    { key: 'multiple', label: 'Múltiplo' },
+    { key: 'mrr', label: 'MRR — Receita Mensal Recorrente (R$)' },
+    { key: 'multiple', label: 'Múltiplo MRR' },
   ],
   [ValuationMethodType.EbitdaMultiple]: [
     { key: 'ebitda', label: 'EBITDA (R$)' },
-    { key: 'multiple', label: 'Múltiplo' },
+    { key: 'multiple', label: 'Múltiplo EV/EBITDA' },
   ],
   [ValuationMethodType.Dcf]: [
-    { key: 'revenue', label: 'Receita Base (R$)' },
-    { key: 'growth_rate', label: 'Taxa de Crescimento (%)' },
-    { key: 'discount_rate', label: 'Taxa de Desconto (%)' },
-    { key: 'years', label: 'Anos de Projeção' },
-    { key: 'terminal_multiple', label: 'Múltiplo Terminal (opcional)' },
+    { key: 'annual_cash_flow', label: 'Fluxo de Caixa Anual Base (R$)' },
+    { key: 'growth_rate', label: 'Taxa de Crescimento Anual (%)' },
+    { key: 'discount_rate', label: 'Taxa de Desconto / WACC (%)' },
+    { key: 'projection_years', label: 'Anos de Projeção (padrão: 5)' },
+    { key: 'terminal_multiple', label: 'Múltiplo Terminal (padrão: 10)' },
   ],
   [ValuationMethodType.Comparables]: [
-    { key: 'avg_revenue', label: 'Receita Média dos Comparáveis (R$)' },
-    { key: 'revenue_multiple', label: 'Múltiplo de Receita' },
+    { key: 'revenue', label: 'Receita da Empresa (R$)' },
+    { key: 'multiple', label: 'Múltiplo de Receita do Setor' },
   ],
   [ValuationMethodType.AssetBased]: [
     { key: 'total_assets', label: 'Total de Ativos (R$)' },
     { key: 'total_liabilities', label: 'Total de Passivos (R$)' },
+    { key: 'adjustment_factor', label: 'Fator de Ajuste (padrão: 1)' },
   ],
   [ValuationMethodType.Berkus]: [
-    { key: 'team', label: 'Equipe (R$)' },
-    { key: 'idea', label: 'Ideia / Modelo de Negócio (R$)' },
-    { key: 'prototype', label: 'Protótipo (R$)' },
-    { key: 'strategic_relationships', label: 'Relacionamentos Estratégicos (R$)' },
-    { key: 'production_rollout', label: 'Produção / Rollout (R$)' },
+    { key: 'sound_idea', label: 'Ideia / Modelo de Negócio (R$, max 500k)' },
+    { key: 'prototype', label: 'Protótipo / Produto (R$, max 500k)' },
+    { key: 'management_team', label: 'Equipe de Gestão (R$, max 500k)' },
+    { key: 'strategic_relationships', label: 'Relacionamentos Estratégicos (R$, max 500k)' },
+    { key: 'product_rollout', label: 'Lançamento / Rollout (R$, max 500k)' },
   ],
 };
 
@@ -468,10 +469,13 @@ export default function ValuationDetailPage() {
     );
   }
 
-  const canSubmit = valuation.status === 'draft';
   const canApprove = valuation.status === 'pending_approval';
   const canReject = valuation.status === 'pending_approval';
   const canReturn = valuation.status === 'rejected';
+
+  const isDraft = valuation.status === 'draft';
+  const selectedMethod = valuation.methods.find((m) => m.isSelected && m.calculatedValue != null);
+  const hasSelectedMethod = !!selectedMethod;
 
   function handleReject() {
     if (!rejectReason.trim()) return;
@@ -505,10 +509,12 @@ export default function ValuationDetailPage() {
         </div>
         {/* Actions */}
         <div className="flex gap-2">
-          {canSubmit && (
+          {isDraft && (
             <Button
               icon={<Send size={14} />}
               size="sm"
+              disabled={!hasSelectedMethod}
+              title={!hasSelectedMethod ? 'Calcule e selecione uma metodologia principal antes de submeter' : undefined}
               onClick={() => submitValuation.mutate(valuation.id)}
               loading={submitValuation.isPending}
             >
@@ -628,7 +634,7 @@ export default function ValuationDetailPage() {
       <div>
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-base font-semibold text-gray-900">Metodologias de Cálculo</h2>
-          {valuation.status === 'draft' && !showAddMethod && (
+          {isDraft && !showAddMethod && (
             <Button
               size="sm"
               icon={<Plus size={14} />}
@@ -639,8 +645,19 @@ export default function ValuationDetailPage() {
           )}
         </div>
 
+        {/* Aviso: sem metodologia selecionada */}
+        {isDraft && valuation.methods.length > 0 && !hasSelectedMethod && !showAddMethod && (
+          <div className="mb-3 flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
+            <Star size={16} className="text-amber-500 flex-shrink-0 mt-0.5" />
+            <p className="text-sm text-amber-700">
+              <span className="font-medium">Nenhuma metodologia principal selecionada.</span>{' '}
+              Calcule uma metodologia e clique em <strong>"Usar como Principal"</strong> para poder submeter.
+            </p>
+          </div>
+        )}
+
         {/* Painel de adição */}
-        {showAddMethod && valuation.status === 'draft' && (
+        {showAddMethod && isDraft && (
           <div className="mb-4">
             <AddMethodPanel
               valuationId={valuation.id}
@@ -655,7 +672,7 @@ export default function ValuationDetailPage() {
             <div className="p-8 text-center text-gray-400">
               <Calculator size={32} className="mx-auto mb-2 opacity-30" />
               <p className="text-sm">Nenhuma metodologia adicionada.</p>
-              {valuation.status === 'draft' && (
+              {isDraft && (
                 <Button
                   size="sm"
                   icon={<Plus size={14} />}
@@ -698,8 +715,8 @@ export default function ValuationDetailPage() {
                           <p className="text-xs text-yellow-600 font-medium">Principal</p>
                         )}
                       </div>
-                      {valuation.status === 'draft' && (
-                        <div className="flex gap-1 ml-2">
+                      {isDraft && (
+                        <div className="flex items-center gap-1 ml-2">
                           {/* Calcular / Recalcular */}
                           <button
                             title={m.calculatedValue ? 'Recalcular' : 'Calcular'}
@@ -715,17 +732,18 @@ export default function ValuationDetailPage() {
                             )}
                           </button>
                           {/* Selecionar como principal */}
-                          {!m.isSelected && m.calculatedValue && (
-                            <button
-                              title="Usar como metodologia principal"
+                          {!m.isSelected && m.calculatedValue != null && (
+                            <Button
+                              size="sm"
+                              variant="secondary"
+                              icon={<Star size={13} />}
+                              loading={selectMethod.isPending}
                               onClick={() =>
                                 selectMethod.mutate({ valuationId: valuation.id, methodId: m.id })
                               }
-                              disabled={selectMethod.isPending}
-                              className="p-1.5 rounded-lg hover:bg-yellow-50 text-yellow-500 transition-colors"
                             >
-                              <Star size={15} />
-                            </button>
+                              Usar como Principal
+                            </Button>
                           )}
                         </div>
                       )}

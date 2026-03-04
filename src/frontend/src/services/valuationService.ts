@@ -96,7 +96,8 @@ export const valuationService = {
 
   async selectMethod(valuationId: string, methodId: string): Promise<Valuation> {
     const response = await api.post<ApiResponse<Valuation>>(
-      `/valuations/${valuationId}/methods/${methodId}/select`
+      `/valuations/${valuationId}/select-method`,
+      { methodId }
     );
     return response.data.data;
   },
