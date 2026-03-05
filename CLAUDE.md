@@ -167,6 +167,80 @@ Services:
 
 ---
 
+## System Administration Access
+
+### SuperAdmin Credentials
+| Field    | Value                  |
+|----------|------------------------|
+| E-mail   | `admin@sistema.com`    |
+| Senha    | `SysAdmin@2024!`       |
+| Role     | `SuperAdmin`           |
+| Status   | `Active`               |
+
+The SuperAdmin account has no `company_id` restriction — it can access all tenants. It is created by **migration 049** (`docker/mysql/migrations/049_add_superadmin_user.sql`).
+
+To apply to an existing database:
+```bash
+mysql -u pm_user -p partnership_manager < docker/mysql/migrations/049_add_superadmin_user.sql
+```
+
+> **Security note:** Change this password immediately in any non-local environment via `POST /api/auth/change-password`.
+
+---
+
+## Billing & Clients — Assessment
+
+### What's implemented
+
+| Area | Status | Notes |
+|------|--------|-------|
+| `BillingClients` CRUD | ✅ Complete | Controller, service, repo, DTOs all wired up |
+| `BillingPlans` | ✅ Complete | Plan management with MaxCompanies/MaxUsers limits |
+| `BillingSubscriptions` | ✅ Complete | Activate, Suspend, Cancel lifecycle |
+| `BillingInvoices` CRUD | ✅ Complete | Create, update, soft-delete |
+| Invoice actions | ✅ Complete | MarkAsPaid, MarkAsOverdue, Cancel |
+| PDF generation | ✅ Complete | `GET /api/invoices/{id}/pdf` |
+| Monthly invoice generation | ✅ Complete | `POST /api/invoices/generate-monthly` |
+| Invoice statistics / MRR | ✅ Complete | Revenue metrics and monthly breakdown |
+| Filtered invoice list | ✅ Complete | Filter by client, status, date range, plan |
+| `BillingPayments` table | ⚠️ Partial | Table exists and FK set up; no payment handler yet |
+| Link BillingClients ↔ core clients | ⚠️ Partial | Migration 007 adds `core_client_id` FK but no service logic using it |
+
+### Known issues / gaps
+
+1. **Duplicate broken `CREATE TABLE users` in `init.sql`** — Fixed in this branch (lines 182–184 removed).
+2. **`BillingPayments` has no repository or handler** — the table and entity exist, but payment recording isn't connected to invoice status changes. `MarkAsPaid` updates `InvoiceStatus` without creating a `BillingPayments` row.
+3. **`BillingClients` ↔ `clients` are separate entities** — there are two unrelated "client" concepts:
+   - `clients` — SaaS tenant root (multi-tenancy), used in auth and company management.
+   - `BillingClients` — billing-only entity for invoicing. Migration 007 adds `core_client_id` FK but no service code syncs them.
+4. **Invoice number race condition** — `GenerateInvoiceNumberAsync` uses `COUNT(*) + 1` without a transaction/lock; concurrent inserts can produce duplicate numbers.
+5. **Overdue detection is query-only** — `GetOverdueInvoicesAsync` finds past-due invoices but there is no Hangfire job to automatically flip their status to `Overdue`.
+
+### Billing module file map
+
+```
+backend/
+  Domain/Entities/Billing/        Client.cs, Invoice.cs, Subscription.cs, Plan.cs, Payment.cs
+  Domain/Interfaces/Billing/      IBillingRepositories.cs
+  Application/Features/Billing/
+    DTOs/                         ClientDTOs.cs, InvoiceDtos.cs, SubscriptionDtos.cs
+    Commands/                     InvoiceCommands.cs
+    Queries/                      InvoiceQueries.cs
+    Handlers/                     InvoiceCommandHandlers.cs, InvoiceQueryHandlers.cs
+  Infrastructure/Repositories/Billing/
+                                  ClientRepository.cs, InvoiceRepository.cs,
+                                  SubscriptionRepository.cs, PlanRepository.cs
+  API/Controllers/Billing/
+                                  BillingClientsController.cs, InvoicesController.cs,
+                                  SubscriptionsController.cs
+
+frontend/
+  pages/billing/                  BillingDashboard.tsx, Invoices.tsx, ClientsSubscriptions.tsx
+  components/modals/              InvoiceModal.tsx, SubscriptionModal.tsx
+```
+
+---
+
 ## Code Conventions
 
 ### C# Backend
