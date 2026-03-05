@@ -179,10 +179,6 @@ CREATE TABLE IF NOT EXISTS BillingPayments (
 -- CORE TABLES (Continued)
 -- =====================================================
 
-CREATE TABLE IF NOT EXISTS users (
-    INDEX idx_company_deleted (is_deleted)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
 -- Users Table
 CREATE TABLE IF NOT EXISTS users (
     id CHAR(36) PRIMARY KEY,
@@ -300,5 +296,13 @@ VALUES (
     NOW(),
     1
 );
+
+-- =====================================================
+-- NOTE: The SuperAdmin system user is inserted by
+-- migration 049_add_superadmin_user.sql (requires the
+-- clients table and client_id column on users, added
+-- by migrations 003 and 005).
+-- Credentials: admin@sistema.com / SysAdmin@2024!
+-- =====================================================
 
 SELECT 'Database initialized successfully!' AS status;
