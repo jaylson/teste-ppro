@@ -24,6 +24,11 @@ import { FinancialPage, FinancialPeriodPage, FinancialDashboardPage } from './pa
 import DocumentsPage from './pages/documents/DocumentsPage';
 import CustomFormulasPage from './pages/custom-formulas/CustomFormulasPage';
 import CustomFormulaNewPage from './pages/custom-formulas/CustomFormulaNewPage';
+import InvestorPortalPage from './pages/investor/InvestorPortalPage';
+import ApprovalsPage from './pages/approvals/ApprovalsPage';
+import FlowsPage from './pages/approvals/FlowsPage';
+import ApproversPage from './pages/approvals/ApproversPage';
+import RolesPage from './pages/settings/RolesPage';
 
 function App() {
   const { isAuthenticated } = useAuthStore();
@@ -84,8 +89,17 @@ function App() {
         {/* Documents Routes */}
         <Route path="/documents" element={<DocumentsPage />} />
 
+        {/* Investor Portal */}
+        <Route path="/investor" element={<InvestorPortalPage />} />
+
+        {/* Approvals Routes */}
+        <Route path="/approvals" element={<ApprovalsPage />} />
+        <Route path="/approvals/flows" element={<FlowsPage />} />
+        <Route path="/approvals/approvers" element={<ApproversPage />} />
+
         {/* Settings Routes */}
         <Route path="/settings/users" element={<Users />} />
+        <Route path="/settings/roles" element={<RolesPage />} />
         
         {/* Billing Routes */}
         <Route path="/billing" element={<BillingDashboard />} />
