@@ -20,6 +20,9 @@ import {
   FlaskConical,
   ChevronDown,
   LucideIcon,
+  MessageSquare,
+  Bell,
+  FolderOpen,
 } from 'lucide-react';
 import { useAuthStore } from '@/stores/authStore';
 import { cn } from '@/utils/cn';
@@ -75,6 +78,7 @@ const navGroups: NavGroup[] = [
       { name: 'Valuation', href: '/valuations', icon: TrendingUp },
       { name: 'Financeiro', href: '/financial', icon: DollarSign },
       { name: 'Documentos', href: '/documents', icon: FileText },
+      { name: 'Data Room', href: '/dataroom', icon: FolderOpen },
     ],
   },
   {
@@ -84,6 +88,15 @@ const navGroups: NavGroup[] = [
     items: [
       { name: 'Contratos', href: '/contracts', icon: FileText },
       { name: 'Templates de Contratos', href: '/contracts/templates', icon: FileText, requiresRole: ['Admin', 'Legal'] },
+    ],
+  },
+  {
+    key: 'comunicacoes',
+    label: 'Comunicações',
+    icon: MessageSquare,
+    items: [
+      { name: 'Comunicações', href: '/communications', icon: MessageSquare },
+      { name: 'Notificações', href: '/notifications', icon: Bell },
     ],
   },
   {

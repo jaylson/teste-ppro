@@ -26,9 +26,14 @@ import CustomFormulasPage from './pages/custom-formulas/CustomFormulasPage';
 import CustomFormulaNewPage from './pages/custom-formulas/CustomFormulaNewPage';
 import InvestorPortalPage from './pages/investor/InvestorPortalPage';
 import ApprovalsPage from './pages/approvals/ApprovalsPage';
+import WorkflowDetailPage from './pages/approvals/WorkflowDetailPage';
 import FlowsPage from './pages/approvals/FlowsPage';
 import ApproversPage from './pages/approvals/ApproversPage';
 import RolesPage from './pages/settings/RolesPage';
+import CommunicationsPage from './pages/communications';
+import CommunicationDetailPage from './pages/communications/CommunicationDetailPage';
+import NotificationsPage from './pages/notifications';
+import DataRoomPage from './pages/dataroom';
 
 function App() {
   const { isAuthenticated } = useAuthStore();
@@ -94,8 +99,19 @@ function App() {
 
         {/* Approvals Routes */}
         <Route path="/approvals" element={<ApprovalsPage />} />
+        <Route path="/approvals/:id" element={<WorkflowDetailPage />} />
         <Route path="/approvals/flows" element={<FlowsPage />} />
         <Route path="/approvals/approvers" element={<ApproversPage />} />
+
+        {/* Communications Routes */}
+        <Route path="/communications" element={<CommunicationsPage />} />
+        <Route path="/communications/:id" element={<CommunicationDetailPage />} />
+
+        {/* Notifications */}
+        <Route path="/notifications" element={<NotificationsPage />} />
+
+        {/* Data Room */}
+        <Route path="/dataroom" element={<DataRoomPage />} />
 
         {/* Settings Routes */}
         <Route path="/settings/users" element={<Users />} />
