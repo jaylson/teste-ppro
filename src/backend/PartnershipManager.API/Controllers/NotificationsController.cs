@@ -1,4 +1,3 @@
-using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PartnershipManager.API.Middlewares;
@@ -8,11 +7,10 @@ using PartnershipManager.Application.Services;
 
 namespace PartnershipManager.API.Controllers;
 
-[ApiController]
 [Route("api/notifications")]
 [Authorize]
 [Produces("application/json")]
-public class NotificationsController : ControllerBase
+public class NotificationsController : BaseApiController
 {
     private readonly INotificationService _service;
     private readonly ILogger<NotificationsController> _logger;
@@ -139,13 +137,4 @@ public class NotificationsController : ControllerBase
         }
     }
 
-    private Guid GetRequiredUserId()
-    {
-        var value = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
-            ?? User.FindFirst("userId")?.Value
-            ?? User.FindFirst("sub")?.Value;
-        if (!Guid.TryParse(value, out var id))
-            throw new UnauthorizedAccessException("Usuário não autenticado.");
-        return id;
-    }
 }

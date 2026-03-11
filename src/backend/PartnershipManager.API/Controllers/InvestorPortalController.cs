@@ -1,4 +1,3 @@
-using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PartnershipManager.API.Middlewares;
@@ -9,11 +8,10 @@ using PartnershipManager.Application.Services;
 
 namespace PartnershipManager.API.Controllers;
 
-[ApiController]
 [Route("api/portal")]
 [Authorize]
 [Produces("application/json")]
-public class InvestorPortalController : ControllerBase
+public class InvestorPortalController : BaseApiController
 {
     private readonly IInvestorPortalService _service;
     private readonly ILogger<InvestorPortalController> _logger;
@@ -79,13 +77,4 @@ public class InvestorPortalController : ControllerBase
         }
     }
 
-    private Guid GetRequiredUserId()
-    {
-        var value = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
-            ?? User.FindFirst("userId")?.Value
-            ?? User.FindFirst("sub")?.Value;
-        if (!Guid.TryParse(value, out var id))
-            throw new UnauthorizedAccessException("Usuário não autenticado.");
-        return id;
-    }
 }

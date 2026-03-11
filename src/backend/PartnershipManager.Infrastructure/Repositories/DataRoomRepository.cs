@@ -103,18 +103,29 @@ public class DataRoomRepository : IDataRoomRepository
 
     public async Task AddDocumentToFolderAsync(Guid folderId, Guid documentId, Guid addedBy)
     {
-        var maxOrder = await _context.Connection.ExecuteScalarAsync<int>(
-            "SELECT COALESCE(MAX(display_order), 0) FROM data_room_folder_documents WHERE folder_id = @FolderId",
-            new { FolderId = folderId });
-
-        var sql = @"
-            INSERT IGNORE INTO data_room_folder_documents (id, folder_id, document_id, display_order, added_by, added_at, created_at, updated_at)
-            VALUES (@Id, @FolderId, @DocumentId, @Order, @AddedBy, @Now, @Now, @Now)";
-        await _context.Connection.ExecuteAsync(sql, new
+        using var tx = await _context.BeginTransactionAsync();
+        try
         {
-            Id = Guid.NewGuid(), FolderId = folderId, DocumentId = documentId,
-            Order = maxOrder + 1, AddedBy = addedBy, Now = DateTime.UtcNow
-        });
+            var maxOrder = await _context.Connection.ExecuteScalarAsync<int>(
+                "SELECT COALESCE(MAX(display_order), 0) FROM data_room_folder_documents WHERE folder_id = @FolderId FOR UPDATE",
+                new { FolderId = folderId }, tx);
+
+            var sql = @"
+                INSERT IGNORE INTO data_room_folder_documents (id, folder_id, document_id, display_order, added_by, added_at, created_at, updated_at)
+                VALUES (@Id, @FolderId, @DocumentId, @Order, @AddedBy, @Now, @Now, @Now)";
+            await _context.Connection.ExecuteAsync(sql, new
+            {
+                Id = Guid.NewGuid(), FolderId = folderId, DocumentId = documentId,
+                Order = maxOrder + 1, AddedBy = addedBy, Now = DateTime.UtcNow
+            }, tx);
+
+            _context.CommitTransaction();
+        }
+        catch
+        {
+            _context.RollbackTransaction();
+            throw;
+        }
     }
 
     public async Task RemoveDocumentFromFolderAsync(Guid folderId, Guid documentId)

@@ -1,4 +1,3 @@
-using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PartnershipManager.API.Middlewares;
@@ -8,11 +7,10 @@ using PartnershipManager.Application.Services;
 
 namespace PartnershipManager.API.Controllers;
 
-[ApiController]
 [Route("api/dataroom")]
 [Authorize]
 [Produces("application/json")]
-public class DataRoomController : ControllerBase
+public class DataRoomController : BaseApiController
 {
     private readonly IDataRoomService _service;
     private readonly ILogger<DataRoomController> _logger;
@@ -138,11 +136,4 @@ public class DataRoomController : ControllerBase
         }
     }
 
-    private Guid? GetUserId()
-    {
-        var value = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
-            ?? User.FindFirst("userId")?.Value
-            ?? User.FindFirst("sub")?.Value;
-        return Guid.TryParse(value, out var id) ? id : null;
-    }
 }

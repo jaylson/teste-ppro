@@ -1,4 +1,3 @@
-using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PartnershipManager.API.Middlewares;
@@ -8,11 +7,10 @@ using PartnershipManager.Application.Services;
 
 namespace PartnershipManager.API.Controllers;
 
-[ApiController]
 [Route("api/communications")]
 [Authorize]
 [Produces("application/json")]
-public class CommunicationsController : ControllerBase
+public class CommunicationsController : BaseApiController
 {
     private readonly ICommunicationService _service;
     private readonly ILogger<CommunicationsController> _logger;
@@ -150,13 +148,5 @@ public class CommunicationsController : ControllerBase
             _logger.LogError(ex, "Erro ao deletar comunicação {Id}", id);
             return StatusCode(500, new { message = "Erro ao deletar comunicação" });
         }
-    }
-
-    private Guid? GetUserId()
-    {
-        var value = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
-            ?? User.FindFirst("userId")?.Value
-            ?? User.FindFirst("sub")?.Value;
-        return Guid.TryParse(value, out var id) ? id : null;
     }
 }

@@ -16,6 +16,9 @@ public class WorkflowRepository : IWorkflowRepository
 
     public async Task<Guid> CreateAsync(Workflow workflow, IEnumerable<WorkflowStep> steps)
     {
+        var stepList = steps.ToList();
+        workflow.TotalSteps = stepList.Count;
+
         using var tx = await _context.BeginTransactionAsync();
         try
         {
@@ -27,11 +30,6 @@ public class WorkflowRepository : IWorkflowRepository
                     @Status, @Priority, @CurrentStep, @TotalSteps, @RequestedBy, @RequestedAt, @DueDate, @Metadata,
                     @CreatedAt, @UpdatedAt, @CreatedBy, @UpdatedBy)";
             await _context.Connection.ExecuteAsync(workflowSql, workflow, tx);
-
-            var stepList = steps.ToList();
-            workflow.TotalSteps = stepList.Count;
-            await _context.Connection.ExecuteAsync(
-                "UPDATE workflows SET total_steps = @Total WHERE id = @Id", new { Total = workflow.TotalSteps, workflow.Id }, tx);
 
             for (int i = 0; i < stepList.Count; i++)
             {

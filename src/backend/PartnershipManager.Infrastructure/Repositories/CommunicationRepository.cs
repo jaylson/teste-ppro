@@ -155,9 +155,9 @@ public class CommunicationRepository : ICommunicationRepository
 
     public async Task<bool> HasViewedAsync(Guid communicationId, Guid userId)
     {
-        var sql = "SELECT COUNT(*) FROM communication_views WHERE communication_id = @CId AND user_id = @UId";
-        var count = await _context.Connection.ExecuteScalarAsync<int>(sql, new { CId = communicationId, UId = userId });
-        return count > 0;
+        var sql = "SELECT EXISTS(SELECT 1 FROM communication_views WHERE communication_id = @CId AND user_id = @UId)";
+        var exists = await _context.Connection.ExecuteScalarAsync<bool>(sql, new { CId = communicationId, UId = userId });
+        return exists;
     }
 
     public async Task<IEnumerable<Communication>> GetForRoleAsync(Guid companyId, string role, int limit)

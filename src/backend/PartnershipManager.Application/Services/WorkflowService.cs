@@ -11,8 +11,8 @@ public interface IWorkflowService
     Task<WorkflowResponse?> GetByIdAsync(Guid id, Guid companyId);
     Task<PagedResult<WorkflowResponse>> GetByCompanyAsync(Guid companyId, int page, int pageSize, string? status = null, string? workflowType = null);
     Task<IEnumerable<WorkflowResponse>> GetPendingByUserAsync(Guid userId, Guid companyId);
-    Task ApproveStepAsync(Guid workflowId, Guid stepId, Guid userId, string? comments = null);
-    Task RejectStepAsync(Guid workflowId, Guid stepId, Guid userId, string comments);
+    Task ApproveStepAsync(Guid workflowId, Guid stepId, Guid companyId, Guid userId, string? comments = null);
+    Task RejectStepAsync(Guid workflowId, Guid stepId, Guid companyId, Guid userId, string comments);
     Task CancelAsync(Guid workflowId, Guid companyId, Guid cancelledBy, string reason);
 }
 
@@ -76,7 +76,7 @@ public class WorkflowService : IWorkflowService
         return items.Select(MapToResponse);
     }
 
-    public async Task ApproveStepAsync(Guid workflowId, Guid stepId, Guid userId, string? comments = null)
+    public async Task ApproveStepAsync(Guid workflowId, Guid stepId, Guid companyId, Guid userId, string? comments = null)
     {
         var approval = new WorkflowApproval
         {
@@ -89,7 +89,7 @@ public class WorkflowService : IWorkflowService
         await _repo.RecordApprovalAsync(approval);
         await _repo.UpdateStepStatusAsync(stepId, WorkflowStepStatuses.Completed, userId);
 
-        var workflow = await _repo.GetByIdAsync(workflowId, Guid.Empty)
+        var workflow = await _repo.GetByIdAsync(workflowId, companyId)
             ?? throw new InvalidOperationException("Workflow não encontrado.");
 
         if (workflow.CurrentStep >= workflow.TotalSteps)
@@ -98,7 +98,7 @@ public class WorkflowService : IWorkflowService
             await _repo.AdvanceStepAsync(workflowId, workflow.CurrentStep + 1);
     }
 
-    public async Task RejectStepAsync(Guid workflowId, Guid stepId, Guid userId, string comments)
+    public async Task RejectStepAsync(Guid workflowId, Guid stepId, Guid companyId, Guid userId, string comments)
     {
         var approval = new WorkflowApproval
         {

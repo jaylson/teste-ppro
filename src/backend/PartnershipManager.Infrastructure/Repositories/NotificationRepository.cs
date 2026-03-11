@@ -95,19 +95,17 @@ public class NotificationRepository : INotificationRepository
 
     public async Task UpsertPreferenceAsync(NotificationPreference p)
     {
-        var existing = await GetPreferenceAsync(p.UserId, p.NotificationType);
-        if (existing == null)
-        {
-            var sql = @"INSERT INTO notification_preferences (id, user_id, notification_type, channel, created_at, updated_at)
-                        VALUES (@Id, @UserId, @NotificationType, @Channel, @CreatedAt, @UpdatedAt)";
-            await _context.Connection.ExecuteAsync(sql, p);
-        }
-        else
-        {
-            var sql = @"UPDATE notification_preferences SET channel = @Channel, updated_at = @Now
-                        WHERE user_id = @UserId AND notification_type = @NotificationType AND deleted_at IS NULL";
-            await _context.Connection.ExecuteAsync(sql, new { p.Channel, Now = DateTime.UtcNow, p.UserId, p.NotificationType });
-        }
+        if (p.Id == Guid.Empty) p.Id = Guid.NewGuid();
+        p.CreatedAt = DateTime.UtcNow;
+        p.UpdatedAt = DateTime.UtcNow;
+
+        // Atomic upsert using MySQL ON DUPLICATE KEY UPDATE
+        // Requires a UNIQUE KEY on (user_id, notification_type)
+        var sql = @"
+            INSERT INTO notification_preferences (id, user_id, notification_type, channel, created_at, updated_at)
+            VALUES (@Id, @UserId, @NotificationType, @Channel, @CreatedAt, @UpdatedAt)
+            ON DUPLICATE KEY UPDATE channel = VALUES(channel), updated_at = VALUES(updated_at)";
+        await _context.Connection.ExecuteAsync(sql, p);
     }
 
     public async Task<IEnumerable<NotificationPreference>> GetAllPreferencesAsync(Guid userId)

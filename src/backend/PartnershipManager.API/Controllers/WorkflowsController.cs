@@ -1,4 +1,3 @@
-using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PartnershipManager.API.Middlewares;
@@ -8,11 +7,10 @@ using PartnershipManager.Application.Services;
 
 namespace PartnershipManager.API.Controllers;
 
-[ApiController]
 [Route("api/workflows")]
 [Authorize]
 [Produces("application/json")]
-public class WorkflowsController : ControllerBase
+public class WorkflowsController : BaseApiController
 {
     private readonly IWorkflowService _service;
     private readonly ILogger<WorkflowsController> _logger;
@@ -99,8 +97,9 @@ public class WorkflowsController : ControllerBase
     {
         try
         {
+            var companyId = HttpContext.GetRequiredCompanyId();
             var userId = GetRequiredUserId();
-            await _service.ApproveStepAsync(id, stepId, userId, request.Comments);
+            await _service.ApproveStepAsync(id, stepId, companyId, userId, request.Comments);
             return Ok(ApiResponse.Ok("Etapa aprovada com sucesso"));
         }
         catch (Exception ex)
@@ -115,8 +114,9 @@ public class WorkflowsController : ControllerBase
     {
         try
         {
+            var companyId = HttpContext.GetRequiredCompanyId();
             var userId = GetRequiredUserId();
-            await _service.RejectStepAsync(id, stepId, userId, request.Comments ?? string.Empty);
+            await _service.RejectStepAsync(id, stepId, companyId, userId, request.Comments ?? string.Empty);
             return Ok(ApiResponse.Ok("Etapa rejeitada"));
         }
         catch (Exception ex)
@@ -143,13 +143,4 @@ public class WorkflowsController : ControllerBase
         }
     }
 
-    private Guid GetRequiredUserId()
-    {
-        var value = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
-            ?? User.FindFirst("userId")?.Value
-            ?? User.FindFirst("sub")?.Value;
-        if (!Guid.TryParse(value, out var id))
-            throw new UnauthorizedAccessException("Usuário não autenticado.");
-        return id;
-    }
 }
