@@ -12,6 +12,7 @@ export * from './valuation.types';
 export * from './financial.types';
 export * from './document.types';
 export * from './customFormula.types';
+export * from './phase6';
 
 // Common types
 export interface ApiResponse<T> {

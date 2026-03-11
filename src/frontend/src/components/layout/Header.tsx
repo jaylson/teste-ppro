@@ -1,6 +1,7 @@
 import { UserRound } from 'lucide-react';
 import { useAuthStore } from '@/stores/authStore';
 import { CompanySwitcher } from './CompanySwitcher';
+import NotificationBell from '@/components/notifications/NotificationBell';
 
 export default function Header() {
   const { user } = useAuthStore();
@@ -22,7 +23,10 @@ export default function Header() {
         </div>
       </div>
 
-      <CompanySwitcher />
+      <div className="flex items-center gap-3">
+        <NotificationBell />
+        <CompanySwitcher />
+      </div>
     </header>
   );
 }

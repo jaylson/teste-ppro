@@ -706,3 +706,83 @@ public class AuditLog
         };
     }
 }
+
+// =====================================================
+// FASE 6 — COMMUNICATION / DATA ROOM / NOTIFICATION / WORKFLOW
+// =====================================================
+
+/// <summary>
+/// Repositório de comunicações
+/// </summary>
+public interface ICommunicationRepository
+{
+    Task<(IEnumerable<Communication> Items, int Total)> GetByCompanyAsync(Guid companyId, int page, int pageSize, string? search = null, string? commType = null, bool? isPublished = null);
+    Task<Communication?> GetByIdAsync(Guid id, Guid companyId);
+    Task<Guid> CreateAsync(Communication communication);
+    Task UpdateAsync(Communication communication);
+    Task SoftDeleteAsync(Guid id, Guid companyId);
+    Task PublishAsync(Guid id, Guid companyId);
+    Task TrackViewAsync(Guid communicationId, Guid userId, int? durationSecs);
+    Task<bool> HasViewedAsync(Guid communicationId, Guid userId);
+    Task<IEnumerable<Communication>> GetForRoleAsync(Guid companyId, string role, int limit);
+}
+
+/// <summary>
+/// Repositório de Data Room
+/// </summary>
+public interface IDataRoomRepository
+{
+    Task<DataRoom?> GetByCompanyAsync(Guid companyId);
+    Task<Guid> CreateDataRoomAsync(DataRoom dataRoom);
+    Task<IEnumerable<DataRoomFolder>> GetFoldersAsync(Guid dataRoomId, Guid? parentId = null);
+    Task<DataRoomFolder?> GetFolderByIdAsync(Guid folderId);
+    Task<Guid> CreateFolderAsync(DataRoomFolder folder);
+    Task UpdateFolderAsync(DataRoomFolder folder);
+    Task SoftDeleteFolderAsync(Guid folderId);
+    Task<IEnumerable<Document>> GetDocumentsInFolderAsync(Guid folderId);
+    Task AddDocumentToFolderAsync(Guid folderId, Guid documentId, Guid addedBy);
+    Task RemoveDocumentFromFolderAsync(Guid folderId, Guid documentId);
+}
+
+/// <summary>
+/// Repositório de notificações
+/// </summary>
+public interface INotificationRepository
+{
+    Task<Guid> CreateAsync(Notification notification);
+    Task<(IEnumerable<Notification> Items, int Total)> GetByUserAsync(Guid userId, Guid companyId, int page, int pageSize);
+    Task<IEnumerable<Notification>> GetRecentByUserAsync(Guid userId, Guid companyId, int limit = 10);
+    Task<int> GetUnreadCountAsync(Guid userId, Guid companyId);
+    Task MarkAsReadAsync(Guid id, Guid userId);
+    Task MarkAllAsReadAsync(Guid userId, Guid companyId);
+    Task<NotificationPreference?> GetPreferenceAsync(Guid userId, string notificationType);
+    Task UpsertPreferenceAsync(NotificationPreference preference);
+    Task<IEnumerable<NotificationPreference>> GetAllPreferencesAsync(Guid userId);
+}
+
+/// <summary>
+/// Repositório de emails
+/// </summary>
+public interface IEmailLogRepository
+{
+    Task<Guid> CreateAsync(EmailLog emailLog);
+    Task UpdateStatusAsync(Guid id, string status, string? errorMessage = null, string? resendMessageId = null);
+}
+
+/// <summary>
+/// Repositório de workflows
+/// </summary>
+public interface IWorkflowRepository
+{
+    Task<Guid> CreateAsync(Workflow workflow, IEnumerable<WorkflowStep> steps);
+    Task<Workflow?> GetByIdAsync(Guid id, Guid companyId);
+    Task<(IEnumerable<Workflow> Items, int Total)> GetByCompanyAsync(Guid companyId, int page, int pageSize, string? status = null, string? workflowType = null);
+    Task<IEnumerable<Workflow>> GetPendingByUserAsync(Guid userId, Guid companyId);
+    Task<WorkflowStep?> GetCurrentStepAsync(Guid workflowId);
+    Task<IEnumerable<WorkflowStep>> GetStepsAsync(Guid workflowId);
+    Task RecordApprovalAsync(WorkflowApproval approval);
+    Task AdvanceStepAsync(Guid workflowId, int nextStep);
+    Task CompleteWorkflowAsync(Guid workflowId, string finalStatus);
+    Task CancelWorkflowAsync(Guid workflowId, Guid cancelledBy, string reason);
+    Task UpdateStepStatusAsync(Guid stepId, string status, Guid? completedBy = null);
+}

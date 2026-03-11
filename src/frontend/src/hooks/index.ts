@@ -14,3 +14,8 @@ export * from './useValuations';
 export * from './useFinancial';
 export * from './useDocuments';
 export * from './useCustomFormulas';
+export * from './useCommunications';
+export * from './useNotifications';
+export * from './useWorkflows';
+export * from './useDataRoom';
+export * from './useInvestorPortal';
