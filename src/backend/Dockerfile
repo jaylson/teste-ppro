@@ -30,6 +30,9 @@ RUN dotnet publish "PartnershipManager.API.csproj" -c Release -o /app/publish /p
 FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS final
 WORKDIR /app
 
+# Instalar curl para o health check
+RUN apt-get update && apt-get install -y --no-install-recommends curl && rm -rf /var/lib/apt/lists/*
+
 # Criar usuário não-root
 RUN adduser --disabled-password --gecos "" appuser
 
