@@ -18,6 +18,8 @@ using PartnershipManager.Infrastructure.Persistence;
 using PartnershipManager.Infrastructure.Persistence.Repositories;
 using PartnershipManager.Infrastructure.Persistence.TypeHandlers;
 using PartnershipManager.Infrastructure.Repositories.Billing;
+using PartnershipManager.Application.Services;
+using PartnershipManager.Infrastructure.Repositories;
 using PartnershipManager.Infrastructure.Services;
 using PartnershipManager.Infrastructure.Services.CustomFormulas;
 using PartnershipManager.Infrastructure.Services.Documents;
@@ -208,6 +210,26 @@ public static class InfrastructureServiceExtensions
         */
         
         services.AddScoped<IBackgroundJobs, BackgroundJobs>();
+
+        // Phase 6 - Communication Module
+        services.AddScoped<ICommunicationRepository, CommunicationRepository>();
+        services.AddScoped<ICommunicationService, CommunicationService>();
+
+        // Phase 6 - Data Room Module
+        services.AddScoped<IDataRoomRepository, DataRoomRepository>();
+        services.AddScoped<IDataRoomService, DataRoomService>();
+
+        // Phase 6 - Notification Module
+        services.AddScoped<INotificationRepository, NotificationRepository>();
+        services.AddScoped<IEmailLogRepository, EmailLogRepository>();
+        services.AddScoped<INotificationService, NotificationService>();
+
+        // Phase 6 - Workflow Module
+        services.AddScoped<IWorkflowRepository, WorkflowRepository>();
+        services.AddScoped<IWorkflowService, WorkflowService>();
+
+        // Phase 6 - Investor Portal
+        services.AddScoped<IInvestorPortalService, InvestorPortalService>();
         
         return services;
     }
