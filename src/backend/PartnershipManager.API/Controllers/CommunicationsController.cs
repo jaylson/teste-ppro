@@ -69,7 +69,7 @@ public class CommunicationsController : BaseApiController
             var companyId = HttpContext.GetRequiredCompanyId();
             var userId = GetUserId() ?? Guid.Empty;
             var id = await _service.CreateAsync(companyId, request, userId);
-            return CreatedAtAction(nameof(GetById), new { id }, new { id });
+            return CreatedAtAction(nameof(GetById), new { id }, ApiResponse<object>.Ok(new { id }));
         }
         catch (Exception ex)
         {

@@ -110,6 +110,7 @@ export interface CreateWorkflowStepRequest {
   stepType: string;
   assignedRole?: string;
   assignedUserId?: string;
+  dueDate?: string;
 }
 
 export interface CreateWorkflowRequest {

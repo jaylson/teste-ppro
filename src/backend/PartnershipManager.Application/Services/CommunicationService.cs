@@ -1,3 +1,4 @@
+using System.Text.Json;
 using PartnershipManager.Application.Common.Models;
 using PartnershipManager.Application.DTOs.Communication;
 using PartnershipManager.Domain.Entities;
@@ -20,10 +21,14 @@ public interface ICommunicationService
 public class CommunicationService : ICommunicationService
 {
     private readonly ICommunicationRepository _repo;
+    private readonly INotificationService _notificationService;
+    private readonly IUnitOfWork _uow;
 
-    public CommunicationService(ICommunicationRepository repo)
+    public CommunicationService(ICommunicationRepository repo, INotificationService notificationService, IUnitOfWork uow)
     {
         _repo = repo;
+        _notificationService = notificationService;
+        _uow = uow;
     }
 
     public async Task<PagedResult<CommunicationListResponse>> GetByCompanyAsync(
@@ -83,8 +88,74 @@ public class CommunicationService : ICommunicationService
         await _repo.UpdateAsync(c);
     }
 
-    public Task PublishAsync(Guid id, Guid companyId, Guid userId)
-        => _repo.PublishAsync(id, companyId);
+    public async Task PublishAsync(Guid id, Guid companyId, Guid userId)
+    {
+        var communication = await _repo.GetByIdAsync(id, companyId);
+        if (communication == null) return;
+
+        await _repo.PublishAsync(id, companyId);
+
+        // Determinar usuários a notificar com base na visibilidade
+        var users = await _uow.Users.GetActiveUsersByCompanyAsync(companyId);
+        IEnumerable<Guid> targetUserIds;
+
+        if (communication.Visibility == CommunicationVisibilities.All)
+        {
+            targetUserIds = users.Select(u => u.Id).Where(uid => uid != userId);
+        }
+        else
+        {
+            // Mapear visibility para roles
+            var visibilityRoleMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+            {
+                { CommunicationVisibilities.Investors, "Investor" },
+                { CommunicationVisibilities.Founders, "Founder" },
+                { CommunicationVisibilities.Employees, "Employee" },
+            };
+
+            IEnumerable<string> targetRoles;
+            if (communication.Visibility == CommunicationVisibilities.Specific && !string.IsNullOrEmpty(communication.TargetRoles))
+            {
+                targetRoles = JsonSerializer.Deserialize<IEnumerable<string>>(communication.TargetRoles) ?? [];
+            }
+            else if (visibilityRoleMap.TryGetValue(communication.Visibility, out var mappedRole))
+            {
+                targetRoles = [mappedRole];
+            }
+            else
+            {
+                targetRoles = [];
+            }
+
+            var targetRoleSet = new HashSet<string>(targetRoles, StringComparer.OrdinalIgnoreCase);
+            var filtered = new List<Guid>();
+            foreach (var user in users.Where(u => u.Id != userId))
+            {
+                var roles = await _uow.UserRoles.GetRoleNamesByUserIdAsync(user.Id);
+                if (roles.Any(r => targetRoleSet.Contains(r)))
+                    filtered.Add(user.Id);
+            }
+            targetUserIds = filtered;
+        }
+
+        if (targetUserIds.Any())
+        {
+            var body = !string.IsNullOrEmpty(communication.Summary)
+                ? communication.Summary
+                : $"Nova comunicação publicada: {communication.Title}";
+
+            await _notificationService.NotifyUsersAsync(
+                companyId,
+                targetUserIds,
+                "communication_published",
+                communication.Title,
+                body,
+                actionUrl: $"/portal/communications/{id}",
+                referenceType: "communication",
+                referenceId: id
+            );
+        }
+    }
 
     public Task DeleteAsync(Guid id, Guid companyId, Guid userId)
         => _repo.SoftDeleteAsync(id, companyId);

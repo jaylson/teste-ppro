@@ -86,8 +86,8 @@ export default function CommunicationFormModal({ communication, onClose }: Commu
     };
     let id = communication?.id;
     if (isEditing) {
-      const updated = await update.mutateAsync({ id: communication.id, data: payload });
-      id = updated.id;
+      await update.mutateAsync({ id: communication!.id, data: payload });
+      id = communication!.id;
     } else {
       const created = await create.mutateAsync(payload);
       id = created.id;
