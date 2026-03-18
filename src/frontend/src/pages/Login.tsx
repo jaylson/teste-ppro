@@ -139,6 +139,8 @@ export default function Login() {
           <strong>Demo:</strong> Use qualquer email e senha para acessar.
         </p>
       </div>
+
+      <p className="mt-4 text-center text-xs text-primary-400">Vesion 0.1.3</p>
     </div>
   );
 }
