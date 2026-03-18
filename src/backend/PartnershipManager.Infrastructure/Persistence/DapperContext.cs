@@ -29,7 +29,8 @@ public class MySqlConnectionFactory : IDbConnectionFactory
         var connectionStringBuilder = new MySqlConnector.MySqlConnectionStringBuilder(_connectionString)
         {
             CharacterSet = "utf8mb4",
-            UseCompression = false
+            UseCompression = false,
+            ConvertZeroDateTime = true
         };
         
         var connection = new MySqlConnection(connectionStringBuilder.ConnectionString);
@@ -50,7 +51,8 @@ public class MySqlConnectionFactory : IDbConnectionFactory
         var connectionStringBuilder = new MySqlConnector.MySqlConnectionStringBuilder(_connectionString)
         {
             CharacterSet = "utf8mb4",
-            UseCompression = false
+            UseCompression = false,
+            ConvertZeroDateTime = true
         };
         var connection = new MySqlConnection(connectionStringBuilder.ConnectionString);
         await connection.OpenAsync();

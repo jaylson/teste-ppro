@@ -7,6 +7,8 @@
         "docker-compose": true,
         "awk": true,
         "dotnet test": true,
-        "npm run build": true
+        "npm run build": true,
+        "npm install": true,
+        "mysql": true
     }
 }

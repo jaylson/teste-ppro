@@ -34,13 +34,9 @@ export default function Login() {
     setLoading(true);
 
     try {
-      // CompanyId fixo para demo - em produção, seria selecionado
-      const companyId = import.meta.env.VITE_DEFAULT_COMPANY_ID || 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
-      
       const response = await authService.login({
         email: data.email,
         password: data.password,
-        companyId,
       });
 
       setAuth(

@@ -20,7 +20,7 @@ public class DataRoomRepository : IDataRoomRepository
             SELECT id AS Id, company_id AS CompanyId, name AS Name, description AS Description,
                    is_active AS IsActive, created_at AS CreatedAt, updated_at AS UpdatedAt
             FROM data_rooms
-            WHERE company_id = @CompanyId AND deleted_at IS NULL
+            WHERE company_id = @CompanyId AND is_active = 1
             LIMIT 1";
         return await _context.Connection.QueryFirstOrDefaultAsync<DataRoom>(sql, new { CompanyId = companyId });
     }
