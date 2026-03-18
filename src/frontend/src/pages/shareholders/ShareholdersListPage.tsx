@@ -108,7 +108,7 @@ export default function ShareholdersListPage() {
             Gerencie os sócios e acionistas das empresas
           </p>
         </div>
-        <Button icon={<Plus className="w-4 h-4" />} onClick={handleAddNew}>
+        <Button icon={<Plus className="w-5 h-5" />} onClick={handleAddNew}>
           Adicionar Sócio
         </Button>
       </div>
@@ -116,19 +116,19 @@ export default function ShareholdersListPage() {
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <StatCard
-          icon={<Users className="w-5 h-5 text-white" />}
+           icon={<Users className="w-6 h-6 text-white" />}
           iconColor="bg-primary"
           value={stats.total}
           label="Total de Sócios"
         />
         <StatCard
-          icon={<Users className="w-5 h-5 text-white" />}
+           icon={<Users className="w-6 h-6 text-white" />}
           iconColor="bg-success"
           value={stats.active}
           label="Sócios Ativos"
         />
         <StatCard
-          icon={<Users className="w-5 h-5 text-white" />}
+           icon={<Users className="w-6 h-6 text-white" />}
           iconColor="bg-warning"
           value={stats.pending}
           label="Pendentes"
@@ -166,7 +166,7 @@ export default function ShareholdersListPage() {
       {isError && (
         <Card className="text-center py-12">
           <div className="w-16 h-16 bg-error-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Users className="w-8 h-8 text-error-500" />
+            <Users className="w-9 h-9 text-error-500" />
           </div>
           <h3 className="font-semibold text-primary mb-2">
             Erro ao carregar sócios
@@ -210,7 +210,7 @@ export default function ShareholdersListPage() {
                   disabled={!hasPreviousPage}
                   onClick={() => setPage((p) => p - 1)}
                 >
-                  <ChevronLeft className="w-4 h-4" />
+                  <ChevronLeft className="w-5 h-5" />
                 </Button>
                 <span className="text-sm text-primary-600 px-2">
                   Página {page} de {totalPages}
@@ -221,7 +221,7 @@ export default function ShareholdersListPage() {
                   disabled={!hasNextPage}
                   onClick={() => setPage((p) => p + 1)}
                 >
-                  <ChevronRight className="w-4 h-4" />
+                  <ChevronRight className="w-5 h-5" />
                 </Button>
               </div>
             </div>
@@ -233,7 +233,7 @@ export default function ShareholdersListPage() {
       {!isLoading && !isError && data?.items && data.items.length === 0 && (
         <Card className="text-center py-12">
           <div className="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Search className="w-8 h-8 text-primary-400" />
+            <Search className="w-9 h-9 text-primary-400" />
           </div>
           <h3 className="font-semibold text-primary mb-2">
             Nenhum sócio encontrado
@@ -249,7 +249,7 @@ export default function ShareholdersListPage() {
             </Button>
           ) : (
             <Button onClick={handleAddNew}>
-              <Plus className="w-4 h-4 mr-2" />
+              <Plus className="w-5 h-5 mr-2" />
               Adicionar Sócio
             </Button>
           )}

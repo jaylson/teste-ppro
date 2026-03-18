@@ -1,4 +1,17 @@
+import type { ComponentType } from 'react';
 import { cn } from '@/utils/cn';
+import {
+  Briefcase,
+  Building2,
+  CheckCircle2,
+  CircleDashed,
+  Clock3,
+  TrendingUp,
+  User,
+  UserCheck,
+  UserMinus,
+  Users,
+} from 'lucide-react';
 import { ShareholderType, ShareholderStatus, shareholderTypeLabels, shareholderStatusLabels } from '@/types';
 
 interface ShareholderTypeBadgeProps {
@@ -20,6 +33,15 @@ const typeColors: Record<ShareholderType, string> = {
   [ShareholderType.Other]: 'bg-gray-100 text-gray-700 border-gray-200',
 };
 
+const typeIcons: Record<ShareholderType, ComponentType<{ className?: string }>> = {
+  [ShareholderType.Founder]: Building2,
+  [ShareholderType.Investor]: TrendingUp,
+  [ShareholderType.Employee]: User,
+  [ShareholderType.Advisor]: Briefcase,
+  [ShareholderType.ESOP]: Users,
+  [ShareholderType.Other]: CircleDashed,
+};
+
 const statusColors: Record<ShareholderStatus, string> = {
   [ShareholderStatus.Active]: 'bg-success-100 text-success-700 border-success-200',
   [ShareholderStatus.Inactive]: 'bg-gray-100 text-gray-600 border-gray-200',
@@ -27,30 +49,95 @@ const statusColors: Record<ShareholderStatus, string> = {
   [ShareholderStatus.Exited]: 'bg-red-100 text-red-600 border-red-200',
 };
 
+const statusIcons: Record<ShareholderStatus, ComponentType<{ className?: string }>> = {
+  [ShareholderStatus.Active]: CheckCircle2,
+  [ShareholderStatus.Inactive]: UserMinus,
+  [ShareholderStatus.Pending]: Clock3,
+  [ShareholderStatus.Exited]: UserCheck,
+};
+
+function resolveShareholderType(type: ShareholderType): ShareholderType | undefined {
+  if (type in typeIcons) {
+    return type;
+  }
+
+  const raw = String(type);
+  const numeric = Number(raw);
+
+  if (!Number.isNaN(numeric) && numeric in typeIcons) {
+    return numeric as ShareholderType;
+  }
+
+  const byName = (ShareholderType as unknown as Record<string, number>)[raw];
+  if (typeof byName === 'number' && byName in typeIcons) {
+    return byName as ShareholderType;
+  }
+
+  return undefined;
+}
+
+function resolveShareholderStatus(status: ShareholderStatus): ShareholderStatus | undefined {
+  if (status in statusIcons) {
+    return status;
+  }
+
+  const raw = String(status);
+  const numeric = Number(raw);
+
+  if (!Number.isNaN(numeric) && numeric in statusIcons) {
+    return numeric as ShareholderStatus;
+  }
+
+  const byName = (ShareholderStatus as unknown as Record<string, number>)[raw];
+  if (typeof byName === 'number' && byName in statusIcons) {
+    return byName as ShareholderStatus;
+  }
+
+  return undefined;
+}
+
 export function ShareholderTypeBadge({ type, className }: ShareholderTypeBadgeProps) {
+  const resolvedType = resolveShareholderType(type);
+  const TypeIcon = resolvedType ? typeIcons[resolvedType] : undefined;
+  const typeLabel = resolvedType
+    ? shareholderTypeLabels[resolvedType]
+    : 'Tipo indefinido';
+
   return (
     <span
       className={cn(
-        'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border',
-        typeColors[type],
+        'inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium border',
+        resolvedType
+          ? typeColors[resolvedType]
+          : 'bg-gray-100 text-gray-700 border-gray-200',
         className
       )}
     >
-      {shareholderTypeLabels[type]}
+      {TypeIcon && <TypeIcon className="w-3.5 h-3.5" />}
+      {typeLabel}
     </span>
   );
 }
 
 export function ShareholderStatusBadge({ status, className }: ShareholderStatusBadgeProps) {
+  const resolvedStatus = resolveShareholderStatus(status);
+  const StatusIcon = resolvedStatus ? statusIcons[resolvedStatus] : undefined;
+  const statusLabel = resolvedStatus
+    ? shareholderStatusLabels[resolvedStatus]
+    : 'Status indefinido';
+
   return (
     <span
       className={cn(
-        'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border',
-        statusColors[status],
+        'inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium border',
+        resolvedStatus
+          ? statusColors[resolvedStatus]
+          : 'bg-gray-100 text-gray-700 border-gray-200',
         className
       )}
     >
-      {shareholderStatusLabels[status]}
+      {StatusIcon && <StatusIcon className="w-3.5 h-3.5" />}
+      {statusLabel}
     </span>
   );
 }

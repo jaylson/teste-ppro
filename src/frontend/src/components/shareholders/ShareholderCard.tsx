@@ -122,8 +122,9 @@ export function ShareholderCard({
               e.stopPropagation();
               window.location.href = `mailto:${shareholder.email}`;
             }}
+            title="Enviar e-mail"
           >
-            <Mail className="w-4 h-4" />
+            <Mail className="w-5 h-5" />
           </Button>
         )}
         {shareholder.phone && (
@@ -135,8 +136,9 @@ export function ShareholderCard({
               e.stopPropagation();
               window.location.href = `tel:${shareholder.phone}`;
             }}
+            title="Fazer chamada"
           >
-            <Phone className="w-4 h-4" />
+            <Phone className="w-5 h-5" />
           </Button>
         )}
       </div>

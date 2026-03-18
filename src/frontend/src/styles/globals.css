@@ -110,7 +110,7 @@
   }
 
   .btn-icon {
-    @apply p-2 aspect-square;
+    @apply p-2.5 aspect-square inline-flex items-center justify-center min-w-[2.5rem] min-h-[2.5rem];
   }
 
   /* =====================================================
