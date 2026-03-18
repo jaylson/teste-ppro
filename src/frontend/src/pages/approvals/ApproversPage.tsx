@@ -2,10 +2,13 @@ import { useState } from 'react';
 import {
   UserCheck, Search, Plus, X, Shield, Mail, User,
 } from 'lucide-react';
-import { Button, Card, Badge, Spinner } from '@/components/ui';
+import { Button, Card, Spinner } from '@/components/ui';
 import { useUsers, useAddUserRole, useRemoveUserRole } from '@/hooks/useUsers';
 import type { UserSummary } from '@/types';
 import { cn } from '@/utils/cn';
+
+//troca para build
+//import { Button, Card, Badge, Spinner } from '@/components/ui';
 
 const APPROVER_ROLES = ['Admin', 'Founder', 'BoardMember', 'Legal', 'Finance'];
 

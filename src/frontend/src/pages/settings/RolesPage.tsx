@@ -1,9 +1,13 @@
 import { useState } from 'react';
-import { Shield, Users, Search, Plus, X, Mail } from 'lucide-react';
+import { Shield, Users, Search, X, Mail } from 'lucide-react';
 import { Button, Card, Spinner } from '@/components/ui';
 import { useUsers, useAddUserRole, useRemoveUserRole } from '@/hooks/useUsers';
 import type { UserSummary } from '@/types';
 import { cn } from '@/utils/cn';
+
+//ajuste para build
+//import { Shield, Users, Search, Plus, X, Mail } from 'lucide-react';
+
 
 const ALL_ROLES = [
   'SuperAdmin', 'Admin', 'Founder', 'BoardMember', 'Legal',
