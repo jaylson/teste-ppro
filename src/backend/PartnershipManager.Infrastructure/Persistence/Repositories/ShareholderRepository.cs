@@ -214,6 +214,61 @@ public class ShareholderRepository : IShareholderRepository
         return shareholder == null ? null : MapToShareholder(shareholder);
     }
 
+    public async Task<Shareholder?> GetByEmailAsync(Guid clientId, Guid companyId, string email)
+    {
+        var sql = @"SELECT 
+                        sh.id AS Id,
+                        sh.client_id AS ClientId,
+                        sh.company_id AS CompanyId,
+                        sh.name AS Name,
+                        sh.document AS Document,
+                        sh.document_type AS DocumentType,
+                        sh.email AS Email,
+                        sh.phone AS Phone,
+                        sh.type AS Type,
+                        sh.status AS Status,
+                        sh.notes AS Notes,
+                        sh.address_street AS AddressStreet,
+                        sh.address_number AS AddressNumber,
+                        sh.address_complement AS AddressComplement,
+                        sh.address_zip_code AS AddressZipCode,
+                        sh.address_city AS AddressCity,
+                        sh.address_state AS AddressState,
+                        sh.marital_status AS MaritalStatus,
+                        sh.gender AS Gender,
+                        sh.birth_date AS BirthDate,
+                        sh.earn_out AS EarnOut,
+                        sh.tag_along AS TagAlong,
+                        sh.drag_along AS DragAlong,
+                        sh.shareholders_agreement AS ShareholdersAgreement,
+                        sh.right_of_first_refusal AS RightOfFirstRefusal,
+                        sh.liquidation_preference_right AS LiquidationPreferenceRight,
+                        sh.anti_dilution AS AntiDilution,
+                        sh.created_at AS CreatedAt,
+                        sh.updated_at AS UpdatedAt,
+                        sh.created_by AS CreatedBy,
+                        sh.updated_by AS UpdatedBy,
+                        sh.is_deleted AS IsDeleted,
+                        sh.deleted_at AS DeletedAt,
+                        c.name AS CompanyName
+                    FROM shareholders sh
+                    JOIN companies c ON c.id = sh.company_id
+                    WHERE sh.client_id = @ClientId
+                      AND sh.company_id = @CompanyId
+                      AND LOWER(sh.email) = LOWER(@Email)
+                      AND sh.is_deleted = 0
+                    LIMIT 1";
+
+        var shareholder = await Connection.QueryFirstOrDefaultAsync<dynamic>(sql, new
+        {
+            ClientId = clientId.ToString(),
+            CompanyId = companyId.ToString(),
+            Email = email
+        }, Transaction);
+
+        return shareholder == null ? null : MapToShareholder(shareholder);
+    }
+
     public async Task<bool> DocumentExistsAsync(Guid clientId, string document, Guid? excludeId = null)
     {
         var normalized = new string(document.Where(char.IsDigit).ToArray());

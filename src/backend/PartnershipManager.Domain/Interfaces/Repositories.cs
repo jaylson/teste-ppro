@@ -77,6 +77,7 @@ public interface IShareholderRepository
 
     Task<Shareholder?> GetByIdAsync(Guid id, Guid clientId);
     Task<Shareholder?> GetByDocumentAsync(Guid clientId, string document);
+    Task<Shareholder?> GetByEmailAsync(Guid clientId, Guid companyId, string email);
     Task<bool> DocumentExistsAsync(Guid clientId, string document, Guid? excludeId = null);
     Task AddAsync(Shareholder shareholder);
     Task UpdateAsync(Shareholder shareholder);
