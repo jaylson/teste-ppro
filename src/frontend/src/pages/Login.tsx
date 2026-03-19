@@ -133,13 +133,6 @@ export default function Login() {
         </Button>
       </form>
 
-      {/* Demo Info */}
-      <div className="mt-8 p-4 bg-primary-50 rounded-lg">
-        <p className="text-sm text-primary-600">
-          <strong>Demo:</strong> Use qualquer email e senha para acessar.
-        </p>
-      </div>
-
       <p className="mt-4 text-center text-xs text-primary-400">Vesion 0.1.3</p>
     </div>
   );

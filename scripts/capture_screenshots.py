@@ -8,8 +8,8 @@ import time, os
 
 BASE_URL  = "http://localhost:3000"
 OUT_DIR   = "/workspaces/teste-ppro/prints"
-EMAIL     = "admin@demo.com"
-PASSWORD  = "Admin@123"
+EMAIL     = "carlos.silva@inovatech.com.br"
+PASSWORD  = "Demo@2024!"
 
 SCREENS = [
     # (filename_sem_ext, route, group_para_abrir_se_necessário)
