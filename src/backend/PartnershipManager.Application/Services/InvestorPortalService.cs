@@ -17,31 +17,77 @@ public class InvestorPortalService : IInvestorPortalService
 {
     private readonly ICommunicationRepository _communicationRepo;
     private readonly IDocumentRepository _documentRepo;
+    private readonly IUserRepository _userRepo;
+    private readonly IShareholderRepository _shareholderRepo;
+    private readonly IShareRepository _shareRepo;
+    private readonly IValuationRepository _valuationRepo;
+    private readonly ICompanyRepository _companyRepo;
 
     public InvestorPortalService(
         ICommunicationRepository communicationRepo,
-        IDocumentRepository documentRepo)
+        IDocumentRepository documentRepo,
+        IUserRepository userRepo,
+        IShareholderRepository shareholderRepo,
+        IShareRepository shareRepo,
+        IValuationRepository valuationRepo,
+        ICompanyRepository companyRepo)
     {
         _communicationRepo = communicationRepo;
         _documentRepo = documentRepo;
+        _userRepo = userRepo;
+        _shareholderRepo = shareholderRepo;
+        _shareRepo = shareRepo;
+        _valuationRepo = valuationRepo;
+        _companyRepo = companyRepo;
     }
 
     public async Task<InvestorSummaryResponse> GetSummaryAsync(Guid userId, Guid companyId)
     {
+        var user = await _userRepo.GetByIdAsync(userId);
+        var clientId = user?.ClientId ?? Guid.Empty;
+
+        var company = clientId != Guid.Empty
+            ? await _companyRepo.GetByIdAsync(companyId)
+            : null;
+
         var (_, docsTotal) = await _documentRepo.GetPagedAsync(
-            clientId: Guid.Empty, companyId: companyId, page: 1, pageSize: 1,
+            clientId: clientId, companyId: companyId, page: 1, pageSize: 1,
             visibility: "investors");
 
-        return new InvestorSummaryResponse
+        var response = new InvestorSummaryResponse
         {
-            InvestorName = string.Empty,
-            CompanyName = string.Empty,
-            TotalShares = 0,
-            OwnershipPercentage = 0,
-            EstimatedValue = 0,
-            CurrentValuation = 0,
+            InvestorName = user?.Name ?? string.Empty,
+            CompanyName = company?.Name ?? string.Empty,
             DocumentsCount = docsTotal
         };
+
+        if (user == null || string.IsNullOrWhiteSpace(user.Email) || clientId == Guid.Empty)
+            return response;
+
+        var shareholder = await _shareholderRepo.GetByEmailAsync(clientId, companyId, user.Email);
+        if (shareholder == null)
+            return response;
+
+        var shares = await _shareRepo.GetByShareholderAsync(clientId, shareholder.Id);
+        var totalShares = shares.Sum(s => s.Quantity);
+        var companyTotalShares = await _shareRepo.GetTotalSharesByCompanyAsync(clientId, companyId);
+
+        var ownershipPercentage = companyTotalShares > 0
+            ? Math.Round(totalShares * 100 / companyTotalShares, 4)
+            : 0m;
+
+        var latestValuation = await _valuationRepo.GetLastApprovedAsync(clientId, companyId);
+        var currentValuation = latestValuation?.ValuationAmount ?? 0m;
+        var estimatedValue = currentValuation > 0
+            ? Math.Round(ownershipPercentage / 100 * currentValuation, 2)
+            : 0m;
+
+        response.TotalShares = totalShares;
+        response.OwnershipPercentage = ownershipPercentage;
+        response.CurrentValuation = currentValuation;
+        response.EstimatedValue = estimatedValue;
+
+        return response;
     }
 
     public async Task<PagedResult<CommunicationListResponse>> GetCommunicationsAsync(
@@ -66,8 +112,11 @@ public class InvestorPortalService : IInvestorPortalService
 
     public async Task<IEnumerable<Document>> GetDocumentsAsync(Guid userId, Guid companyId)
     {
+        var user = await _userRepo.GetByIdAsync(userId);
+        var clientId = user?.ClientId ?? Guid.Empty;
+
         var (items, _) = await _documentRepo.GetPagedAsync(
-            clientId: Guid.Empty, companyId: companyId, page: 1, pageSize: 200,
+            clientId: clientId, companyId: companyId, page: 1, pageSize: 200,
             visibility: "investors");
         return items;
     }
