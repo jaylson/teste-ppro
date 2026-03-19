@@ -15,6 +15,8 @@
 
 > ⚠️ Alterar esta senha imediatamente em ambientes não-locais via `POST /api/auth/change-password`.
 
+testes para publicação.
+
 ---
 
 ## InovaTech
