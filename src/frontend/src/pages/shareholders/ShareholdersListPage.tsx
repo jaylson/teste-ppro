@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { Plus, Users, Search, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button, Card, Spinner, StatCard } from '@/components/ui';
@@ -12,6 +13,7 @@ import {
 } from '@/types';
 
 export default function ShareholdersListPage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { confirm } = useConfirm();
 
@@ -71,10 +73,10 @@ export default function ShareholdersListPage() {
 
   const handleDelete = async (shareholder: Shareholder) => {
     const confirmed = await confirm({
-      title: 'Excluir Sócio',
-      message: `Tem certeza que deseja excluir "${shareholder.name}"? Esta ação não pode ser desfeita.`,
-      confirmText: 'Excluir',
-      cancelText: 'Cancelar',
+      title: t('shareholders.deleteShareholder'),
+      message: t('shareholders.deleteConfirm', { name: shareholder.name }),
+      confirmText: t('common.delete'),
+      cancelText: t('common.cancel'),
       confirmVariant: 'danger',
     });
 
@@ -103,13 +105,13 @@ export default function ShareholdersListPage() {
       {/* Header */}
       <div className="page-header">
         <div>
-          <h1 className="page-title">Sócios</h1>
+          <h1 className="page-title">{t('shareholders.title')}</h1>
           <p className="page-subtitle">
-            Gerencie os sócios e acionistas das empresas
+            {t('shareholders.manageSubtitle')}
           </p>
         </div>
         <Button icon={<Plus className="w-5 h-5" />} onClick={handleAddNew}>
-          Adicionar Sócio
+          {t('shareholders.addShareholder')}
         </Button>
       </div>
 
@@ -119,19 +121,19 @@ export default function ShareholdersListPage() {
            icon={<Users className="w-6 h-6 text-white" />}
           iconColor="bg-primary"
           value={stats.total}
-          label="Total de Sócios"
+          label={t('shareholders.totalShareholders')}
         />
         <StatCard
            icon={<Users className="w-6 h-6 text-white" />}
           iconColor="bg-success"
           value={stats.active}
-          label="Sócios Ativos"
+          label={t('shareholders.activeShareholders')}
         />
         <StatCard
            icon={<Users className="w-6 h-6 text-white" />}
           iconColor="bg-warning"
           value={stats.pending}
-          label="Pendentes"
+          label={t('shareholders.pendingShareholders')}
         />
       </div>
 
@@ -169,13 +171,13 @@ export default function ShareholdersListPage() {
             <Users className="w-9 h-9 text-error-500" />
           </div>
           <h3 className="font-semibold text-primary mb-2">
-            Erro ao carregar sócios
+            {t('shareholders.loadingError')}
           </h3>
           <p className="text-primary-500 mb-4">
-            Ocorreu um erro ao carregar a lista de sócios.
+            {t('shareholders.loadingErrorDetails')}
           </p>
           <Button variant="secondary" onClick={() => refetch()}>
-            Tentar novamente
+            {t('shareholders.retryLoading')}
           </Button>
         </Card>
       )}
@@ -199,9 +201,11 @@ export default function ShareholdersListPage() {
           {totalPages > 1 && (
             <div className="flex items-center justify-between pt-4">
               <p className="text-sm text-primary-500">
-                Mostrando {(page - 1) * pageSize + 1} a{' '}
-                {Math.min(page * pageSize, data.totalCount)} de {data.totalCount}{' '}
-                sócios
+                {t('shareholders.showingPagination', {
+                  from: (page - 1) * pageSize + 1,
+                  to: Math.min(page * pageSize, data.totalCount),
+                  total: data.totalCount,
+                })}
               </p>
               <div className="flex items-center gap-2">
                 <Button
@@ -213,7 +217,7 @@ export default function ShareholdersListPage() {
                   <ChevronLeft className="w-5 h-5" />
                 </Button>
                 <span className="text-sm text-primary-600 px-2">
-                  Página {page} de {totalPages}
+                  {t('shareholders.pageOf', { page, total: totalPages })}
                 </span>
                 <Button
                   variant="secondary"
@@ -236,21 +240,21 @@ export default function ShareholdersListPage() {
             <Search className="w-9 h-9 text-primary-400" />
           </div>
           <h3 className="font-semibold text-primary mb-2">
-            Nenhum sócio encontrado
+            {t('shareholders.noShareholdersFound')}
           </h3>
           <p className="text-primary-500 mb-4">
             {search || typeFilter !== null || statusFilter !== null
-              ? 'Tente ajustar os filtros ou realizar uma nova busca.'
-              : 'Comece adicionando o primeiro sócio.'}
+              ? t('shareholders.tryAdjustFilters')
+              : t('shareholders.addFirstShareholder')}
           </p>
           {search || typeFilter !== null || statusFilter !== null ? (
             <Button variant="secondary" onClick={handleClearFilters}>
-              Limpar filtros
+              {t('shareholders.clearFilters')}
             </Button>
           ) : (
             <Button onClick={handleAddNew}>
               <Plus className="w-5 h-5 mr-2" />
-              Adicionar Sócio
+              {t('shareholders.addShareholder')}
             </Button>
           )}
         </Card>
