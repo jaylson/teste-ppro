@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
   DollarSign,
   TrendingUp,
@@ -41,6 +42,7 @@ interface MrrData {
 }
 
 export default function BillingDashboard() {
+  const { t } = useTranslation();
   const [statistics, setStatistics] = useState<InvoiceStatistics>({
     totalRevenue: 0,
     pendingRevenue: 0,
@@ -101,12 +103,12 @@ export default function BillingDashboard() {
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="page-title">Billing</h1>
-          <p className="page-subtitle">Gestão de assinaturas, planos e faturamento</p>
+          <p className="page-subtitle">{t('billing.managementSubtitle')}</p>
         </div>
         <div className="flex gap-3">
           <Button variant="secondary">
             <Download className="w-4 h-4 mr-2" />
-            Exportar
+            {t('common.export')}
           </Button>
         </div>
       </div>
@@ -114,16 +116,16 @@ export default function BillingDashboard() {
       {/* Navigation Tabs */}
       <div className="flex gap-2 mb-8 border-b border-border pb-0">
         <Link to="/billing" className="px-4 py-3 font-medium text-primary border-b-2 border-primary">
-          Dashboard
+          {t('billing.dashboard')}
         </Link>
         <Link to="/billing/plans" className="px-4 py-3 font-medium text-muted-foreground hover:text-foreground transition-colors">
-          Planos
+          {t('billing.plans')}
         </Link>
         <Link to="/billing/clients" className="px-4 py-3 font-medium text-muted-foreground hover:text-foreground transition-colors">
-          Clientes & Assinaturas
+          {t('billing.clientsSubscriptions')}
         </Link>
         <Link to="/billing/invoices" className="px-4 py-3 font-medium text-muted-foreground hover:text-foreground transition-colors">
-          Faturas
+          {t('billing.invoices')}
         </Link>
       </div>
 
@@ -138,7 +140,7 @@ export default function BillingDashboard() {
       {loading ? (
         <div className="text-center py-12">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Carregando estatísticas...</p>
+          <p className="mt-4 text-gray-600">{t('billing.loadingStatistics')}</p>
         </div>
       ) : (
         <>
@@ -154,10 +156,10 @@ export default function BillingDashboard() {
                   <span>+12%</span>
                 </div>
               </div>
-              <div className="text-sm text-muted-foreground mb-1">Receita Recebida</div>
+              <div className="text-sm text-muted-foreground mb-1">{t('billing.totalRevenue')}</div>
               <div className="text-3xl font-bold">R$ {statistics.totalRevenue.toFixed(2)}</div>
               <div className="text-xs text-muted-foreground mt-1">
-                {statistics.paidInvoices} faturas pagas
+                {t('billing.paidInvoices', { count: statistics.paidInvoices })}
               </div>
             </div>
 
@@ -167,12 +169,12 @@ export default function BillingDashboard() {
                   <Clock className="w-6 h-6 text-yellow-600" />
                 </div>
               </div>
-              <div className="text-sm text-muted-foreground mb-1">A Receber</div>
+              <div className="text-sm text-muted-foreground mb-1">{t('billing.pendingRevenue')}</div>
               <div className="text-3xl font-bold text-yellow-600">
                 R$ {statistics.pendingRevenue.toFixed(2)}
               </div>
               <div className="text-xs text-muted-foreground mt-1">
-                {statistics.pendingInvoices} faturas pendentes
+                {t('billing.pendingInvoicesCount', { count: statistics.pendingInvoices })}
               </div>
             </div>
 
@@ -183,15 +185,15 @@ export default function BillingDashboard() {
                 </div>
                 <div className="flex items-center gap-1 text-sm text-red-600">
                   <TrendingDown className="w-4 h-4" />
-                  <span>Atenção</span>
+                  <span>{t('billing.attention')}</span>
                 </div>
               </div>
-              <div className="text-sm text-muted-foreground mb-1">Em Atraso</div>
+              <div className="text-sm text-muted-foreground mb-1">{t('billing.overdueRevenue')}</div>
               <div className="text-3xl font-bold text-red-600">
                 R$ {statistics.overdueRevenue.toFixed(2)}
               </div>
               <div className="text-xs text-muted-foreground mt-1">
-                {statistics.overdueInvoices} faturas vencidas
+                {t('billing.overdueInvoicesCount', { count: statistics.overdueInvoices })}
               </div>
             </div>
 
@@ -201,10 +203,10 @@ export default function BillingDashboard() {
                   <FileText className="w-6 h-6 text-blue-600" />
                 </div>
               </div>
-              <div className="text-sm text-muted-foreground mb-1">Total de Faturas</div>
+              <div className="text-sm text-muted-foreground mb-1">{t('billing.totalInvoices')}</div>
               <div className="text-3xl font-bold">{statistics.totalInvoices}</div>
               <div className="text-xs text-muted-foreground mt-1">
-                Este mês
+                {t('billing.thisMonth')}
               </div>
             </div>
           </div>
@@ -215,21 +217,21 @@ export default function BillingDashboard() {
               <div className="flex items-center justify-between mb-6">
                 <div>
                   <h2 className="text-xl font-bold text-gray-900">
-                    Faturamento Mensal (MRR)
+                    {t('billing.mrrTitle')}
                   </h2>
                   <p className="text-sm text-gray-600 mt-1">
-                    Receita recorrente dos últimos 12 meses
+                    {t('billing.mrrSubtitle')}
                   </p>
                 </div>
                 <div className="flex items-center gap-4">
                   <div className="text-right">
-                    <p className="text-xs text-gray-500">MRR Atual</p>
+                    <p className="text-xs text-gray-500">{t('billing.currentMrr')}</p>
                     <p className="text-lg font-bold text-green-600">
                       {formatCurrency(mrrData.currentMrr)}
                     </p>
                   </div>
                   <div className="text-right">
-                    <p className="text-xs text-gray-500">Crescimento</p>
+                    <p className="text-xs text-gray-500">{t('billing.growth')}</p>
                     <p className={`text-lg font-bold flex items-center gap-1 ${
                       mrrData.growthRate >= 0 ? 'text-green-600' : 'text-red-600'
                     }`}>
@@ -273,12 +275,12 @@ export default function BillingDashboard() {
                       borderRadius: '8px',
                       boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
                     }}
-                    formatter={(value: number) => [formatCurrency(value), 'Receita']}
-                    labelFormatter={(label) => `Período: ${label}`}
+                    formatter={(value: number) => [formatCurrency(value), t('billing.revenue')]}
+                    labelFormatter={(label) => `${t('billing.period')}: ${label}`}
                   />
                   <Legend 
                     wrapperStyle={{ paddingTop: '20px' }}
-                    formatter={() => 'Receita Mensal'}
+                    formatter={() => t('billing.monthlyRevenue')}
                   />
                   <Area 
                     type="monotone" 
@@ -294,19 +296,19 @@ export default function BillingDashboard() {
               <div className="mt-6 pt-6 border-t border-gray-200">
                 <div className="grid grid-cols-3 gap-4 text-center">
                   <div>
-                    <p className="text-xs text-gray-500 mb-1">MRR Médio</p>
+                    <p className="text-xs text-gray-500 mb-1">{t('billing.avgMrr')}</p>
                     <p className="text-lg font-semibold text-gray-900">
                       {formatCurrency(mrrData.averageMrr)}
                     </p>
                   </div>
                   <div>
-                    <p className="text-xs text-gray-500 mb-1">Total de Faturas</p>
+                    <p className="text-xs text-gray-500 mb-1">{t('billing.totalInvoices')}</p>
                     <p className="text-lg font-semibold text-gray-900">
                       {mrrData.monthlyData.reduce((acc, m) => acc + m.invoiceCount, 0)}
                     </p>
                   </div>
                   <div>
-                    <p className="text-xs text-gray-500 mb-1">Período</p>
+                    <p className="text-xs text-gray-500 mb-1">{t('billing.period')}</p>
                     <p className="text-lg font-semibold text-gray-900">
                       12 meses
                     </p>
@@ -317,7 +319,7 @@ export default function BillingDashboard() {
           ) : (
             <div className="card mb-8 text-center py-12">
               <p className="text-gray-500">
-                {mrrData === null ? 'Carregando dados de MRR...' : 'Nenhum dado de faturamento disponível'}
+                {mrrData === null ? t('billing.loadingMrr') : t('billing.noMrrData')}
               </p>
             </div>
           )}
@@ -331,9 +333,9 @@ export default function BillingDashboard() {
                 <Package className="w-6 h-6 text-blue-600" />
               </div>
               <div>
-                <div className="font-semibold mb-1">Gerenciar Planos</div>
+                <div className="font-semibold mb-1">{t('billing.managePlans')}</div>
                 <div className="text-sm text-muted-foreground">
-                  Ver e editar planos de assinatura
+                  {t('billing.managePlansSubtitle')}
                 </div>
               </div>
             </div>
@@ -347,9 +349,9 @@ export default function BillingDashboard() {
                 <Users className="w-6 h-6 text-green-600" />
               </div>
               <div>
-                <div className="font-semibold mb-1">Clientes & Assinaturas</div>
+                <div className="font-semibold mb-1">{t('billing.clientsSubscriptions')}</div>
                 <div className="text-sm text-muted-foreground">
-                  Gerenciar clientes e suas assinaturas
+                  {t('billing.clientsSubscriptionsSubtitle')}
                 </div>
               </div>
             </div>
@@ -363,9 +365,9 @@ export default function BillingDashboard() {
                 <CreditCard className="w-6 h-6 text-purple-600" />
               </div>
               <div>
-                <div className="font-semibold mb-1">Gerar Faturas do Mês</div>
+                <div className="font-semibold mb-1">{t('billing.generateMonthlyInvoices')}</div>
                 <div className="text-sm text-muted-foreground">
-                  Criar faturas para todas as assinaturas ativas
+                  {t('billing.generateMonthlyInvoicesSubtitle')}
                 </div>
               </div>
             </div>

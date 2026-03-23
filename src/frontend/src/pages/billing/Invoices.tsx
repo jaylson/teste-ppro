@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Download, Search, Eye, CheckCircle, X, FileText, RefreshCw } from 'lucide-react';
 import { Button, AlertContainer, useAlerts, ConfirmDialog } from '@/components/ui';
 import { invoicesApi, clientsApi, plansApi, type Invoice, type InvoiceFilters, type ClientListItem, type Plan } from '@/services/api';
 
 export default function Invoices() {
+  const { t } = useTranslation();
   const [searchTerm, setSearchTerm] = useState('');
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [clients, setClients] = useState<ClientListItem[]>([]);
@@ -69,7 +71,7 @@ export default function Invoices() {
       setSelectedInvoices(new Set());
     } catch (err: any) {
       console.error('Erro ao carregar faturas:', err);
-      const errorMsg = err.response?.data?.message || err.message || 'Erro ao carregar faturas';
+      const errorMsg = err.response?.data?.message || err.message || t('billing.loadInvoicesError');
       setError(errorMsg);
       showError(errorMsg);
     } finally {
@@ -123,12 +125,12 @@ export default function Invoices() {
     
     try {
       await invoicesApi.markAsPaid(paymentModalInvoice.id, paymentDate ? new Date(paymentDate) : undefined);
-      showSuccess(`Fatura ${paymentModalInvoice.invoiceNumber} marcada como paga com sucesso!`);
+      showSuccess(t('billing.invoiceMarkedAsPaid', { invoiceNumber: paymentModalInvoice.invoiceNumber }));
       setPaymentModalInvoice(null);
       setPaymentDate('');
       loadInvoices();
     } catch (err: any) {
-      showError(err.response?.data?.message || 'Erro ao marcar fatura como paga');
+      showError(err.response?.data?.message || t('billing.invoiceMarkAsPaidError'));
     }
   };
 
@@ -137,9 +139,9 @@ export default function Invoices() {
     
     setConfirmDialog({
       isOpen: true,
-      title: 'Cancelar Fatura',
-      message: `Tem certeza que deseja cancelar a fatura ${invoice?.invoiceNumber}?`,
-      confirmText: 'Sim, cancelar',
+      title: t('billing.cancelInvoice'),
+      message: t('billing.cancelInvoiceConfirm', { invoiceNumber: invoice?.invoiceNumber }),
+      confirmText: t('billing.yesCancelInvoice'),
       confirmVariant: 'danger',
       onConfirm: async () => {
         setConfirmLoading(true);
@@ -147,13 +149,13 @@ export default function Invoices() {
           console.log('Cancelando fatura:', id);
           const result = await invoicesApi.cancel(id);
           console.log('Resultado do cancelamento:', result);
-          showSuccess(`Fatura ${invoice?.invoiceNumber} cancelada com sucesso!`);
+          showSuccess(t('billing.invoiceCancelledSuccess', { invoiceNumber: invoice?.invoiceNumber }));
           setConfirmDialog((prev) => ({ ...prev, isOpen: false }));
           loadInvoices();
         } catch (err: any) {
           console.error('Erro ao cancelar fatura:', err);
           console.error('Resposta do erro:', err.response);
-          showError(err.response?.data?.message || 'Erro ao cancelar fatura');
+          showError(err.response?.data?.message || t('billing.invoiceCancelError'));
         } finally {
           setConfirmLoading(false);
         }
@@ -172,9 +174,9 @@ export default function Invoices() {
       a.click();
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
-      showSuccess(`PDF da fatura ${invoice.invoiceNumber} baixado com sucesso!`);
+      showSuccess(t('billing.pdfDownloadedSuccess', { invoiceNumber: invoice.invoiceNumber }));
     } catch (err: any) {
-      showError(err.response?.data?.message || 'Erro ao baixar PDF');
+      showError(err.response?.data?.message || t('billing.pdfDownloadError'));
     }
   };
 
@@ -189,11 +191,11 @@ export default function Invoices() {
     try {
       await invoicesApi.generateMonthly(generateMonth, generateYear);
       const monthName = new Date(generateYear, generateMonth - 1).toLocaleString('pt-BR', { month: 'long' });
-      showSuccess(`Faturas de ${monthName}/${generateYear} geradas com sucesso!`);
+      showSuccess(t('billing.monthlyInvoicesGeneratedSuccess', { month: monthName, year: generateYear }));
       setGenerateModalOpen(false);
       loadInvoices();
     } catch (err: any) {
-      showError(err.response?.data?.message || 'Erro ao gerar faturas mensais');
+      showError(err.response?.data?.message || t('billing.monthlyInvoicesGenerateError'));
     } finally {
       setConfirmLoading(false);
       setGenerating(false);
@@ -224,15 +226,15 @@ export default function Invoices() {
   const handleBatchCancel = async () => {
     const count = selectedInvoices.size;
     if (count === 0) {
-      showWarning('Nenhuma fatura selecionada');
+      showWarning(t('billing.noInvoicesSelected'));
       return;
     }
 
     setConfirmDialog({
       isOpen: true,
-      title: 'Cancelar Faturas',
-      message: `Tem certeza que deseja cancelar ${count} fatura(s) selecionada(s)?`,
-      confirmText: 'Sim, cancelar todas',
+      title: t('billing.cancelInvoicesTitle'),
+      message: t('billing.cancelInvoicesConfirm', { count }),
+      confirmText: t('billing.yesCancelAll'),
       confirmVariant: 'danger',
       onConfirm: async () => {
         setConfirmLoading(true);
@@ -253,17 +255,17 @@ export default function Invoices() {
           }
 
           if (success > 0) {
-            showSuccess(`${success} fatura(s) cancelada(s) com sucesso!`);
+            showSuccess(t('billing.batchCancelledSuccess', { count: success }));
           }
           if (failed > 0) {
-            showError(`Falha ao cancelar ${failed} fatura(s)`);
+            showError(t('billing.batchCancelFailed', { count: failed }));
           }
 
           setSelectedInvoices(new Set());
           setConfirmDialog((prev) => ({ ...prev, isOpen: false }));
           loadInvoices();
         } catch (err: any) {
-          showError('Erro ao processar cancelamento em lote');
+          showError(t('billing.batchCancelError'));
         } finally {
           setConfirmLoading(false);
           setBatchProcessing(false);
@@ -275,29 +277,28 @@ export default function Invoices() {
   const handleBatchPay = async () => {
     const count = selectedInvoices.size;
     if (count === 0) {
-      showWarning('Nenhuma fatura selecionada');
+      showWarning(t('billing.noInvoicesSelected'));
       return;
     }
 
-    // Verificar se todas as faturas selecionadas são pendentes
     const selectedInvoiceObjects = invoices.filter((inv: Invoice) => selectedInvoices.has(inv.id));
     const nonPendingCount = selectedInvoiceObjects.filter((inv: Invoice) => inv.status.toLowerCase() !== 'pending').length;
 
     if (nonPendingCount > 0) {
-      showWarning(`${nonPendingCount} fatura(s) selecionada(s) não estão pendentes e serão ignoradas`);
+      showWarning(t('billing.nonPendingInvoices', { count: nonPendingCount }));
     }
 
     const pendingInvoices = selectedInvoiceObjects.filter((inv: Invoice) => inv.status.toLowerCase() === 'pending');
     if (pendingInvoices.length === 0) {
-      showWarning('Nenhuma fatura pendente selecionada');
+      showWarning(t('billing.noPendingInvoicesSelected'));
       return;
     }
 
     setConfirmDialog({
       isOpen: true,
-      title: 'Marcar como Pagas',
-      message: `Tem certeza que deseja marcar ${pendingInvoices.length} fatura(s) como paga(s)?`,
-      confirmText: 'Sim, marcar como pagas',
+      title: t('billing.markAsPaidTitle'),
+      message: t('billing.markAsPaidConfirm', { count: pendingInvoices.length }),
+      confirmText: t('billing.yesMarkAsPaid'),
       confirmVariant: 'primary',
       onConfirm: async () => {
         setConfirmLoading(true);
@@ -318,17 +319,17 @@ export default function Invoices() {
           }
 
           if (success > 0) {
-            showSuccess(`${success} fatura(s) marcada(s) como paga(s) com sucesso!`);
+            showSuccess(t('billing.batchPaidSuccess', { count: success }));
           }
           if (failed > 0) {
-            showError(`Falha ao processar ${failed} fatura(s)`);
+            showError(t('billing.batchPayFailed', { count: failed }));
           }
 
           setSelectedInvoices(new Set());
           setConfirmDialog((prev) => ({ ...prev, isOpen: false }));
           loadInvoices();
         } catch (err: any) {
-          showError('Erro ao processar pagamento em lote');
+          showError(t('billing.batchPayError'));
         } finally {
           setConfirmLoading(false);
           setBatchProcessing(false);
@@ -348,10 +349,10 @@ export default function Invoices() {
 
   const getStatusBadge = (status: string) => {
     const statusConfig: Record<string, { bg: string; text: string; label: string }> = {
-      pending: { bg: 'bg-yellow-100', text: 'text-yellow-800', label: 'Pendente' },
-      paid: { bg: 'bg-green-100', text: 'text-green-800', label: 'Paga' },
-      overdue: { bg: 'bg-red-100', text: 'text-red-800', label: 'Atrasada' },
-      cancelled: { bg: 'bg-gray-100', text: 'text-gray-800', label: 'Cancelada' },
+      pending: { bg: 'bg-yellow-100', text: 'text-yellow-800', label: t('billing.statusPending') },
+      paid: { bg: 'bg-green-100', text: 'text-green-800', label: t('billing.statusPaidFem') },
+      overdue: { bg: 'bg-red-100', text: 'text-red-800', label: t('billing.statusOverdueLabel') },
+      cancelled: { bg: 'bg-gray-100', text: 'text-gray-800', label: t('billing.statusCancelledFem') },
     };
 
     const config = statusConfig[status.toLowerCase()] || statusConfig.pending;
@@ -382,7 +383,7 @@ export default function Invoices() {
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="page-title">Billing</h1>
-          <p className="page-subtitle">Gerencie todas as faturas dos seus clientes</p>
+          <p className="page-subtitle">{t('billing.invoicesSubtitle')}</p>
         </div>
         <Button
           onClick={handleGenerateMonthly}
@@ -390,40 +391,40 @@ export default function Invoices() {
           className="bg-blue-600 hover:bg-blue-700 text-white"
         >
           <RefreshCw className={`w-4 h-4 mr-2 ${generating ? 'animate-spin' : ''}`} />
-          {generating ? 'Gerando...' : 'Gerar Faturas do Mês'}
+          {generating ? t('billing.generating') : t('billing.generateMonthlyInvoices')}
         </Button>
       </div>
 
       {/* Navigation Tabs */}
       <div className="flex gap-2 mb-8 border-b border-border pb-0">
         <Link to="/billing" className="px-4 py-3 font-medium text-muted-foreground hover:text-foreground transition-colors">
-          Dashboard
+          {t('billing.dashboard')}
         </Link>
         <Link to="/billing/plans" className="px-4 py-3 font-medium text-muted-foreground hover:text-foreground transition-colors">
-          Planos
+          {t('billing.plans')}
         </Link>
         <Link to="/billing/clients" className="px-4 py-3 font-medium text-muted-foreground hover:text-foreground transition-colors">
-          Clientes & Assinaturas
+          {t('billing.clientsSubscriptions')}
         </Link>
         <Link to="/billing/invoices" className="px-4 py-3 font-medium text-primary border-b-2 border-primary">
-          Faturas
+          {t('billing.invoices')}
         </Link>
       </div>
 
       {/* Filtros */}
       <div className="bg-white shadow rounded-lg p-6">
-        <h2 className="text-lg font-semibold mb-4">Filtros</h2>
+        <h2 className="text-lg font-semibold mb-4">{t('billing.filters')}</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Cliente
+              {t('billing.clients')}
             </label>
             <select
               value={filters.clientId || ''}
               onChange={(e) => setFilters({ ...filters, clientId: e.target.value || undefined })}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              <option value="">Todos os clientes</option>
+              <option value="">{t('billing.allClients')}</option>
               {clients.map((client) => (
                 <option key={client.id} value={client.id}>
                   {client.name}
@@ -434,24 +435,24 @@ export default function Invoices() {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Status
+              {t('common.status')}
             </label>
             <select
               value={filters.status || ''}
               onChange={(e) => setFilters({ ...filters, status: e.target.value || undefined })}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              <option value="">Todos os status</option>
-              <option value="pending">Pendente</option>
-              <option value="paid">Paga</option>
-              <option value="overdue">Atrasada</option>
-              <option value="cancelled">Cancelada</option>
+              <option value="">{t('billing.allStatuses')}</option>
+              <option value="pending">{t('billing.statusPending')}</option>
+              <option value="paid">{t('billing.statusPaidFem')}</option>
+              <option value="overdue">{t('billing.statusOverdueLabel')}</option>
+              <option value="cancelled">{t('billing.statusCancelledFem')}</option>
             </select>
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Data Inicial
+              {t('billing.startDate')}
             </label>
             <input
               type="date"
@@ -463,7 +464,7 @@ export default function Invoices() {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Data Final
+              {t('billing.endDate')}
             </label>
             <input
               type="date"
@@ -475,14 +476,14 @@ export default function Invoices() {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Plano
+              {t('billing.plans')}
             </label>
             <select
               value={filters.planId || ''}
               onChange={(e) => setFilters({ ...filters, planId: e.target.value || undefined })}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              <option value="">Todos os planos</option>
+              <option value="">{t('billing.allPlans')}</option>
               {plans.map((plan) => (
                 <option key={plan.id} value={plan.id}>
                   {plan.name}
@@ -494,10 +495,10 @@ export default function Invoices() {
 
         <div className="flex gap-2 mt-4">
           <Button onClick={handleApplyFilters} className="bg-blue-600 hover:bg-blue-700 text-white">
-            Aplicar Filtros
+            {t('billing.applyFilters')}
           </Button>
           <Button onClick={handleClearFilters} variant="secondary">
-            Limpar Filtros
+            {t('billing.clearFilters')}
           </Button>
         </div>
       </div>
@@ -508,7 +509,7 @@ export default function Invoices() {
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
           <input
             type="text"
-            placeholder="Buscar por número da fatura, cliente ou plano..."
+            placeholder={t('billing.searchInvoicesPlaceholder')}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -521,13 +522,13 @@ export default function Invoices() {
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <span className="text-sm font-medium text-blue-900">
-              {selectedInvoices.size} fatura(s) selecionada(s)
+              {t('billing.invoicesSelected', { count: selectedInvoices.size })}
             </span>
             <button
               onClick={() => setSelectedInvoices(new Set())}
               className="text-sm text-blue-600 hover:text-blue-800 underline"
             >
-              Limpar seleção
+              {t('billing.clearSelection')}
             </button>
           </div>
           <div className="flex gap-2">
@@ -537,7 +538,7 @@ export default function Invoices() {
               className="bg-green-600 hover:bg-green-700 text-white"
             >
               <CheckCircle className="w-4 h-4 mr-2" />
-              {batchProcessing ? 'Processando...' : 'Marcar como Pagas'}
+              {batchProcessing ? t('billing.processing') : t('billing.markAsPaidAction')}
             </Button>
             <Button
               onClick={handleBatchCancel}
@@ -545,7 +546,7 @@ export default function Invoices() {
               className="bg-red-600 hover:bg-red-700 text-white"
             >
               <X className="w-4 h-4 mr-2" />
-              {batchProcessing ? 'Processando...' : 'Cancelar Selecionadas'}
+              {batchProcessing ? t('billing.processing') : t('billing.cancelSelected')}
             </Button>
           </div>
         </div>
@@ -561,7 +562,7 @@ export default function Invoices() {
       {loading ? (
         <div className="bg-white shadow rounded-lg p-8 text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Carregando faturas...</p>
+          <p className="mt-4 text-gray-600">{t('billing.loadingInvoices')}</p>
         </div>
       ) : (
         <div className="bg-white shadow rounded-lg overflow-hidden">
@@ -577,28 +578,28 @@ export default function Invoices() {
                   />
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Número
+                  {t('billing.invoiceNumber')}
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Cliente
+                  {t('billing.clientColumn')}
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Plano
+                  {t('billing.plans')}
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Período
+                  {t('billing.period')}
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Valor
+                  {t('billing.amount')}
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Vencimento
+                  {t('billing.dueDate')}
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
+                  {t('common.status')}
                 </th>
                 <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Ações
+                  {t('common.actions')}
                 </th>
               </tr>
             </thead>
@@ -607,7 +608,7 @@ export default function Invoices() {
                 <tr>
                   <td colSpan={9} className="px-6 py-8 text-center text-gray-500">
                     <FileText className="w-12 h-12 mx-auto mb-2 text-gray-400" />
-                    Nenhuma fatura encontrada
+                    {t('billing.noInvoices')}
                   </td>
                 </tr>
               ) : (
@@ -694,7 +695,7 @@ export default function Invoices() {
             <div className="p-6">
               <div className="flex justify-between items-start mb-4">
                 <h2 className="text-2xl font-bold text-gray-900">
-                  Detalhes da Fatura
+                  {t('billing.invoiceDetails')}
                 </h2>
                 <button
                   onClick={() => setViewingInvoice(null)}
@@ -707,54 +708,54 @@ export default function Invoices() {
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-500">Número</label>
+                    <label className="block text-sm font-medium text-gray-500">{t('billing.invoiceNumber')}</label>
                     <p className="mt-1 text-sm text-gray-900">{viewingInvoice.invoiceNumber}</p>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-500">Status</label>
+                    <label className="block text-sm font-medium text-gray-500">{t('common.status')}</label>
                     <div className="mt-1">{getStatusBadge(viewingInvoice.status)}</div>
                   </div>
                 </div>
 
                 <div className="border-t pt-4">
-                  <h3 className="font-semibold text-gray-900 mb-2">Cliente</h3>
+                  <h3 className="font-semibold text-gray-900 mb-2">{t('billing.clientColumn')}</h3>
                   <div className="space-y-2">
-                    <p className="text-sm"><span className="font-medium">Nome:</span> {viewingInvoice.clientName}</p>
-                    <p className="text-sm"><span className="font-medium">Email:</span> {viewingInvoice.clientEmail}</p>
-                    <p className="text-sm"><span className="font-medium">Documento:</span> {viewingInvoice.clientDocument}</p>
+                    <p className="text-sm"><span className="font-medium">{t('common.name')}:</span> {viewingInvoice.clientName}</p>
+                    <p className="text-sm"><span className="font-medium">{t('common.email')}:</span> {viewingInvoice.clientEmail}</p>
+                    <p className="text-sm"><span className="font-medium">{t('billing.document')}:</span> {viewingInvoice.clientDocument}</p>
                   </div>
                 </div>
 
                 <div className="border-t pt-4">
-                  <h3 className="font-semibold text-gray-900 mb-2">Assinatura</h3>
+                  <h3 className="font-semibold text-gray-900 mb-2">{t('billing.subscriptions')}</h3>
                   <div className="space-y-2">
-                    <p className="text-sm"><span className="font-medium">Plano:</span> {viewingInvoice.planName}</p>
-                    <p className="text-sm"><span className="font-medium">Período:</span> {viewingInvoice.referenceMonth.toString().padStart(2, '0')}/{viewingInvoice.referenceYear}</p>
+                    <p className="text-sm"><span className="font-medium">{t('billing.plans')}:</span> {viewingInvoice.planName}</p>
+                    <p className="text-sm"><span className="font-medium">{t('billing.period')}:</span> {viewingInvoice.referenceMonth.toString().padStart(2, '0')}/{viewingInvoice.referenceYear}</p>
                   </div>
                 </div>
 
                 <div className="border-t pt-4">
-                  <h3 className="font-semibold text-gray-900 mb-2">Valores e Datas</h3>
+                  <h3 className="font-semibold text-gray-900 mb-2">{t('billing.valuesAndDates')}</h3>
                   <div className="space-y-2">
-                    <p className="text-sm"><span className="font-medium">Valor:</span> {formatCurrency(viewingInvoice.amount)}</p>
-                    <p className="text-sm"><span className="font-medium">Data de Emissão:</span> {formatDate(viewingInvoice.issueDate)}</p>
-                    <p className="text-sm"><span className="font-medium">Data de Vencimento:</span> {formatDate(viewingInvoice.dueDate)}</p>
+                    <p className="text-sm"><span className="font-medium">{t('billing.amount')}:</span> {formatCurrency(viewingInvoice.amount)}</p>
+                    <p className="text-sm"><span className="font-medium">{t('billing.issueDate')}:</span> {formatDate(viewingInvoice.issueDate)}</p>
+                    <p className="text-sm"><span className="font-medium">{t('billing.dueDate')}:</span> {formatDate(viewingInvoice.dueDate)}</p>
                     {viewingInvoice.paymentDate && (
-                      <p className="text-sm"><span className="font-medium">Data de Pagamento:</span> {formatDate(viewingInvoice.paymentDate)}</p>
+                      <p className="text-sm"><span className="font-medium">{t('billing.paymentDate')}:</span> {formatDate(viewingInvoice.paymentDate)}</p>
                     )}
                   </div>
                 </div>
 
                 {viewingInvoice.description && (
                   <div className="border-t pt-4">
-                    <h3 className="font-semibold text-gray-900 mb-2">Descrição</h3>
+                    <h3 className="font-semibold text-gray-900 mb-2">{t('common.description')}</h3>
                     <p className="text-sm text-gray-700">{viewingInvoice.description}</p>
                   </div>
                 )}
 
                 {viewingInvoice.notes && (
                   <div className="border-t pt-4">
-                    <h3 className="font-semibold text-gray-900 mb-2">Observações</h3>
+                    <h3 className="font-semibold text-gray-900 mb-2">{t('common.notes')}</h3>
                     <p className="text-sm text-gray-700">{viewingInvoice.notes}</p>
                   </div>
                 )}
@@ -766,13 +767,13 @@ export default function Invoices() {
                   className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
                 >
                   <Download className="w-4 h-4 mr-2" />
-                  Download PDF
+                  {t('billing.downloadPdf')}
                 </Button>
                 <Button
                   onClick={() => setViewingInvoice(null)}
                   variant="secondary"
                 >
-                  Fechar
+                  {t('common.close')}
                 </Button>
               </div>
             </div>
@@ -785,7 +786,7 @@ export default function Invoices() {
         <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
           <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">Registrar Pagamento</h3>
+              <h3 className="text-lg font-semibold text-gray-900">{t('billing.registerPayment')}</h3>
               <button
                 onClick={() => {
                   setPaymentModalInvoice(null);
@@ -800,7 +801,7 @@ export default function Invoices() {
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Fatura
+                  {t('billing.invoices')}
                 </label>
                 <p className="text-sm text-gray-900 font-semibold">{paymentModalInvoice.invoiceNumber}</p>
                 <p className="text-sm text-gray-500">{paymentModalInvoice.clientName}</p>
@@ -808,14 +809,14 @@ export default function Invoices() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Valor
+                  {t('billing.amount')}
                 </label>
                 <p className="text-lg font-bold text-green-600">{formatCurrency(paymentModalInvoice.amount)}</p>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Data de Pagamento *
+                  {t('billing.paymentDateRequired')}
                 </label>
                 <input
                   type="date"
@@ -826,7 +827,7 @@ export default function Invoices() {
                   required
                 />
                 <p className="mt-1 text-xs text-gray-500">
-                  Data em que o pagamento foi recebido
+                  {t('billing.paymentDateHelp')}
                 </p>
               </div>
             </div>
@@ -838,7 +839,7 @@ export default function Invoices() {
                 className="flex-1 bg-green-600 hover:bg-green-700 text-white disabled:bg-gray-400"
               >
                 <CheckCircle className="w-4 h-4 mr-2" />
-                Confirmar Pagamento
+                {t('billing.confirmPayment')}
               </Button>
               <Button
                 onClick={() => {
@@ -847,7 +848,7 @@ export default function Invoices() {
                 }}
                 variant="secondary"
               >
-                Cancelar
+                {t('common.cancel')}
               </Button>
             </div>
           </div>
@@ -860,41 +861,41 @@ export default function Invoices() {
           <div className="bg-white rounded-lg max-w-md w-full shadow-xl animate-slide-in-top">
             <div className="p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                Gerar Faturas Mensais
+                {t('billing.generateMonthlyTitle')}
               </h3>
               
               <p className="text-sm text-gray-600 mb-4">
-                Selecione o período de referência para gerar as faturas de todas as assinaturas ativas.
+                {t('billing.generateMonthlyDesc')}
               </p>
 
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Mês *
+                    {t('billing.month')} *
                   </label>
                   <select
                     value={generateMonth}
                     onChange={(e) => setGenerateMonth(Number(e.target.value))}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
-                    <option value={1}>Janeiro</option>
-                    <option value={2}>Fevereiro</option>
-                    <option value={3}>Março</option>
-                    <option value={4}>Abril</option>
-                    <option value={5}>Maio</option>
-                    <option value={6}>Junho</option>
-                    <option value={7}>Julho</option>
-                    <option value={8}>Agosto</option>
-                    <option value={9}>Setembro</option>
-                    <option value={10}>Outubro</option>
-                    <option value={11}>Novembro</option>
-                    <option value={12}>Dezembro</option>
+                    <option value={1}>{t('billing.january')}</option>
+                    <option value={2}>{t('billing.february')}</option>
+                    <option value={3}>{t('billing.march')}</option>
+                    <option value={4}>{t('billing.april')}</option>
+                    <option value={5}>{t('billing.may')}</option>
+                    <option value={6}>{t('billing.june')}</option>
+                    <option value={7}>{t('billing.july')}</option>
+                    <option value={8}>{t('billing.august')}</option>
+                    <option value={9}>{t('billing.september')}</option>
+                    <option value={10}>{t('billing.october')}</option>
+                    <option value={11}>{t('billing.november')}</option>
+                    <option value={12}>{t('billing.december')}</option>
                   </select>
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Ano *
+                    {t('billing.year')} *
                   </label>
                   <input
                     type="number"
@@ -908,7 +909,7 @@ export default function Invoices() {
 
                 <div className="bg-blue-50 border border-blue-200 rounded-md p-3">
                   <p className="text-xs text-blue-800">
-                    <strong>Período selecionado:</strong> {new Date(generateYear, generateMonth - 1).toLocaleString('pt-BR', { month: 'long' })} de {generateYear}
+                    <strong>{t('billing.selectedPeriod')}</strong> {new Date(generateYear, generateMonth - 1).toLocaleString('pt-BR', { month: 'long' })} de {generateYear}
                   </p>
                 </div>
               </div>
@@ -920,7 +921,7 @@ export default function Invoices() {
                 disabled={confirmLoading}
                 variant="secondary"
               >
-                Cancelar
+                {t('common.cancel')}
               </Button>
               <Button
                 onClick={handleConfirmGenerate}
@@ -928,7 +929,7 @@ export default function Invoices() {
                 className="bg-blue-600 hover:bg-blue-700 text-white"
                 loading={confirmLoading}
               >
-                Gerar Faturas
+                {t('billing.generateInvoices')}
               </Button>
             </div>
           </div>
