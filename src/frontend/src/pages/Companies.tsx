@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Plus, Search, Edit, Trash2, Building2, DollarSign, Users } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Button, Input, Badge, Card } from '@/components/ui';
 import { useCompanies, useDeleteCompany } from '@/hooks/useCompanies';
 import { CompanyForm } from '@/components/companies/CompanyForm';
@@ -19,12 +20,13 @@ export default function Companies() {
   const [page, setPage] = useState(1);
   const [showForm, setShowForm] = useState(false);
   const [editingCompany, setEditingCompany] = useState<Company | null>(null);
+  const { t } = useTranslation();
 
   const { data, isLoading, error } = useCompanies({ page, pageSize: 10, search });
   const deleteCompany = useDeleteCompany();
 
   const handleDelete = async (company: Company) => {
-    if (confirm(`Deseja realmente excluir a empresa "${company.name}"?`)) {
+    if (confirm(t('companies.confirmDelete', { name: company.name }))) {
       deleteCompany.mutate(company.id);
     }
   };
@@ -46,9 +48,9 @@ export default function Companies() {
       Inactive: 'inactive',
     };
     const labels: Record<string, string> = {
-      Active: 'Ativa',
-      Pending: 'Pendente',
-      Inactive: 'Inativa',
+      Active: t('companies.statusActive'),
+      Pending: t('companies.statusPending'),
+      Inactive: t('companies.statusInactive'),
     };
     return <Badge variant={variants[status] || 'inactive'}>{labels[status] || status}</Badge>;
   };
@@ -57,7 +59,7 @@ export default function Companies() {
     return (
       <div className="p-6">
         <Card className="p-8 text-center">
-          <p className="text-red-500">Erro ao carregar empresas</p>
+          <p className="text-red-500">{t('companies.loadingError')}</p>
         </Card>
       </div>
     );
@@ -68,14 +70,14 @@ export default function Companies() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-primary">Empresas</h1>
-          <p className="text-primary-500">Gerencie as empresas cadastradas</p>
+          <h1 className="text-2xl font-bold text-primary">{t('companies.title')}</h1>
+          <p className="text-primary-500">{t('companies.subtitle')}</p>
         </div>
         <Button
           onClick={() => setShowForm(true)}
           icon={<Plus className="w-4 h-4" />}
         >
-          Nova Empresa
+          {t('companies.newCompany')}
         </Button>
       </div>
 
@@ -87,7 +89,7 @@ export default function Companies() {
               <Building2 className="w-6 h-6 text-primary" />
             </div>
             <div>
-              <p className="text-sm text-primary-500">Total de Empresas</p>
+              <p className="text-sm text-primary-500">{t('companies.totalCompanies')}</p>
               <p className="text-2xl font-bold text-primary">{data?.totalCount || 0}</p>
             </div>
           </div>
@@ -98,7 +100,7 @@ export default function Companies() {
               <DollarSign className="w-6 h-6 text-success" />
             </div>
             <div>
-              <p className="text-sm text-primary-500">Valuation Total</p>
+              <p className="text-sm text-primary-500">{t('companies.totalValuation')}</p>
               <p className="text-2xl font-bold text-primary">
                 {formatCurrency(
                   data?.items?.reduce((acc, c) => acc + (c.valuation || 0), 0) || 0
@@ -113,7 +115,7 @@ export default function Companies() {
               <Users className="w-6 h-6 text-accent" />
             </div>
             <div>
-              <p className="text-sm text-primary-500">Empresas Ativas</p>
+              <p className="text-sm text-primary-500">{t('companies.activeCompanies')}</p>
               <p className="text-2xl font-bold text-primary">
                 {data?.items?.filter((c) => c.status === 'Active').length || 0}
               </p>
@@ -127,7 +129,7 @@ export default function Companies() {
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-primary-400" />
           <Input
-            placeholder="Buscar por nome ou CNPJ..."
+            placeholder={t('companies.searchPlaceholder')}
             value={search}
             onChange={(e) => {
               setSearch(e.target.value);
@@ -145,22 +147,22 @@ export default function Companies() {
             <thead className="bg-primary-50">
               <tr>
                 <th className="px-4 py-3 text-left text-sm font-medium text-primary-600">
-                  Empresa
+                  {t('companies.company')}
                 </th>
                 <th className="px-4 py-3 text-left text-sm font-medium text-primary-600">
-                  CNPJ
+                  {t('companies.cnpj')}
                 </th>
                 <th className="px-4 py-3 text-left text-sm font-medium text-primary-600">
-                  Forma Jurídica
+                  {t('companies.legalForm')}
                 </th>
                 <th className="px-4 py-3 text-right text-sm font-medium text-primary-600">
-                  Valuation
+                  {t('companies.valuation')}
                 </th>
                 <th className="px-4 py-3 text-center text-sm font-medium text-primary-600">
-                  Status
+                  {t('common.status')}
                 </th>
                 <th className="px-4 py-3 text-right text-sm font-medium text-primary-600">
-                  Ações
+                  {t('common.actions')}
                 </th>
               </tr>
             </thead>
@@ -168,13 +170,13 @@ export default function Companies() {
               {isLoading ? (
                 <tr>
                   <td colSpan={6} className="px-4 py-8 text-center text-primary-400">
-                    Carregando...
+                    {t('common.loading')}
                   </td>
                 </tr>
               ) : data?.items?.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="px-4 py-8 text-center text-primary-400">
-                    Nenhuma empresa encontrada
+                    {t('companies.notFound')}
                   </td>
                 </tr>
               ) : (
@@ -218,14 +220,14 @@ export default function Companies() {
                         <button
                           onClick={() => handleEdit(company)}
                           className="p-2 hover:bg-primary-100 rounded-lg transition-colors"
-                          title="Editar"
+                          title={t('common.edit')}
                         >
                           <Edit className="w-4 h-4 text-primary-500" />
                         </button>
                         <button
                           onClick={() => handleDelete(company)}
                           className="p-2 hover:bg-red-100 rounded-lg transition-colors"
-                          title="Excluir"
+                          title={t('common.delete')}
                         >
                           <Trash2 className="w-4 h-4 text-red-500" />
                         </button>
@@ -242,8 +244,11 @@ export default function Companies() {
         {data && data.totalPages > 1 && (
           <div className="px-4 py-3 border-t flex items-center justify-between">
             <p className="text-sm text-primary-500">
-              Mostrando {(page - 1) * 10 + 1} a {Math.min(page * 10, data.totalCount)} de{' '}
-              {data.totalCount} empresas
+              {t('companies.showing', {
+                from: (page - 1) * 10 + 1,
+                to: Math.min(page * 10, data.totalCount),
+                total: data.totalCount,
+              })}
             </p>
             <div className="flex gap-2">
               <Button
@@ -252,7 +257,7 @@ export default function Companies() {
                 disabled={page === 1}
                 onClick={() => setPage(page - 1)}
               >
-                Anterior
+                {t('common.previous')}
               </Button>
               <Button
                 variant="secondary"
@@ -260,7 +265,7 @@ export default function Companies() {
                 disabled={page === data.totalPages}
                 onClick={() => setPage(page + 1)}
               >
-                Próximo
+                {t('common.next')}
               </Button>
             </div>
           </div>

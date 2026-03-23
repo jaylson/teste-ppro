@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Plus, Search, Eye, Edit, Ban, CheckCircle, Calendar } from 'lucide-react';
 import { Button, AlertContainer, useAlerts, ConfirmDialog } from '@/components/ui';
 import { ClientModal, SubscriptionModal } from '@/components/modals';
@@ -39,6 +40,7 @@ interface Subscription {
 }
 
 export default function ClientsSubscriptions() {
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<'clients' | 'subscriptions'>('clients');
   const [searchTerm, setSearchTerm] = useState('');
   const [showClientModal, setShowClientModal] = useState(false);
@@ -201,10 +203,10 @@ export default function ClientsSubscriptions() {
       pending: 'badge-info',
     };
     const labels: Record<string, string> = {
-      active: 'Ativo',
-      suspended: 'Suspenso',
-      cancelled: 'Cancelado',
-      pending: 'Pendente',
+      active: t('billing.statusActive'),
+      suspended: t('billing.statusSuspended'),
+      cancelled: t('billing.statusCancelled'),
+      pending: t('billing.statusPending'),
     };
     return <span className={`badge ${variants[status]}`}>{labels[status]}</span>;
   };
@@ -212,21 +214,18 @@ export default function ClientsSubscriptions() {
   const handleSaveClient = async (client: Client) => {
     try {
       if (client.id) {
-        // Atualizar
         await clientsApi.update(client.id, client);
-        showSuccess(`Cliente "${client.name}" atualizado com sucesso!`);
+        showSuccess(t('billing.clientUpdatedSuccess', { name: client.name }));
       } else {
-        // Criar
         await clientsApi.create(client);
-        showSuccess(`Cliente "${client.name}" criado com sucesso!`);
+        showSuccess(t('billing.clientCreatedSuccess', { name: client.name }));
       }
-      // Recarregar lista
       await loadClients();
       setShowClientModal(false);
       setEditingClient(null);
     } catch (err: any) {
       console.error('Erro ao salvar cliente:', err);
-      showError(err.response?.data?.message || 'Erro ao salvar cliente');
+      showError(err.response?.data?.message || t('billing.clientSaveError'));
     }
   };
 
@@ -249,9 +248,8 @@ export default function ClientsSubscriptions() {
         };
         console.log('Dados de atualização:', updateData);
         await subscriptionsApi.update(subscription.id, updateData);
-        showSuccess('Assinatura atualizada com sucesso!');
+        showSuccess(t('billing.subscriptionUpdatedSuccess'));
       } else {
-        // Criar
         await subscriptionsApi.create({
           clientId: subscription.clientId,
           planId: subscription.planId,
@@ -259,15 +257,14 @@ export default function ClientsSubscriptions() {
           dueDay,
           paymentMethod
         });
-        showSuccess('Assinatura criada com sucesso!');
+        showSuccess(t('billing.subscriptionCreatedSuccess'));
       }
-      // Recarregar lista
       await loadSubscriptions();
       setShowSubscriptionModal(false);
       setEditingSubscription(null);
     } catch (err: any) {
       console.error('Erro ao salvar assinatura:', err);
-      showError(err.response?.data?.message || 'Erro ao salvar assinatura');
+      showError(err.response?.data?.message || t('billing.subscriptionSaveError'));
     }
   };
 
@@ -279,7 +276,7 @@ export default function ClientsSubscriptions() {
       setShowClientModal(true);
     } catch (err: any) {
       console.error('Erro ao carregar cliente:', err);
-      showError('Erro ao carregar dados do cliente');
+      showError(t('billing.clientLoadError'));
     }
   };
 
@@ -289,7 +286,7 @@ export default function ClientsSubscriptions() {
       setViewingClient(fullClient);
     } catch (err: any) {
       console.error('Erro ao carregar cliente:', err);
-      showError('Erro ao carregar dados do cliente');
+      showError(t('billing.clientLoadError'));
     }
   };
 
@@ -313,20 +310,20 @@ export default function ClientsSubscriptions() {
     
     setConfirmDialog({
       isOpen: true,
-      title: 'Suspender Assinatura',
-      message: `Deseja realmente suspender a assinatura de "${subscription?.clientName}"?`,
-      confirmText: 'Sim, suspender',
+      title: t('billing.suspendSubscription'),
+      message: t('billing.suspendSubscriptionConfirm', { name: subscription?.clientName }),
+      confirmText: t('billing.yesSuspend'),
       confirmVariant: 'danger',
       onConfirm: async () => {
         setConfirmLoading(true);
         try {
           await subscriptionsApi.suspend(subscriptionId);
           await loadSubscriptions();
-          showSuccess('Assinatura suspensa com sucesso!');
+          showSuccess(t('billing.subscriptionSuspendedSuccess'));
           setConfirmDialog((prev) => ({ ...prev, isOpen: false }));
         } catch (err: any) {
           console.error('Erro ao suspender assinatura:', err);
-          showError(err.response?.data?.message || 'Erro ao suspender assinatura');
+          showError(err.response?.data?.message || t('billing.subscriptionSuspendError'));
         } finally {
           setConfirmLoading(false);
         }
@@ -340,20 +337,20 @@ export default function ClientsSubscriptions() {
     
     setConfirmDialog({
       isOpen: true,
-      title: 'Ativar Assinatura',
-      message: `Deseja realmente ativar a assinatura de "${subscription?.clientName}"?`,
-      confirmText: 'Sim, ativar',
+      title: t('billing.activateSubscription'),
+      message: t('billing.activateSubscriptionConfirm', { name: subscription?.clientName }),
+      confirmText: t('billing.yesActivate'),
       confirmVariant: 'primary',
       onConfirm: async () => {
         setConfirmLoading(true);
         try {
           await subscriptionsApi.activate(subscriptionId);
           await loadSubscriptions();
-          showSuccess('Assinatura ativada com sucesso!');
+          showSuccess(t('billing.subscriptionActivatedSuccess'));
           setConfirmDialog((prev) => ({ ...prev, isOpen: false }));
         } catch (err: any) {
           console.error('Erro ao ativar assinatura:', err);
-          showError(err.response?.data?.message || 'Erro ao ativar assinatura');
+          showError(err.response?.data?.message || t('billing.subscriptionActivateError'));
         } finally {
           setConfirmLoading(false);
         }
@@ -378,50 +375,50 @@ export default function ClientsSubscriptions() {
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="page-title">Billing</h1>
-          <p className="page-subtitle">Gerencie clientes e suas assinaturas ativas</p>
+          <p className="page-subtitle">{t('billing.clientsSubscriptionsPageSubtitle')}</p>
         </div>
         <Button onClick={activeTab === 'clients' ? handleNewClient : () => setShowSubscriptionModal(true)}>
           <Plus className="w-4 h-4 mr-2" />
-          {activeTab === 'clients' ? 'Novo Cliente' : 'Nova Assinatura'}
+          {activeTab === 'clients' ? t('billing.newClient') : t('billing.newSubscription')}
         </Button>
       </div>
 
       {/* Navigation Tabs */}
       <div className="flex gap-2 mb-6 border-b border-border pb-0">
         <Link to="/billing" className="px-4 py-3 font-medium text-muted-foreground hover:text-foreground transition-colors">
-          Dashboard
+          {t('billing.dashboard')}
         </Link>
         <Link to="/billing/plans" className="px-4 py-3 font-medium text-muted-foreground hover:text-foreground transition-colors">
-          Planos
+          {t('billing.plans')}
         </Link>
         <Link to="/billing/clients" className="px-4 py-3 font-medium text-primary border-b-2 border-primary">
-          Clientes & Assinaturas
+          {t('billing.clientsSubscriptions')}
         </Link>
         <Link to="/billing/invoices" className="px-4 py-3 font-medium text-muted-foreground hover:text-foreground transition-colors">
-          Faturas
+          {t('billing.invoices')}
         </Link>
       </div>
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
         <div className="card">
-          <div className="text-sm text-muted-foreground mb-1">Total de Clientes</div>
+          <div className="text-sm text-muted-foreground mb-1">{t('billing.totalClients')}</div>
           <div className="text-3xl font-bold">{clients.length}</div>
         </div>
         <div className="card">
-          <div className="text-sm text-muted-foreground mb-1">Assinaturas Ativas</div>
+          <div className="text-sm text-muted-foreground mb-1">{t('billing.activeSubscriptions')}</div>
           <div className="text-3xl font-bold text-green-600">
             {subscriptions.filter(s => s.status === 'active').length}
           </div>
         </div>
         <div className="card">
-          <div className="text-sm text-muted-foreground mb-1">Suspensas</div>
+          <div className="text-sm text-muted-foreground mb-1">{t('billing.suspendedSubscriptions')}</div>
           <div className="text-3xl font-bold text-yellow-600">
             {subscriptions.filter(s => s.status === 'suspended').length}
           </div>
         </div>
         <div className="card">
-          <div className="text-sm text-muted-foreground mb-1">MRR Total</div>
+          <div className="text-sm text-muted-foreground mb-1">{t('billing.totalMrr')}</div>
           <div className="text-3xl font-bold text-primary">
             R$ {subscriptions
               .filter(s => s.status === 'active')
@@ -441,7 +438,7 @@ export default function ClientsSubscriptions() {
           }`}
           onClick={() => setActiveTab('clients')}
         >
-          Clientes ({clients.length})
+          {t('billing.clientsTab', { count: clients.length })}
         </button>
         <button
           className={`pb-3 px-4 font-medium transition-colors ${
@@ -451,7 +448,7 @@ export default function ClientsSubscriptions() {
           }`}
           onClick={() => setActiveTab('subscriptions')}
         >
-          Assinaturas ({subscriptions.length})
+          {t('billing.subscriptionsTab', { count: subscriptions.length })}
         </button>
       </div>
 
@@ -460,8 +457,8 @@ export default function ClientsSubscriptions() {
         {error && (
           <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg mb-4 flex items-center justify-between">
             <div>
-              <strong>Erro:</strong> {error}
-              <div className="text-sm mt-1">Usando dados de demonstração. Verifique se o backend está rodando.</div>
+              <strong>{t('common.error')}:</strong> {error}
+              <div className="text-sm mt-1">{t('billing.demoData')}</div>
             </div>
             <button onClick={() => setError(null)} className="text-red-600 hover:text-red-800">×</button>
           </div>
@@ -470,7 +467,7 @@ export default function ClientsSubscriptions() {
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-muted-foreground" />
           <input
             type="text"
-            placeholder={activeTab === 'clients' ? 'Buscar por nome, email ou documento...' : 'Buscar por cliente ou plano...'}
+            placeholder={activeTab === 'clients' ? t('billing.searchClientsPlaceholder') : t('billing.searchSubscriptionsPlaceholder')}
             className="input pl-10 w-full"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -485,12 +482,12 @@ export default function ClientsSubscriptions() {
             <table className="table">
               <thead>
                 <tr>
-                  <th>Cliente</th>
-                  <th>Tipo</th>
-                  <th>Documento</th>
-                  <th>Data Cadastro</th>
-                  <th>Status</th>
-                  <th className="text-right">Ações</th>
+                  <th>{t('billing.clientColumn')}</th>
+                  <th>{t('billing.typeColumn')}</th>
+                  <th>{t('billing.documentColumn')}</th>
+                  <th>{t('billing.registrationDate')}</th>
+                  <th>{t('common.status')}</th>
+                  <th className="text-right">{t('common.actions')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -504,7 +501,7 @@ export default function ClientsSubscriptions() {
                     </td>
                     <td>
                       <span className="badge badge-outline">
-                        {client.type === 'company' ? 'Empresa' : 'Pessoa Física'}
+                        {client.type === 'company' ? t('billing.company') : t('billing.individual')}
                       </span>
                     </td>
                     <td className="font-mono text-sm">{client.document}</td>
@@ -538,14 +535,14 @@ export default function ClientsSubscriptions() {
             <table className="table">
               <thead>
                 <tr>
-                  <th>Cliente</th>
-                  <th>Plano</th>
-                  <th>Valor</th>
-                  <th>Ciclo</th>
-                  <th>Início</th>
-                  <th>Uso</th>
-                  <th>Status</th>
-                  <th className="text-right">Ações</th>
+                  <th>{t('billing.clientColumn')}</th>
+                  <th>{t('billing.plans')}</th>
+                  <th>{t('billing.amount')}</th>
+                  <th>{t('billing.cycleColumn')}</th>
+                  <th>{t('billing.startColumn')}</th>
+                  <th>{t('billing.usageColumn')}</th>
+                  <th>{t('common.status')}</th>
+                  <th className="text-right">{t('common.actions')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -563,14 +560,14 @@ export default function ClientsSubscriptions() {
                     <td>
                       <div className="flex items-center gap-1 text-sm text-muted-foreground">
                         <Calendar className="w-4 h-4" />
-                        {sub.billingCycle === 'monthly' ? 'Mensal' : 'Anual'}
+                        {sub.billingCycle === 'monthly' ? t('billing.monthly') : t('billing.annual')}
                       </div>
                     </td>
                     <td>{new Date(sub.startDate).toLocaleDateString('pt-BR')}</td>
                     <td>
                       <div className="text-sm">
-                        <div>{sub.companiesCount} empresas</div>
-                        <div className="text-muted-foreground">{sub.usersCount} usuários</div>
+                        <div>{t('billing.companiesCountLabel', { count: sub.companiesCount })}</div>
+                        <div className="text-muted-foreground">{t('billing.usersCountLabel', { count: sub.usersCount })}</div>
                       </div>
                     </td>
                     <td>{getStatusBadge(sub.status)}</td>
@@ -639,7 +636,7 @@ export default function ClientsSubscriptions() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setViewingClient(null)}>
           <div className="bg-background rounded-lg shadow-xl max-w-2xl w-full m-4 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
             <div className="p-6 border-b border-border flex justify-between items-center">
-              <h2 className="text-xl font-semibold">Detalhes do Cliente</h2>
+              <h2 className="text-xl font-semibold">{t('billing.clientDetails')}</h2>
               <button onClick={() => setViewingClient(null)} className="text-muted-foreground hover:text-foreground">
                 ×
               </button>
@@ -647,58 +644,58 @@ export default function ClientsSubscriptions() {
             <div className="p-6 space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-sm font-medium text-muted-foreground">Nome</label>
+                  <label className="text-sm font-medium text-muted-foreground">{t('common.name')}</label>
                   <p className="text-base">{viewingClient.name}</p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-muted-foreground">Tipo</label>
-                  <p className="text-base">{viewingClient.type === 'company' ? 'Empresa' : 'Pessoa Física'}</p>
+                  <label className="text-sm font-medium text-muted-foreground">{t('billing.typeColumn')}</label>
+                  <p className="text-base">{viewingClient.type === 'company' ? t('billing.company') : t('billing.individual')}</p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-muted-foreground">Email</label>
+                  <label className="text-sm font-medium text-muted-foreground">{t('common.email')}</label>
                   <p className="text-base">{viewingClient.email}</p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-muted-foreground">Documento</label>
+                  <label className="text-sm font-medium text-muted-foreground">{t('billing.document')}</label>
                   <p className="text-base">{viewingClient.document}</p>
                 </div>
                 {viewingClient.phone && (
                   <div>
-                    <label className="text-sm font-medium text-muted-foreground">Telefone</label>
+                    <label className="text-sm font-medium text-muted-foreground">{t('common.phone')}</label>
                     <p className="text-base">{viewingClient.phone}</p>
                   </div>
                 )}
                 <div>
-                  <label className="text-sm font-medium text-muted-foreground">Status</label>
+                  <label className="text-sm font-medium text-muted-foreground">{t('common.status')}</label>
                   <p className="text-base">{getStatusBadge(viewingClient.status)}</p>
                 </div>
                 {viewingClient.address && (
                   <div className="col-span-2">
-                    <label className="text-sm font-medium text-muted-foreground">Endereço</label>
+                    <label className="text-sm font-medium text-muted-foreground">{t('billing.address')}</label>
                     <p className="text-base">{viewingClient.address}</p>
                   </div>
                 )}
                 {viewingClient.city && (
                   <div>
-                    <label className="text-sm font-medium text-muted-foreground">Cidade</label>
+                    <label className="text-sm font-medium text-muted-foreground">{t('billing.city')}</label>
                     <p className="text-base">{viewingClient.city} - {viewingClient.state}</p>
                   </div>
                 )}
                 {viewingClient.zipCode && (
                   <div>
-                    <label className="text-sm font-medium text-muted-foreground">CEP</label>
+                    <label className="text-sm font-medium text-muted-foreground">{t('billing.zipCode')}</label>
                     <p className="text-base">{viewingClient.zipCode}</p>
                   </div>
                 )}
                 <div>
-                  <label className="text-sm font-medium text-muted-foreground">Data de Cadastro</label>
+                  <label className="text-sm font-medium text-muted-foreground">{t('billing.registrationDateLabel')}</label>
                   <p className="text-base">{new Date(viewingClient.createdAt!).toLocaleDateString('pt-BR')}</p>
                 </div>
               </div>
             </div>
             <div className="p-6 border-t border-border flex justify-end gap-2">
               <Button variant="secondary" onClick={() => setViewingClient(null)}>
-                Fechar
+                {t('common.close')}
               </Button>
               <Button onClick={() => {
                 setEditingClient(viewingClient);
@@ -706,7 +703,7 @@ export default function ClientsSubscriptions() {
                 setShowClientModal(true);
               }}>
                 <Edit className="w-4 h-4 mr-2" />
-                Editar
+                {t('common.edit')}
               </Button>
             </div>
           </div>
@@ -718,7 +715,7 @@ export default function ClientsSubscriptions() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setViewingSubscription(null)}>
           <div className="bg-background rounded-lg shadow-xl max-w-2xl w-full m-4 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
             <div className="p-6 border-b border-border flex justify-between items-center">
-              <h2 className="text-xl font-semibold">Detalhes da Assinatura</h2>
+              <h2 className="text-xl font-semibold">{t('billing.subscriptionDetails')}</h2>
               <button onClick={() => setViewingSubscription(null)} className="text-muted-foreground hover:text-foreground">
                 ×
               </button>
@@ -726,45 +723,45 @@ export default function ClientsSubscriptions() {
             <div className="p-6 space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-sm font-medium text-muted-foreground">Cliente</label>
+                  <label className="text-sm font-medium text-muted-foreground">{t('billing.clientColumn')}</label>
                   <p className="text-base">{viewingSubscription.clientName}</p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-muted-foreground">Status</label>
+                  <label className="text-sm font-medium text-muted-foreground">{t('common.status')}</label>
                   <p className="text-base">{getStatusBadge(viewingSubscription.status)}</p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-muted-foreground">Plano</label>
+                  <label className="text-sm font-medium text-muted-foreground">{t('billing.plans')}</label>
                   <p className="text-base">{viewingSubscription.planName}</p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-muted-foreground">Valor</label>
+                  <label className="text-sm font-medium text-muted-foreground">{t('billing.amount')}</label>
                   <p className="text-base">R$ {viewingSubscription.planPrice.toFixed(2).replace('.', ',')}</p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-muted-foreground">Ciclo de Cobrança</label>
-                  <p className="text-base">{viewingSubscription.billingCycle === 'monthly' ? 'Mensal' : 'Anual'}</p>
+                  <label className="text-sm font-medium text-muted-foreground">{t('billing.billingCycleLabel')}</label>
+                  <p className="text-base">{viewingSubscription.billingCycle === 'monthly' ? t('billing.monthly') : t('billing.annual')}</p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-muted-foreground">Renovação Automática</label>
-                  <p className="text-base">{viewingSubscription.autoRenew ? 'Sim' : 'Não'}</p>
+                  <label className="text-sm font-medium text-muted-foreground">{t('billing.autoRenew')}</label>
+                  <p className="text-base">{viewingSubscription.autoRenew ? t('common.yes') : t('common.no')}</p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-muted-foreground">Data de Início</label>
+                  <label className="text-sm font-medium text-muted-foreground">{t('billing.subscriptionStartDate')}</label>
                   <p className="text-base">{new Date(viewingSubscription.startDate).toLocaleDateString('pt-BR')}</p>
                 </div>
                 {viewingSubscription.endDate && (
                   <div>
-                    <label className="text-sm font-medium text-muted-foreground">Data de Término</label>
+                    <label className="text-sm font-medium text-muted-foreground">{t('billing.subscriptionEndDate')}</label>
                     <p className="text-base">{new Date(viewingSubscription.endDate).toLocaleDateString('pt-BR')}</p>
                   </div>
                 )}
                 <div>
-                  <label className="text-sm font-medium text-muted-foreground">Empresas</label>
+                  <label className="text-sm font-medium text-muted-foreground">{t('billing.companies')}</label>
                   <p className="text-base">{viewingSubscription.companiesCount} empresa(s)</p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-muted-foreground">Usuários</label>
+                  <label className="text-sm font-medium text-muted-foreground">{t('billing.users')}</label>
                   <p className="text-base">{viewingSubscription.usersCount} usuário(s)</p>
                 </div>
               </div>

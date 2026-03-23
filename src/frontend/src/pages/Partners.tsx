@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Search, Plus, Mail, Phone, MoreVertical } from 'lucide-react';
 import { Button, Card, Badge, Avatar } from '@/components/ui';
 
@@ -79,8 +80,30 @@ const partners = [
 ];
 
 export default function Partners() {
+  const { t } = useTranslation();
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<string>('all');
+
+  const TYPE_FILTER_LABELS: Record<string, string> = {
+    all: t('partners.all'),
+    Fundador: t('partners.typeFounder'),
+    Investidor: t('partners.typeInvestor'),
+    Funcionário: t('partners.typeEmployee'),
+    Advisor: t('partners.typeAdvisor'),
+  };
+
+  const TYPE_BADGE_MAP: Record<string, string> = {
+    Fundador: t('partners.typeFounder'),
+    Investidor: t('partners.typeInvestor'),
+    Funcionário: t('partners.typeEmployee'),
+    Advisor: t('partners.typeAdvisor'),
+  };
+
+  const STATUS_BADGE_MAP: Record<string, string> = {
+    Ativo: t('common.active'),
+    Vesting: 'Vesting',
+    Pendente: t('common.pending'),
+  };
 
   const filteredPartners = partners.filter((p) => {
     const matchesSearch =
@@ -98,17 +121,17 @@ export default function Partners() {
       {/* Header */}
       <div className="page-header">
         <div>
-          <h1 className="page-title">Sócios</h1>
+          <h1 className="page-title">{t('partners.title')}</h1>
           <p className="page-subtitle">
-            <span className="text-success font-medium">{activeCount} ativos</span>
+            <span className="text-success font-medium">{t('partners.activeCount', { count: activeCount })}</span>
             {pendingCount > 0 && (
               <span className="text-warning font-medium ml-2">
-                • {pendingCount} pendentes
+                • {t('partners.pendingCount', { count: pendingCount })}
               </span>
             )}
           </p>
         </div>
-        <Button icon={<Plus className="w-4 h-4" />}>Adicionar Sócio</Button>
+        <Button icon={<Plus className="w-4 h-4" />}>{t('partners.addPartner')}</Button>
       </div>
 
       {/* Filters */}
@@ -117,7 +140,7 @@ export default function Partners() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-primary-400" />
           <input
             type="text"
-            placeholder="Buscar por nome ou cargo..."
+            placeholder={t('partners.searchByNameRole')}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full pl-10 pr-4 py-2.5 border border-primary-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent"
@@ -135,7 +158,7 @@ export default function Partners() {
                     : 'bg-white text-primary-600 hover:bg-primary-50 border border-primary-200'
                 }`}
               >
-                {type === 'all' ? 'Todos' : type}
+                {TYPE_FILTER_LABELS[type] ?? type}
               </button>
             )
           )}
@@ -173,7 +196,7 @@ export default function Partners() {
                         : 'active'
                     }
                   >
-                    {partner.type}
+                    {TYPE_BADGE_MAP[partner.type] ?? partner.type}
                   </Badge>
                   <Badge
                     variant={
@@ -184,7 +207,7 @@ export default function Partners() {
                         : 'pending'
                     }
                   >
-                    {partner.status}
+                    {STATUS_BADGE_MAP[partner.status] ?? partner.status}
                   </Badge>
                 </div>
               </div>
@@ -193,19 +216,19 @@ export default function Partners() {
             {/* Details */}
             <div className="space-y-3 py-4 border-t border-primary-100">
               <div className="flex justify-between text-sm">
-                <span className="text-primary-500">Ações</span>
+                <span className="text-primary-500">{t('partners.shares')}</span>
                 <span className="font-medium text-primary">
                   {partner.shares.toLocaleString('pt-BR')}
                 </span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-primary-500">Participação</span>
+                <span className="text-primary-500">{t('partners.percentage')}</span>
                 <span className="font-medium text-primary">
                   {partner.percentage}%
                 </span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-primary-500">Entrada</span>
+                <span className="text-primary-500">{t('partners.entryDate')}</span>
                 <span className="font-medium text-primary">
                   {new Date(partner.entryDate).toLocaleDateString('pt-BR')}
                 </span>
@@ -215,14 +238,14 @@ export default function Partners() {
             {/* Actions */}
             <div className="flex gap-2 pt-4 border-t border-primary-100">
               <Button variant="secondary" size="sm" className="flex-1">
-                Ver Detalhes
+                {t('partners.viewDetails')}
               </Button>
               <Button
                 variant="ghost"
                 size="sm"
                 className="btn-icon"
                 onClick={() => window.location.href = `mailto:${partner.email}`}
-                title="Enviar e-mail"
+                title={t('partners.sendEmail')}
               >
                 <Mail className="w-5 h-5" />
               </Button>
@@ -231,7 +254,7 @@ export default function Partners() {
                 size="sm"
                 className="btn-icon"
                 onClick={() => window.location.href = `tel:${partner.phone}`}
-                title="Fazer chamada"
+                title={t('partners.makeCall')}
               >
                 <Phone className="w-5 h-5" />
               </Button>
@@ -247,13 +270,13 @@ export default function Partners() {
             <Search className="w-8 h-8 text-primary-400" />
           </div>
           <h3 className="font-semibold text-primary mb-2">
-            Nenhum sócio encontrado
+            {t('partners.noPartnersFound')}
           </h3>
           <p className="text-primary-500 mb-4">
-            Tente ajustar os filtros ou realizar uma nova busca.
+            {t('partners.tryAdjustFilters')}
           </p>
           <Button variant="secondary" onClick={() => { setSearch(''); setFilter('all'); }}>
-            Limpar filtros
+            {t('partners.clearFilters')}
           </Button>
         </Card>
       )}

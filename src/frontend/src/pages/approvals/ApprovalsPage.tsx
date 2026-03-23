@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { CheckSquare, Clock, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
 import { Card, Spinner } from '@/components/ui';
@@ -16,13 +17,6 @@ const PRIORITY_COLORS: Record<string, string> = {
   urgent: 'bg-red-100 text-red-700',
 };
 
-const PRIORITY_LABELS: Record<string, string> = {
-  low: 'Baixa',
-  medium: 'Média',
-  high: 'Alta',
-  urgent: 'Urgente',
-};
-
 const STATUS_ICONS: Record<string, React.ReactNode> = {
   pending: <Clock className="w-4 h-4 text-amber-500" />,
   in_progress: <AlertCircle className="w-4 h-4 text-blue-500" />,
@@ -32,7 +26,15 @@ const STATUS_ICONS: Record<string, React.ReactNode> = {
 };
 
 function WorkflowCard({ workflow }: { workflow: Workflow }) {
+  const { t } = useTranslation();
   const navigate = useNavigate();
+
+  const PRIORITY_LABELS: Record<string, string> = {
+    low: t('approvals.priorityLow'),
+    medium: t('approvals.priorityMedium'),
+    high: t('approvals.priorityHigh'),
+    urgent: t('approvals.priorityUrgent'),
+  };
 
   return (
     <Card
@@ -76,6 +78,7 @@ function WorkflowCard({ workflow }: { workflow: Workflow }) {
 }
 
 export default function ApprovalsPage() {
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<Tab>('pending');
 
   const { data: allData, isLoading: allLoading } = useWorkflows(
@@ -90,17 +93,17 @@ export default function ApprovalsPage() {
       : allData?.items ?? [];
 
   const tabs: { key: Tab; label: string; icon: React.ReactNode }[] = [
-    { key: 'pending', label: 'Pendentes para mim', icon: <Clock className="w-4 h-4" /> },
-    { key: 'in_progress', label: 'Em andamento', icon: <AlertCircle className="w-4 h-4" /> },
-    { key: 'completed', label: 'Concluídos', icon: <CheckCircle className="w-4 h-4" /> },
-    { key: 'all', label: 'Todos', icon: <CheckSquare className="w-4 h-4" /> },
+    { key: 'pending', label: t('approvals.pendingForMe'), icon: <Clock className="w-4 h-4" /> },
+    { key: 'in_progress', label: t('approvals.inProgress'), icon: <AlertCircle className="w-4 h-4" /> },
+    { key: 'completed', label: t('approvals.completed'), icon: <CheckCircle className="w-4 h-4" /> },
+    { key: 'all', label: t('approvals.all'), icon: <CheckSquare className="w-4 h-4" /> },
   ];
 
   return (
     <div className="space-y-6 animate-fade-in">
       <div>
-        <h1 className="page-title">Aprovações</h1>
-        <p className="page-subtitle">Acompanhe e gerencie aprovações e workflows</p>
+        <h1 className="page-title">{t('approvals.title')}</h1>
+        <p className="page-subtitle">{t('approvals.manageSubtitle')}</p>
       </div>
 
       <div className="flex gap-1 p-1 bg-primary-50 rounded-xl w-fit flex-wrap">
@@ -127,7 +130,7 @@ export default function ApprovalsPage() {
         <Card>
           <div className="flex flex-col items-center justify-center py-12 text-primary-400 gap-2">
             <CheckSquare className="w-10 h-10 opacity-40" />
-            <p className="text-sm font-medium">Nenhum workflow encontrado</p>
+            <p className="text-sm font-medium">{t('approvals.noWorkflowFound')}</p>
           </div>
         </Card>
       ) : (

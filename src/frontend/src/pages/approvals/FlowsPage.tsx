@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import {
   Plus, Filter, Clock, CheckCircle, XCircle, AlertCircle,
@@ -10,30 +11,13 @@ import type { Workflow, CreateWorkflowRequest } from '@/types/phase6';
 import { formatDate } from '@/utils/format';
 import { cn } from '@/utils/cn';
 
-const WORKFLOW_TYPES = [
-  { value: '', label: 'Todos os tipos' },
-  { value: 'contract_approval', label: 'Aprovação de Contrato' },
-  { value: 'shareholder_change', label: 'Alteração Societária' },
-  { value: 'communication_approval', label: 'Aprovação de Comunicado' },
-  { value: 'document_verification', label: 'Verificação de Documento' },
-  { value: 'vesting_approval', label: 'Aprovação de Vesting' },
+const WORKFLOW_TYPE_VALUES = [
+  'contract_approval',
+  'shareholder_change',
+  'communication_approval',
+  'document_verification',
+  'vesting_approval',
 ];
-
-const WORKFLOW_TYPE_LABELS: Record<string, string> = {
-  contract_approval: 'Aprovação de Contrato',
-  shareholder_change: 'Alteração Societária',
-  communication_approval: 'Aprovação de Comunicado',
-  document_verification: 'Verificação de Documento',
-  vesting_approval: 'Aprovação de Vesting',
-};
-
-const STATUS_LABELS: Record<string, string> = {
-  pending: 'Pendente',
-  in_progress: 'Em andamento',
-  approved: 'Aprovado',
-  rejected: 'Rejeitado',
-  cancelled: 'Cancelado',
-};
 
 const STATUS_COLORS: Record<string, string> = {
   pending: 'bg-amber-100 text-amber-700',
@@ -41,10 +25,6 @@ const STATUS_COLORS: Record<string, string> = {
   approved: 'bg-green-100 text-green-700',
   rejected: 'bg-red-100 text-red-700',
   cancelled: 'bg-gray-100 text-gray-500',
-};
-
-const PRIORITY_LABELS: Record<string, string> = {
-  low: 'Baixa', medium: 'Média', high: 'Alta', urgent: 'Urgente',
 };
 
 const PRIORITY_COLORS: Record<string, string> = {
@@ -62,13 +42,6 @@ const STATUS_ICONS: Record<string, React.ReactNode> = {
   cancelled: <XCircle className="w-4 h-4 text-gray-400" />,
 };
 
-const STEP_TYPES = [
-  { value: 'approval', label: 'Aprovação' },
-  { value: 'review', label: 'Revisão' },
-  { value: 'notification', label: 'Notificação' },
-  { value: 'automated', label: 'Automático' },
-];
-
 const ROLES = [
   'Admin', 'Founder', 'BoardMember', 'Legal', 'Finance', 'HR', 'Employee', 'Investor',
 ];
@@ -78,12 +51,6 @@ const ROLES = [
 // ─── Due Date Helpers ─────────────────────────────────────────────────────────
 
 type StepDueDateMode = 'none' | 'calendar_days' | 'business_days';
-
-const STEP_DUE_MODE_LABELS: Record<StepDueDateMode, string> = {
-  none: 'Sem prazo',
-  calendar_days: 'Dias corridos',
-  business_days: 'Dias úteis',
-};
 
 function addCalendarDays(base: Date, days: number): Date {
   const d = new Date(base);
@@ -161,7 +128,29 @@ interface CreateModalProps {
 }
 
 function CreateWorkflowModal({ onClose }: CreateModalProps) {
+  const { t } = useTranslation();
   const createWorkflow = useCreateWorkflow();
+
+  const STEP_TYPES = [
+    { value: 'approval', label: t('approvals.stepTypeApproval') },
+    { value: 'review', label: t('approvals.stepTypeReview') },
+    { value: 'notification', label: t('approvals.stepTypeNotification') },
+    { value: 'automated', label: t('approvals.stepTypeAutomated') },
+  ];
+
+  const STEP_DUE_MODE_LABELS: Record<StepDueDateMode, string> = {
+    none: t('approvals.dueDateNone'),
+    calendar_days: t('approvals.calendarDays'),
+    business_days: t('approvals.businessDays'),
+  };
+
+  const WORKFLOW_TYPE_LABELS: Record<string, string> = {
+    contract_approval: t('approvals.workflowTypes.contract_approval'),
+    shareholder_change: t('approvals.workflowTypes.shareholder_change'),
+    communication_approval: t('approvals.workflowTypes.communication_approval'),
+    document_verification: t('approvals.workflowTypes.document_verification'),
+    vesting_approval: t('approvals.workflowTypes.vesting_approval'),
+  };
   const [form, setForm] = useState({
     title: '',
     description: '',
@@ -216,93 +205,93 @@ function CreateWorkflowModal({ onClose }: CreateModalProps) {
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 overflow-y-auto">
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl my-4">
         <div className="flex items-center justify-between px-6 py-4 border-b border-primary-100">
-          <h3 className="font-semibold text-primary text-lg">Novo Fluxo de Aprovação</h3>
+          <h3 className="font-semibold text-primary text-lg">{t('approvals.newApprovalFlow')}</h3>
           <button onClick={onClose} className="text-primary-400 hover:text-primary text-xl leading-none">&times;</button>
         </div>
         <form onSubmit={handleSubmit}>
           <div className="px-6 py-4 space-y-4 max-h-[70vh] overflow-y-auto">
             {/* Título */}
             <div>
-              <label className="input-label">Título <span className="text-red-500">*</span></label>
+              <label className="input-label">{t('common.title')} <span className="text-red-500">*</span></label>
               <input
                 className="input"
                 value={form.title}
                 onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
-                placeholder="Ex: Aprovação do Contrato Social"
+                placeholder={t('approvals.titlePlaceholder')}
                 required
               />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="input-label">Tipo de Fluxo <span className="text-red-500">*</span></label>
+                <label className="input-label">{t('approvals.flowType')} <span className="text-red-500">*</span></label>
                 <select className="input" value={form.workflowType} onChange={(e) => setForm((f) => ({ ...f, workflowType: e.target.value }))}>
-                  {WORKFLOW_TYPES.filter((t) => t.value).map((t) => (
-                    <option key={t.value} value={t.value}>{t.label}</option>
+                  {WORKFLOW_TYPE_VALUES.map((v) => (
+                    <option key={v} value={v}>{WORKFLOW_TYPE_LABELS[v]}</option>
                   ))}
                 </select>
               </div>
               <div>
-                <label className="input-label">Prioridade</label>
+                <label className="input-label">{t('common.priority')}</label>
                 <select className="input" value={form.priority} onChange={(e) => setForm((f) => ({ ...f, priority: e.target.value }))}>
-                  <option value="low">Baixa</option>
-                  <option value="medium">Média</option>
-                  <option value="high">Alta</option>
-                  <option value="urgent">Urgente</option>
+                  <option value="low">{t('approvals.priorityLow')}</option>
+                  <option value="medium">{t('approvals.priorityMedium')}</option>
+                  <option value="high">{t('approvals.priorityHigh')}</option>
+                  <option value="urgent">{t('approvals.priorityUrgent')}</option>
                 </select>
               </div>
             </div>
             <div>
-              <label className="input-label">Descrição</label>
+              <label className="input-label">{t('common.description')}</label>
               <textarea
                 className="input resize-none"
                 rows={2}
                 value={form.description}
                 onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
-                placeholder="Descreva o objetivo deste fluxo..."
+                placeholder={t('approvals.descriptionPlaceholder')}
               />
             </div>
             {/* Steps */}
             <div>
               <div className="flex items-center justify-between mb-2">
-                <label className="input-label mb-0">Etapas <span className="text-red-500">*</span></label>
-                <button type="button" onClick={addStep} className="text-sm text-accent hover:underline">+ Adicionar etapa</button>
+                <label className="input-label mb-0">{t('approvals.steps')} <span className="text-red-500">*</span></label>
+                <button type="button" onClick={addStep} className="text-sm text-accent hover:underline">{t('approvals.addStep')}</button>
               </div>
               <div className="space-y-3">
                 {steps.map((step, idx) => (
                   <div key={idx} className="border border-primary-100 rounded-xl p-3 bg-primary-50 relative">
                     <div className="flex items-center gap-2 mb-2">
-                      <span className="text-xs font-semibold text-primary-500">Etapa {idx + 1}</span>
+                      <span className="text-xs font-semibold text-primary-500">{t('approvals.stepLabel', { n: idx + 1 })}</span>
                       {steps.length > 1 && (
-                        <button type="button" onClick={() => removeStep(idx)} className="ml-auto text-red-400 hover:text-red-600 text-xs">Remover</button>
+                        <button type="button" onClick={() => removeStep(idx)} className="ml-auto text-red-400 hover:text-red-600 text-xs">{t('approvals.removeStep')}</button>
                       )}
                     </div>
                     <div className="grid grid-cols-2 gap-2">
                       <div>
-                        <label className="input-label text-xs">Nome <span className="text-red-500">*</span></label>
-                        <input className="input text-sm py-1.5" value={step.name} onChange={(e) => updateStep(idx, 'name', e.target.value)} placeholder="Nome da etapa" required />
+                        <label className="input-label text-xs">{t('common.name')} <span className="text-red-500">*</span></label>
+                        <input className="input text-sm py-1.5" value={step.name} onChange={(e) => updateStep(idx, 'name', e.target.value)} placeholder={t('approvals.stepNamePlaceholder')} required />
                       </div>
                       <div>
-                        <label className="input-label text-xs">Tipo</label>
+                        <label className="input-label text-xs">{t('common.type')}</label>
                         <select className="input text-sm py-1.5" value={step.stepType} onChange={(e) => updateStep(idx, 'stepType', e.target.value)}>
                           {STEP_TYPES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
                         </select>
                       </div>
                       <div>
-                        <label className="input-label text-xs">Papel Responsável</label>
+                        <label className="input-label text-xs">{t('approvals.assignedRole')}</label>
                         <select className="input text-sm py-1.5" value={step.assignedRole} onChange={(e) => updateStep(idx, 'assignedRole', e.target.value)}>
-                          <option value="">Qualquer</option>
+                          <option value="">{t('approvals.anyRole')}</option>
                           {ROLES.map((r) => <option key={r} value={r}>{r}</option>)}
                         </select>
                       </div>
                       <div>
-                        <label className="input-label text-xs">Descrição</label>
-                        <input className="input text-sm py-1.5" value={step.description} onChange={(e) => updateStep(idx, 'description', e.target.value)} placeholder="Opcional" />
+                        <label className="input-label text-xs">{t('common.description')}</label>
+                        <input className="input text-sm py-1.5" value={step.description} onChange={(e) => updateStep(idx, 'description', e.target.value)} placeholder={t('common.optional')} />
                       </div>
                     </div>
 
                     {/* Prazo da etapa */}
                     <div className="mt-2 pt-2 border-t border-primary-100">
-                      <label className="input-label text-xs mb-1.5">Prazo desta etapa</label>
+                      <label className="input-label text-xs mb-1.5">{t('approvals.stepDueDate')}</label>
                       <div className="flex flex-wrap gap-1.5 mb-1.5">
                         {(Object.keys(STEP_DUE_MODE_LABELS) as StepDueDateMode[]).map((mode) => (
                           <button
@@ -331,7 +320,7 @@ function CreateWorkflowModal({ onClose }: CreateModalProps) {
                             onChange={(e) => updateStep(idx, 'dueDateDays', String(Math.max(1, Number(e.target.value))))}
                           />
                           <span className="text-xs text-primary-500">
-                            {step.dueDateMode === 'business_days' ? 'dias úteis' : 'dias corridos'}
+                            {step.dueDateMode === 'business_days' ? t('approvals.businessDaysUnit') : t('approvals.calendarDaysUnit')}
                           </span>
                           {(() => {
                             const preview = computeStepDueDate(steps, idx);
@@ -355,9 +344,9 @@ function CreateWorkflowModal({ onClose }: CreateModalProps) {
                   <div className="mt-3 flex items-center gap-2 px-3 py-2 bg-accent/5 border border-accent/20 rounded-lg">
                     <Clock className="w-4 h-4 text-accent flex-shrink-0" />
                     <span className="text-sm text-primary-600">
-                      Prazo total do fluxo:{' '}
+                      {t('approvals.totalDueDate')}{' '}
                       <span className="font-semibold text-accent">{formatPreviewDate(total)}</span>
-                      <span className="text-xs text-primary-400 ml-1">(soma cumulativa das etapas)</span>
+                      <span className="text-xs text-primary-400 ml-1">{t('approvals.cumulativeSteps')}</span>
                     </span>
                   </div>
                 ) : null;
@@ -365,9 +354,9 @@ function CreateWorkflowModal({ onClose }: CreateModalProps) {
             </div>
           </div>
           <div className="flex justify-end gap-3 px-6 py-4 border-t border-primary-100">
-            <Button variant="secondary" type="button" onClick={onClose} disabled={createWorkflow.isPending}>Cancelar</Button>
+            <Button variant="secondary" type="button" onClick={onClose} disabled={createWorkflow.isPending}>{t('common.cancel')}</Button>
             <Button type="submit" loading={createWorkflow.isPending} disabled={!form.title || steps.some((s) => !s.name)}>
-              Criar Fluxo
+              {t('approvals.createFlow')}
             </Button>
           </div>
         </form>
@@ -379,7 +368,40 @@ function CreateWorkflowModal({ onClose }: CreateModalProps) {
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
 export default function FlowsPage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
+
+  const WORKFLOW_TYPES = [
+    { value: '', label: t('approvals.allTypes') },
+    { value: 'contract_approval', label: t('approvals.workflowTypes.contract_approval') },
+    { value: 'shareholder_change', label: t('approvals.workflowTypes.shareholder_change') },
+    { value: 'communication_approval', label: t('approvals.workflowTypes.communication_approval') },
+    { value: 'document_verification', label: t('approvals.workflowTypes.document_verification') },
+    { value: 'vesting_approval', label: t('approvals.workflowTypes.vesting_approval') },
+  ];
+
+  const WORKFLOW_TYPE_LABELS: Record<string, string> = {
+    contract_approval: t('approvals.workflowTypes.contract_approval'),
+    shareholder_change: t('approvals.workflowTypes.shareholder_change'),
+    communication_approval: t('approvals.workflowTypes.communication_approval'),
+    document_verification: t('approvals.workflowTypes.document_verification'),
+    vesting_approval: t('approvals.workflowTypes.vesting_approval'),
+  };
+
+  const STATUS_LABELS: Record<string, string> = {
+    pending: t('approvals.pending'),
+    in_progress: t('approvals.inProgress'),
+    approved: t('approvals.approved'),
+    rejected: t('approvals.rejected'),
+    cancelled: t('approvals.cancelled'),
+  };
+
+  const PRIORITY_LABELS: Record<string, string> = {
+    low: t('approvals.priorityLow'),
+    medium: t('approvals.priorityMedium'),
+    high: t('approvals.priorityHigh'),
+    urgent: t('approvals.priorityUrgent'),
+  };
   const [typeFilter, setTypeFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [search, setSearch] = useState('');
@@ -407,11 +429,11 @@ export default function FlowsPage() {
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
-          <h1 className="page-title">Fluxos de Aprovação</h1>
-          <p className="page-subtitle">Gerencie e acompanhe todos os fluxos de aprovação da empresa</p>
+          <h1 className="page-title">{t('approvals.flowsTitle')}</h1>
+          <p className="page-subtitle">{t('approvals.flowsSubtitle')}</p>
         </div>
         <Button icon={<Plus className="w-4 h-4" />} onClick={() => setShowCreate(true)}>
-          Novo Fluxo
+          {t('approvals.newWorkflow')}
         </Button>
       </div>
 
@@ -422,7 +444,7 @@ export default function FlowsPage() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-primary-400" />
             <input
               className="input pl-9 text-sm"
-              placeholder="Buscar por título..."
+              placeholder={t('approvals.searchByTitle')}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
@@ -444,7 +466,7 @@ export default function FlowsPage() {
             value={statusFilter}
             onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
           >
-            <option value="">Todos os status</option>
+            <option value="">{t('approvals.allStatuses')}</option>
             {Object.entries(STATUS_LABELS).map(([v, l]) => (
               <option key={v} value={v}>{l}</option>
             ))}
@@ -459,8 +481,8 @@ export default function FlowsPage() {
         <Card>
           <div className="flex flex-col items-center justify-center py-16 text-primary-400 gap-3">
             <List className="w-10 h-10 opacity-40" />
-            <p className="text-sm font-medium">Nenhum fluxo encontrado</p>
-            <p className="text-xs text-primary-400">Crie um novo fluxo clicando no botão "Novo Fluxo"</p>
+            <p className="text-sm font-medium">{t('approvals.noFlowsFound')}</p>
+            <p className="text-xs text-primary-400">{t('approvals.createFlowHint')}</p>
           </div>
         </Card>
       ) : (
@@ -522,11 +544,11 @@ export default function FlowsPage() {
           {data && data.totalPages > 1 && (
             <div className="flex items-center justify-between">
               <p className="text-sm text-primary-500">
-                {data.total} fluxo{data.total !== 1 ? 's' : ''} encontrado{data.total !== 1 ? 's' : ''}
+                {t('approvals.flowsFound', { count: data.total })}
               </p>
               <div className="flex gap-2">
-                <Button variant="secondary" size="sm" disabled={page === 1} onClick={() => setPage((p) => p - 1)}>Anterior</Button>
-                <Button variant="secondary" size="sm" disabled={page === data.totalPages} onClick={() => setPage((p) => p + 1)}>Próximo</Button>
+                <Button variant="secondary" size="sm" disabled={page === 1} onClick={() => setPage((p) => p - 1)}>{t('common.previous')}</Button>
+                <Button variant="secondary" size="sm" disabled={page === data.totalPages} onClick={() => setPage((p) => p + 1)}>{t('common.next')}</Button>
               </div>
             </div>
           )}

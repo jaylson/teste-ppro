@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Plus, Edit, Trash2, Check, X } from 'lucide-react';
 import { Button, AlertContainer, useAlerts, ConfirmDialog } from '@/components/ui';
 import { PlanModal } from '@/components/modals';
 import { plansApi, type Plan } from '@/services/api';
 
 export default function Plans() {
+  const { t } = useTranslation();
   const [plans, setPlans] = useState<Plan[]>([]);
   const [showModal, setShowModal] = useState(false);
   const [editingPlan, setEditingPlan] = useState<Plan | null>(null);
@@ -69,20 +71,20 @@ export default function Plans() {
     
     setConfirmDialog({
       isOpen: true,
-      title: 'Excluir Plano',
-      message: `Tem certeza que deseja excluir o plano "${plan?.name}"?`,
-      confirmText: 'Sim, excluir',
+      title: t('billing.deletePlan'),
+      message: t('billing.deletePlanConfirm', { name: plan?.name }),
+      confirmText: t('billing.yesDelete'),
       confirmVariant: 'danger',
       onConfirm: async () => {
         setConfirmLoading(true);
         try {
           await plansApi.delete(planId);
           await loadPlans();
-          showSuccess(`Plano "${plan?.name}" excluído com sucesso!`);
+          showSuccess(t('billing.planDeletedSuccess', { name: plan?.name }));
           setConfirmDialog((prev) => ({ ...prev, isOpen: false }));
         } catch (err: any) {
           console.error('Erro ao deletar plano:', err);
-          showError(err.response?.data?.message || 'Erro ao deletar plano');
+          showError(err.response?.data?.message || t('billing.planDeleteError'));
         } finally {
           setConfirmLoading(false);
         }
@@ -97,20 +99,26 @@ export default function Plans() {
     
     setConfirmDialog({
       isOpen: true,
-      title: newStatus ? 'Ativar Plano' : 'Desativar Plano',
-      message: `Tem certeza que deseja ${newStatus ? 'ativar' : 'desativar'} o plano "${plan?.name}"?`,
-      confirmText: newStatus ? 'Sim, ativar' : 'Sim, desativar',
+      title: newStatus ? t('billing.activatePlan') : t('billing.deactivatePlan'),
+      message: newStatus
+        ? t('billing.activatePlanConfirm', { name: plan?.name })
+        : t('billing.deactivatePlanConfirm', { name: plan?.name }),
+      confirmText: newStatus ? t('billing.yesActivate') : t('billing.yesDeactivate'),
       confirmVariant: 'primary',
       onConfirm: async () => {
         setConfirmLoading(true);
         try {
           await plansApi.toggleStatus(planId);
           await loadPlans();
-          showSuccess(`Plano "${plan?.name}" ${newStatus ? 'ativado' : 'desativado'} com sucesso!`);
+          showSuccess(
+            newStatus
+              ? t('billing.planActivatedSuccess', { name: plan?.name })
+              : t('billing.planDeactivatedSuccess', { name: plan?.name })
+          );
           setConfirmDialog((prev) => ({ ...prev, isOpen: false }));
         } catch (err: any) {
           console.error('Erro ao alterar status do plano:', err);
-          showError(err.response?.data?.message || 'Erro ao alterar status do plano');
+          showError(err.response?.data?.message || t('billing.planStatusError'));
         } finally {
           setConfirmLoading(false);
         }
@@ -121,20 +129,18 @@ export default function Plans() {
   const handleSavePlan = async (plan: Plan) => {
     try {
       if (plan.id) {
-        // Editar
         await plansApi.update(plan.id, plan);
-        showSuccess(`Plano "${plan.name}" atualizado com sucesso!`);
+        showSuccess(t('billing.planSavedSuccess', { name: plan.name }));
       } else {
-        // Criar novo
         await plansApi.create(plan);
-        showSuccess(`Plano "${plan.name}" criado com sucesso!`);
+        showSuccess(t('billing.planCreatedSuccess', { name: plan.name }));
       }
       await loadPlans();
       setShowModal(false);
       setEditingPlan(null);
     } catch (err: any) {
       console.error('Erro ao salvar plano:', err);
-      showError(err.response?.data?.message || 'Erro ao salvar plano');
+      showError(err.response?.data?.message || t('billing.planSaveError'));
     }
   };
 
@@ -144,50 +150,50 @@ export default function Plans() {
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="page-title">Billing</h1>
-          <p className="page-subtitle">Gerencie os planos disponíveis para seus clientes</p>
+          <p className="page-subtitle">{t('billing.managePlansSubtitlePage')}</p>
         </div>
         <Button onClick={() => setShowModal(true)}>
           <Plus className="w-4 h-4 mr-2" />
-          Novo Plano
+          {t('billing.newPlan')}
         </Button>
       </div>
 
       {/* Navigation Tabs */}
       <div className="flex gap-2 mb-8 border-b border-border pb-0">
         <Link to="/billing" className="px-4 py-3 font-medium text-muted-foreground hover:text-foreground transition-colors">
-          Dashboard
+          {t('billing.dashboard')}
         </Link>
         <Link to="/billing/plans" className="px-4 py-3 font-medium text-primary border-b-2 border-primary">
-          Planos
+          {t('billing.plans')}
         </Link>
         <Link to="/billing/clients" className="px-4 py-3 font-medium text-muted-foreground hover:text-foreground transition-colors">
-          Clientes & Assinaturas
+          {t('billing.clientsSubscriptions')}
         </Link>
         <Link to="/billing/invoices" className="px-4 py-3 font-medium text-muted-foreground hover:text-foreground transition-colors">
-          Faturas
+          {t('billing.invoices')}
         </Link>
       </div>
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
         <div className="card">
-          <div className="text-sm text-muted-foreground mb-1">Total de Planos</div>
+          <div className="text-sm text-muted-foreground mb-1">{t('billing.totalPlans')}</div>
           <div className="text-3xl font-bold">{plans.length}</div>
         </div>
         <div className="card">
-          <div className="text-sm text-muted-foreground mb-1">Planos Ativos</div>
+          <div className="text-sm text-muted-foreground mb-1">{t('billing.activePlans')}</div>
           <div className="text-3xl font-bold text-green-600">
             {plans.filter(p => p.isActive).length}
           </div>
         </div>
         <div className="card">
-          <div className="text-sm text-muted-foreground mb-1">Planos Inativos</div>
+          <div className="text-sm text-muted-foreground mb-1">{t('billing.inactivePlans')}</div>
           <div className="text-3xl font-bold text-gray-400">
             {plans.filter(p => !p.isActive).length}
           </div>
         </div>
         <div className="card">
-          <div className="text-sm text-muted-foreground mb-1">Preço Médio</div>
+          <div className="text-sm text-muted-foreground mb-1">{t('billing.averagePrice')}</div>
           <div className="text-3xl font-bold text-primary">
             R$ {(plans.reduce((acc, p) => acc + p.price, 0) / plans.length).toFixed(2)}
           </div>
@@ -204,7 +210,7 @@ export default function Plans() {
                 <p className="text-sm text-muted-foreground">{plan.description}</p>
               </div>
               <span className={`badge ${plan.isActive ? 'badge-success' : 'badge-muted'}`}>
-                {plan.isActive ? 'Ativo' : 'Inativo'}
+                {plan.isActive ? t('common.active') : t('common.inactive')}
               </span>
             </div>
 
@@ -212,13 +218,13 @@ export default function Plans() {
               <div className="flex items-baseline gap-1">
                 <span className="text-4xl font-bold">R$ {plan.price.toFixed(2)}</span>
                 <span className="text-sm text-muted-foreground">
-                  /{plan.billingCycle === 'monthly' ? 'mês' : 'ano'}
+                  {plan.billingCycle === 'monthly' ? t('billing.perMonth') : t('billing.perYear')}
                 </span>
               </div>
             </div>
 
             <div className="space-y-2 mb-6">
-              <div className="text-sm font-semibold text-muted-foreground mb-2">Recursos:</div>
+              <div className="text-sm font-semibold text-muted-foreground mb-2">{t('billing.features')}</div>
               {(plan.features ?? []).map((feature, index) => (
                 <div key={index} className="flex items-center gap-2 text-sm">
                   <Check className="w-4 h-4 text-green-500" />
@@ -229,15 +235,15 @@ export default function Plans() {
 
             <div className="pt-4 border-t border-border space-y-2">
               <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Max. Empresas:</span>
+                <span className="text-muted-foreground">{t('billing.maxCompanies')}:</span>
                 <span className="font-medium">
-                  {plan.maxCompanies === -1 ? 'Ilimitado' : plan.maxCompanies}
+                  {plan.maxCompanies === -1 ? t('billing.unlimited') : plan.maxCompanies}
                 </span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Max. Usuários:</span>
+                <span className="text-muted-foreground">{t('billing.maxUsers')}:</span>
                 <span className="font-medium">
-                  {plan.maxUsers === -1 ? 'Ilimitado' : plan.maxUsers}
+                  {plan.maxUsers === -1 ? t('billing.unlimited') : plan.maxUsers}
                 </span>
               </div>
             </div>
@@ -250,7 +256,7 @@ export default function Plans() {
                 onClick={() => handleEdit(plan)}
               >
                 <Edit className="w-4 h-4 mr-1" />
-                Editar
+                {t('common.edit')}
               </Button>
               <Button
                 variant="secondary"
