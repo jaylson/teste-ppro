@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
   LayoutDashboard,
   PieChart,
@@ -26,11 +27,12 @@ import {
 } from 'lucide-react';
 import { useAuthStore } from '@/stores/authStore';
 import { cn } from '@/utils/cn';
+import i18n from '@/i18n';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 interface NavItem {
-  name: string;
+  nameKey: string;
   href: string;
   icon: LucideIcon;
   requiresRole?: string[];
@@ -38,7 +40,7 @@ interface NavItem {
 
 interface NavGroup {
   key: string;
-  label: string;
+  labelKey: string;
   icon: LucideIcon;
   items: NavItem[];
 }
@@ -48,84 +50,84 @@ interface NavGroup {
 const navGroups: NavGroup[] = [
   {
     key: 'dashboards',
-    label: 'Dashboards',
+    labelKey: 'nav.dashboards',
     icon: LayoutDashboard,
     items: [
-      { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-      { name: 'Valuation Dashboard', href: '/valuations/dashboard', icon: TrendingUp },
-      { name: 'Financeiro Dashboard', href: '/financial/dashboard', icon: DollarSign },
-      { name: 'Meu Vesting', href: '/my-vesting', icon: Target },
-      { name: 'Portal do Investidor', href: '/investor', icon: Briefcase },
+      { nameKey: 'nav.dashboard', href: '/dashboard', icon: LayoutDashboard },
+      { nameKey: 'nav.valuationDashboard', href: '/valuations/dashboard', icon: TrendingUp },
+      { nameKey: 'nav.financeiroDashboard', href: '/financial/dashboard', icon: DollarSign },
+      { nameKey: 'nav.myVesting', href: '/my-vesting', icon: Target },
+      { nameKey: 'nav.investorPortal', href: '/investor', icon: Briefcase },
     ],
   },
   {
     key: 'captable',
-    label: 'Cap Table',
+    labelKey: 'nav.capTable',
     icon: PieChart,
     items: [
-      { name: 'Empresas', href: '/companies', icon: Building2 },
-      { name: 'Sócios', href: '/shareholders', icon: Users },
-      { name: 'Cap Table', href: '/cap-table', icon: PieChart },
-      { name: 'Vesting — Planos', href: '/vesting', icon: Target },
-      { name: 'Vesting — Grants', href: '/vesting/grants', icon: UserCheck },
+      { nameKey: 'nav.companies', href: '/companies', icon: Building2 },
+      { nameKey: 'nav.partners', href: '/shareholders', icon: Users },
+      { nameKey: 'nav.capTableNav', href: '/cap-table', icon: PieChart },
+      { nameKey: 'nav.vestingPlans', href: '/vesting', icon: Target },
+      { nameKey: 'nav.vestingGrants', href: '/vesting/grants', icon: UserCheck },
     ],
   },
   {
     key: 'valuation',
-    label: 'Valuation',
+    labelKey: 'nav.valuation',
     icon: TrendingUp,
     items: [
-      { name: 'Valuation', href: '/valuations', icon: TrendingUp },
-      { name: 'Financeiro', href: '/financial', icon: DollarSign },
-      { name: 'Documentos', href: '/documents', icon: FileText },
-      { name: 'Data Room', href: '/dataroom', icon: FolderOpen },
+      { nameKey: 'nav.valuationNav', href: '/valuations', icon: TrendingUp },
+      { nameKey: 'nav.financial', href: '/financial', icon: DollarSign },
+      { nameKey: 'nav.documents', href: '/documents', icon: FileText },
+      { nameKey: 'nav.dataRoom', href: '/dataroom', icon: FolderOpen },
     ],
   },
   {
     key: 'contratos',
-    label: 'Contratos',
+    labelKey: 'nav.contracts',
     icon: FileText,
     items: [
-      { name: 'Contratos', href: '/contracts', icon: FileText },
-      { name: 'Templates de Contratos', href: '/contracts/templates', icon: FileText, requiresRole: ['Admin', 'Legal'] },
+      { nameKey: 'nav.contractsNav', href: '/contracts', icon: FileText },
+      { nameKey: 'nav.contractTemplates', href: '/contracts/templates', icon: FileText, requiresRole: ['Admin', 'Legal'] },
     ],
   },
   {
     key: 'comunicacoes',
-    label: 'Comunicações',
+    labelKey: 'nav.communications',
     icon: MessageSquare,
     items: [
-      { name: 'Comunicações', href: '/communications', icon: MessageSquare },
-      { name: 'Notificações', href: '/notifications', icon: Bell },
+      { nameKey: 'nav.communicationsNav', href: '/communications', icon: MessageSquare },
+      { nameKey: 'nav.notifications', href: '/notifications', icon: Bell },
     ],
   },
   {
     key: 'aprovacoes',
-    label: 'Aprovações',
+    labelKey: 'nav.approvals',
     icon: CheckSquare,
     items: [
-      { name: 'Fluxos', href: '/approvals/flows', icon: List },
-      { name: 'Aprovadores', href: '/approvals/approvers', icon: UserCheck },
-      { name: 'Aprovações', href: '/approvals', icon: CheckSquare },
+      { nameKey: 'nav.flows', href: '/approvals/flows', icon: List },
+      { nameKey: 'nav.approvers', href: '/approvals/approvers', icon: UserCheck },
+      { nameKey: 'nav.approvalsNav', href: '/approvals', icon: CheckSquare },
     ],
   },
   {
     key: 'admin',
-    label: 'Administração',
+    labelKey: 'nav.admin',
     icon: Settings,
     items: [
-      { name: 'Usuários', href: '/settings/users', icon: Users },
-      { name: 'Perfis de Acesso', href: '/settings/roles', icon: UserCheck },
+      { nameKey: 'nav.users', href: '/settings/users', icon: Users },
+      { nameKey: 'nav.roles', href: '/settings/roles', icon: UserCheck },
     ],
   },
   {
     key: 'acessorios',
-    label: 'Acessórios',
+    labelKey: 'nav.accessories',
     icon: Layers,
     items: [
-      { name: 'Fórmulas Customizadas', href: '/valuations/custom-formulas', icon: FlaskConical },
-      { name: 'Cláusulas', href: '/contracts/clauses', icon: List, requiresRole: ['Admin', 'Legal'] },
-      { name: 'Templates de Milestone', href: '/vesting/milestone-templates', icon: Layers, requiresRole: ['Admin'] },
+      { nameKey: 'nav.customFormulas', href: '/valuations/custom-formulas', icon: FlaskConical },
+      { nameKey: 'nav.clauses', href: '/contracts/clauses', icon: List, requiresRole: ['Admin', 'Legal'] },
+      { nameKey: 'nav.milestoneTemplates', href: '/vesting/milestone-templates', icon: Layers, requiresRole: ['Admin'] },
     ],
   },
 ];
@@ -177,6 +179,7 @@ export default function Sidebar() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, logout } = useAuthStore();
+  const { t } = useTranslation();
 
   const [openGroups, setOpenGroups] = useState<string[]>(() => {
     const saved = loadSavedGroups();
@@ -208,6 +211,12 @@ export default function Sidebar() {
   const handleLogout = () => {
     logout();
     navigate('/login');
+  };
+
+  const handleLanguageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const lang = e.target.value;
+    i18n.changeLanguage(lang);
+    localStorage.setItem('pm-language', lang);
   };
 
   return (
@@ -243,7 +252,7 @@ export default function Sidebar() {
                 >
                   <group.icon className="w-3.5 h-3.5 shrink-0" />
                   <span className="flex-1 text-left text-[10px] font-bold uppercase tracking-widest">
-                    {group.label}
+                    {t(group.labelKey)}
                   </span>
                   <ChevronDown
                     className={cn(
@@ -283,7 +292,7 @@ export default function Sidebar() {
                               }
                             >
                               <item.icon className="w-4 h-4 shrink-0" />
-                              <span>{item.name}</span>
+                              <span>{t(item.nameKey)}</span>
                             </NavLink>
                           </li>
                         ))}
@@ -303,7 +312,8 @@ export default function Sidebar() {
           <Globe className="w-4 h-4" />
           <select
             className="bg-transparent text-sm cursor-pointer focus:outline-none"
-            defaultValue={user?.language || 'pt'}
+            value={i18n.language?.split('-')[0] || 'pt'}
+            onChange={handleLanguageChange}
           >
             {languages.map((lang) => (
               <option key={lang.code} value={lang.code} className="text-primary">

@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import {
   TrendingUp,
   Users,
@@ -39,25 +40,28 @@ function formatCurrency(amount: number | null | undefined): string {
   return `R$ ${amount.toFixed(0)}`;
 }
 
-function formatRelativeTime(dateStr: string | null | undefined): string {
-  if (!dateStr) return '—';
-  const diffMs = Date.now() - new Date(dateStr).getTime();
-  const mins = Math.floor(diffMs / 60_000);
-  if (mins < 60) return `${mins} min atrás`;
-  const hours = Math.floor(mins / 60);
-  if (hours < 24) return `${hours} hora${hours > 1 ? 's' : ''} atrás`;
-  const days = Math.floor(hours / 24);
-  if (days < 30) return `${days} dia${days > 1 ? 's' : ''} atrás`;
-  const months = Math.floor(days / 30);
-  return `${months} mês${months > 1 ? 'es' : ''} atrás`;
-}
-
 // ─── Component ───────────────────────────────────────────────────────────────
 
 export default function Dashboard() {
   const { user } = useAuthStore();
   const { selectedCompanyId } = useClientStore();
   const companyId = user?.companyId || selectedCompanyId || undefined;
+  const { t } = useTranslation();
+
+  // ─── Helpers (with t) ────────────────────────────────────────────────────────
+
+  function formatRelativeTime(dateStr: string | null | undefined): string {
+    if (!dateStr) return '—';
+    const diffMs = Date.now() - new Date(dateStr).getTime();
+    const mins = Math.floor(diffMs / 60_000);
+    if (mins < 60) return t('dashboard.minAgo', { count: mins });
+    const hours = Math.floor(mins / 60);
+    if (hours < 24) return t('dashboard.hoursAgo', { count: hours });
+    const days = Math.floor(hours / 24);
+    if (days < 30) return t('dashboard.daysAgo', { count: days });
+    const months = Math.floor(days / 30);
+    return t('dashboard.monthsAgo', { count: months });
+  }
 
   // ─── Data Fetching ──────────────────────────────────────────────────────────
 
@@ -102,7 +106,7 @@ export default function Dashboard() {
       value: latestValuation?.valuationAmount != null
         ? formatCurrency(latestValuation.valuationAmount)
         : '—',
-      label: 'Valuation Atual',
+      label: t('dashboard.currentValuation'),
       badge: valuationGrowthPct != null
         ? { value: `${valuationGrowthPct >= 0 ? '+' : ''}${valuationGrowthPct}%`, variant: 'success' as const }
         : undefined,
@@ -111,23 +115,23 @@ export default function Dashboard() {
       icon: <Users className="w-6 h-6" />,
       iconColor: 'bg-info',
       value: shareholdersData != null ? String(shareholdersData.totalCount) : '—',
-      label: 'Total de Sócios',
+      label: t('dashboard.totalPartners'),
       badge: undefined,
     },
     {
       icon: <AlertCircle className="w-6 h-6" />,
       iconColor: 'bg-warning',
       value: pendingWorkflows != null ? String(pendingWorkflows.length) : '—',
-      label: 'Aprovações Pendentes',
+      label: t('dashboard.pendingApprovals'),
       badge: pendingWorkflows?.length
-        ? { value: 'Urgente', variant: 'warning' as const }
+        ? { value: t('common.urgent'), variant: 'warning' as const }
         : undefined,
     },
     {
       icon: <FileText className="w-6 h-6" />,
       iconColor: 'bg-purple',
       value: contractsData != null ? String(contractsData.totalCount) : '—',
-      label: 'Contratos',
+      label: t('dashboard.contracts'),
       badge: undefined,
     },
   ];
@@ -168,16 +172,16 @@ export default function Dashboard() {
       {/* Header */}
       <div className="page-header">
         <div>
-          <h1 className="page-title">Dashboard</h1>
+          <h1 className="page-title">{t('dashboard.title')}</h1>
           <p className="page-subtitle">
-            Visão geral de {user?.companyName || 'sua empresa'}
+            {t('dashboard.subtitle', { company: user?.companyName || 'sua empresa' })}
           </p>
         </div>
         <div className="flex gap-3">
           <Button variant="secondary" icon={<Download className="w-4 h-4" />}>
-            Exportar
+            {t('common.export')}
           </Button>
-          <Button icon={<Plus className="w-4 h-4" />}>Novo Evento</Button>
+          <Button icon={<Plus className="w-4 h-4" />}>{t('dashboard.newEvent')}</Button>
         </div>
       </div>
 
@@ -192,7 +196,7 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Distribuição Societária */}
         <Card>
-          <h3 className="font-semibold text-primary mb-4">Distribuição Societária</h3>
+          <h3 className="font-semibold text-primary mb-4">{t('dashboard.shareholderDistribution')}</h3>
           {donutSegments.length > 0 ? (
             <>
               <div className="relative w-48 h-48 mx-auto">
@@ -235,7 +239,7 @@ export default function Dashboard() {
             </>
           ) : (
             <div className="flex items-center justify-center h-48 text-primary-400 text-sm">
-              Sem dados de Cap Table
+              {t('dashboard.noCapTableData')}
             </div>
           )}
         </Card>
@@ -243,7 +247,7 @@ export default function Dashboard() {
         {/* Evolução do Valuation */}
         <Card>
           <div className="flex items-center justify-between mb-4">
-            <h3 className="font-semibold text-primary">Evolução do Valuation</h3>
+            <h3 className="font-semibold text-primary">{t('dashboard.valuationEvolution')}</h3>
             {valuationGrowthPct != null && (
               <div className="flex items-center gap-1 text-success text-sm font-medium">
                 <ArrowUpRight className="w-4 h-4" />
@@ -266,13 +270,13 @@ export default function Dashboard() {
               </div>
               <div className="flex justify-between mt-4 pt-4 border-t border-primary-100">
                 <div>
-                  <p className="text-xs text-primary-500">Primeiro</p>
+                  <p className="text-xs text-primary-500">{t('dashboard.first')}</p>
                   <p className="font-semibold text-primary">
                     {formatCurrency(sortedValuations[0]?.valuationAmount)}
                   </p>
                 </div>
                 <div className="text-right">
-                  <p className="text-xs text-primary-500">Atual</p>
+                  <p className="text-xs text-primary-500">{t('dashboard.current')}</p>
                   <p className="font-semibold text-success">
                     {formatCurrency(latestValuation?.valuationAmount)}
                   </p>
@@ -281,14 +285,14 @@ export default function Dashboard() {
             </>
           ) : (
             <div className="flex items-center justify-center h-40 text-primary-400 text-sm">
-              Sem dados de valuation
+              {t('dashboard.noValuationData')}
             </div>
           )}
         </Card>
 
         {/* Atividade Recente */}
         <Card>
-          <h3 className="font-semibold text-primary mb-4">Atividade Recente</h3>
+          <h3 className="font-semibold text-primary mb-4">{t('dashboard.recentActivity')}</h3>
           {recentWorkflows?.items?.length ? (
             <div className="space-y-4">
               {recentWorkflows.items.map((workflow) => (
@@ -305,7 +309,7 @@ export default function Dashboard() {
             </div>
           ) : (
             <div className="flex items-center justify-center h-40 text-primary-400 text-sm">
-              Sem atividades recentes
+              {t('dashboard.noRecentActivity')}
             </div>
           )}
         </Card>
@@ -314,20 +318,20 @@ export default function Dashboard() {
       {/* Pending Approvals Table */}
       <Card>
         <div className="flex items-center justify-between mb-4">
-          <h3 className="font-semibold text-primary">Aprovações Pendentes</h3>
+          <h3 className="font-semibold text-primary">{t('dashboard.pendingApprovalsTable')}</h3>
           <Button variant="ghost" size="sm">
-            Ver todas
+            {t('common.viewAll')}
           </Button>
         </div>
         <div className="table-container">
           <table className="table">
             <thead>
               <tr>
-                <th>Tipo</th>
-                <th>Solicitante</th>
-                <th>Status</th>
-                <th>Prazo</th>
-                <th>Ações</th>
+                <th>{t('common.type')}</th>
+                <th>{t('dashboard.requestedBy')}</th>
+                <th>{t('common.status')}</th>
+                <th>{t('dashboard.deadline')}</th>
+                <th>{t('common.actions')}</th>
               </tr>
             </thead>
             <tbody>
@@ -351,7 +355,7 @@ export default function Dashboard() {
                     </td>
                     <td>
                       <Button variant="secondary" size="sm">
-                        Revisar
+                        {t('common.review')}
                       </Button>
                     </td>
                   </tr>
@@ -359,7 +363,7 @@ export default function Dashboard() {
               ) : (
                 <tr>
                   <td colSpan={5} className="text-center text-primary-400 py-8">
-                    Nenhuma aprovação pendente
+                    {t('dashboard.noPendingApprovals')}
                   </td>
                 </tr>
               )}

@@ -1,26 +1,33 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Eye, EyeOff, LogIn } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Button, Input } from '@/components/ui';
 import { useAuthStore } from '@/stores/authStore';
 import { authService } from '@/services/authService';
 import toast from 'react-hot-toast';
-
-const loginSchema = z.object({
-  email: z.string().email('Email inválido').min(1, 'Email é obrigatório'),
-  password: z.string().min(1, 'Senha é obrigatória'),
-});
-
-type LoginForm = z.infer<typeof loginSchema>;
 
 export default function Login() {
   const navigate = useNavigate();
   const { setAuth } = useAuthStore();
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const { t, i18n } = useTranslation();
+
+  const loginSchema = useMemo(
+    () =>
+      z.object({
+        email: z.string().email(t('auth.emailInvalid')).min(1, t('auth.emailRequired')),
+        password: z.string().min(1, t('auth.passwordRequired')),
+      }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [i18n.language, t]
+  );
+
+  type LoginForm = z.infer<typeof loginSchema>;
 
   const {
     register,
@@ -45,10 +52,10 @@ export default function Login() {
         response.refreshToken
       );
       
-      toast.success('Login realizado com sucesso!');
+      toast.success(t('auth.loginSuccess'));
       navigate('/dashboard');
-    } catch (error: any) {
-      const message = error.response?.data?.message || 'Credenciais inválidas';
+    } catch (error: unknown) {
+      const message = (error as { response?: { data?: { message?: string } } })?.response?.data?.message || t('auth.invalidCredentials');
       toast.error(message);
     } finally {
       setLoading(false);
@@ -70,25 +77,25 @@ export default function Login() {
 
       {/* Form Header */}
       <div className="mb-8">
-        <h2 className="text-2xl font-bold text-primary">Bem-vindo de volta</h2>
+        <h2 className="text-2xl font-bold text-primary">{t('auth.welcome')}</h2>
         <p className="text-primary-500 mt-1">
-          Entre com suas credenciais para acessar o sistema
+          {t('auth.signInDescription')}
         </p>
       </div>
 
       {/* Form */}
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
         <Input
-          label="Email"
+          label={t('auth.email')}
           type="email"
-          placeholder="seu@email.com"
+          placeholder={t('auth.emailPlaceholder')}
           error={errors.email?.message}
           {...register('email')}
         />
 
         <div className="relative">
           <Input
-            label="Senha"
+            label={t('auth.password')}
             type={showPassword ? 'text' : 'password'}
             placeholder="••••••••"
             error={errors.password?.message}
@@ -113,13 +120,13 @@ export default function Login() {
               type="checkbox"
               className="w-4 h-4 rounded border-primary-300 text-accent focus:ring-accent"
             />
-            <span className="text-sm text-primary-600">Lembrar de mim</span>
+            <span className="text-sm text-primary-600">{t('auth.rememberMe')}</span>
           </label>
           <a
             href="#"
             className="text-sm text-accent hover:text-accent-700 font-medium"
           >
-            Esqueceu a senha?
+            {t('auth.forgotPassword')}
           </a>
         </div>
 
@@ -129,11 +136,11 @@ export default function Login() {
           loading={loading}
           icon={<LogIn className="w-5 h-5" />}
         >
-          Entrar
+          {t('auth.signIn')}
         </Button>
       </form>
 
-      <p className="mt-4 text-center text-xs text-primary-400">Vesion 0.1.3</p>
+      <p className="mt-4 text-center text-xs text-primary-400">Version 0.1.3</p>
     </div>
   );
 }
