@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { Plus, Search, Edit, Trash2, Shield } from 'lucide-react';
+import { Plus, Search, Edit, Trash2, Shield, Mail } from 'lucide-react';
 import { Button, Input, Badge, Card } from '@/components/ui';
-import { useUsers, useDeleteUser, useActivateUser } from '@/hooks/useUsers';
+import { useUsers, useDeleteUser, useActivateUser, useResendActivationEmail } from '@/hooks/useUsers';
 import { UserForm } from '@/components/users/UserForm';
 import type { UserSummary } from '@/types';
 
@@ -14,6 +14,7 @@ export default function Users() {
   const { data, isLoading, error } = useUsers({ page, pageSize: 10, search });
   const deleteUser = useDeleteUser();
   const activateUser = useActivateUser();
+  const resendActivation = useResendActivationEmail();
 
   const handleDelete = async (user: UserSummary) => {
     if (confirm(`Deseja realmente desativar o usuário ${user.name}?`)) {
@@ -142,7 +143,16 @@ export default function Users() {
                         >
                           <Edit className="w-4 h-4 text-primary-500" />
                         </button>
-                        {user.status === 'Inactive' ? (
+                        {user.status === 'Pending' ? (
+                          <button
+                            onClick={() => resendActivation.mutate(user.id)}
+                            disabled={resendActivation.isPending}
+                            className="p-1 hover:bg-blue-100 rounded disabled:opacity-50"
+                            title="Reenviar e-mail de ativação"
+                          >
+                            <Mail className="w-4 h-4 text-blue-500" />
+                          </button>
+                        ) : user.status === 'Inactive' ? (
                           <button
                             onClick={() => handleActivate(user)}
                             className="p-1 hover:bg-green-100 rounded"

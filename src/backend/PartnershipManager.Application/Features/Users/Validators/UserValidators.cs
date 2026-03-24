@@ -22,17 +22,6 @@ public class CreateUserValidator : AbstractValidator<CreateUserRequest>
             .MaximumLength(SystemConstants.MaxEmailLength)
                 .WithMessage(string.Format(ErrorMessages.MaxLength, "Email", SystemConstants.MaxEmailLength));
         
-        RuleFor(x => x.Password)
-            .NotEmpty().WithMessage(ErrorMessages.PasswordRequired)
-            .MinimumLength(SystemConstants.MinPasswordLength)
-                .WithMessage(string.Format(ErrorMessages.PasswordMinLength, SystemConstants.MinPasswordLength))
-            .MaximumLength(SystemConstants.MaxPasswordLength)
-                .WithMessage(string.Format(ErrorMessages.PasswordMaxLength, SystemConstants.MaxPasswordLength))
-            .Matches("[A-Z]").WithMessage(ErrorMessages.PasswordUppercase)
-            .Matches("[a-z]").WithMessage(ErrorMessages.PasswordLowercase)
-            .Matches("[0-9]").WithMessage(ErrorMessages.PasswordNumber)
-            .Matches("[^a-zA-Z0-9]").WithMessage(ErrorMessages.PasswordSpecial);
-        
         RuleFor(x => x.Phone)
             .MaximumLength(20).WithMessage(string.Format(ErrorMessages.MaxLength, "Telefone", 20))
             .When(x => !string.IsNullOrEmpty(x.Phone));

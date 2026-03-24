@@ -1,6 +1,5 @@
 import { Outlet, Navigate } from 'react-router-dom';
 import { useAuthStore } from '@/stores/authStore';
-import { PieChart } from 'lucide-react';
 
 export default function AuthLayout() {
   const { isAuthenticated } = useAuthStore();
@@ -13,17 +12,15 @@ export default function AuthLayout() {
     <div className="min-h-screen bg-primary flex">
       {/* Left Side - Branding */}
       <div className="hidden lg:flex lg:w-1/2 flex-col justify-between p-12">
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center">
-            <PieChart className="w-7 h-7 text-white" />
-          </div>
-          <div>
-            <h1 className="font-bold text-2xl text-white">Partnership</h1>
-            <p className="text-sm text-white/60">Manager</p>
-          </div>
+        <div className="flex justify-center">
+          <img
+            src="/logo.png"
+            alt="WP Manager"
+            className="h-60 w-auto object-contain"
+          />
         </div>
 
-        <div className="space-y-6">
+        <div className="space-y-6 -mt-16">
           <h2 className="text-4xl font-bold text-white leading-tight">
             Gestão Societária
             <br />
@@ -54,7 +51,7 @@ export default function AuthLayout() {
         </div>
 
         <p className="text-white/40 text-sm">
-          © 2025 Partnership Manager. Todos os direitos reservados.
+          © 2025 WP Manager. Todos os direitos reservados.
         </p>
       </div>
 

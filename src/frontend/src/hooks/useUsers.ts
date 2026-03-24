@@ -117,3 +117,15 @@ export function useActivateUser() {
     },
   });
 }
+
+export function useResendActivationEmail() {
+  return useMutation({
+    mutationFn: (id: string) => userService.resendActivation(id),
+    onSuccess: () => {
+      toast.success('E-mail de ativação reenviado com sucesso');
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || 'Erro ao reenviar e-mail de ativação');
+    },
+  });
+}

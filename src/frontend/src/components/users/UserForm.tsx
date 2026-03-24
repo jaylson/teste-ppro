@@ -27,13 +27,6 @@ const createUserSchema = z.object({
     .string()
     .email('Email inválido')
     .min(1, 'Email é obrigatório'),
-  password: z
-    .string()
-    .min(8, 'Mínimo 8 caracteres')
-    .regex(/[A-Z]/, 'Deve conter letra maiúscula')
-    .regex(/[a-z]/, 'Deve conter letra minúscula')
-    .regex(/[0-9]/, 'Deve conter número')
-    .regex(/[^a-zA-Z0-9]/, 'Deve conter caractere especial'),
   phone: z.string().optional(),
   initialRole: z.enum(roleValues),
 });
@@ -124,14 +117,6 @@ export function UserForm({ user, onClose }: UserFormProps) {
                 placeholder="email@exemplo.com"
                 error={(errors as any).email?.message}
                 {...register('email')}
-              />
-
-              <Input
-                label="Senha"
-                type="password"
-                placeholder="••••••••"
-                error={(errors as any).password?.message}
-                {...register('password')}
               />
 
               <div>

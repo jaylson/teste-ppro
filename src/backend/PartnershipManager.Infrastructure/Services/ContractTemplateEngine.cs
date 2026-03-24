@@ -194,7 +194,7 @@ public static class ContractTemplateEngine
         // Footer
         html.AppendLine("        <footer>");
         html.AppendLine($"            <p>Documento gerado em {DateTime.UtcNow:dd/MM/yyyy HH:mm:ss} UTC</p>");
-        html.AppendLine("            <p>Partnership Manager - Sistema de Gestão de Parcerias</p>");
+        html.AppendLine("            <p>P-Pro | WP Manager - Sistema de Gestão de Parcerias</p>");
         html.AppendLine("        </footer>");
         
         html.AppendLine("    </div>");

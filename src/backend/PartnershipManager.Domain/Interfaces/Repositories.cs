@@ -658,6 +658,7 @@ public interface IDateTimeService
 public interface ICurrentUserService
 {
     Guid? UserId { get; }
+    Guid? ClientId { get; }
     Guid? CompanyId { get; }
     string? Email { get; }
     IEnumerable<string> Roles { get; }

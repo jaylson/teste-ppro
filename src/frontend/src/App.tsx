@@ -9,6 +9,7 @@ import AuthLayout from './components/layout/AuthLayout';
 import Login from './pages/Login';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
+import ActivateAccount from './pages/ActivateAccount';
 import Dashboard from './pages/Dashboard';
 import { CapTablePage, TransactionsPage } from './pages/captable';
 import Companies from './pages/Companies';
@@ -47,6 +48,7 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/activate-account" element={<ActivateAccount />} />
       </Route>
 
       {/* Protected Routes */}

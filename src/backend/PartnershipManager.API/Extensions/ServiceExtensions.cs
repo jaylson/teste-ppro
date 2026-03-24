@@ -324,13 +324,13 @@ public static class ApiServiceExtensions
         {
             options.SwaggerDoc("v1", new OpenApiInfo
             {
-                Title = "Partnership Manager API",
+                Title = "P-Pro | WP Manager API",
                 Version = "v1",
                 Description = "API para gestão societária",
                 Contact = new OpenApiContact
                 {
-                    Name = "Equipe Ophir",
-                    Email = "contato@ophir.com.br"
+                    Name = "Equipe WP Manager",
+                    Email = "suporte@wpmanager.com.br"
                 }
             });
             
@@ -408,6 +408,15 @@ public class CurrentUserService : ICurrentUserService
         }
     }
     
+    public Guid? ClientId
+    {
+        get
+        {
+            var clientId = _httpContextAccessor.HttpContext?.Items["ClientId"];
+            return clientId is Guid id ? id : null;
+        }
+    }
+
     public Guid? CompanyId
     {
         get

@@ -4,7 +4,7 @@ export default {
   theme: {
     extend: {
       // =====================================================
-      // DESIGN SYSTEM - Partnership Manager
+      // DESIGN SYSTEM - P-Pro | WP Manager
       // Brand Manual Vitor Tubino
       // =====================================================
       colors: {

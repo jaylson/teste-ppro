@@ -1,3 +1,5 @@
+using System.Security.Cryptography;
+using System.Text;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PartnershipManager.Application.Common.Models;
@@ -7,6 +9,7 @@ using PartnershipManager.Domain.Entities;
 using PartnershipManager.Domain.Enums;
 using PartnershipManager.Domain.Exceptions;
 using PartnershipManager.Domain.Interfaces;
+using PartnershipManager.Domain.Interfaces.Services;
 using PartnershipManager.Infrastructure.Services;
 
 namespace PartnershipManager.API.Controllers;
@@ -24,6 +27,8 @@ public class UsersController : ControllerBase
     private readonly IAuthService _authService;
     private readonly ICacheService _cacheService;
     private readonly ICurrentUserService _currentUserService;
+    private readonly IEmailService _emailService;
+    private readonly IConfiguration _configuration;
     private readonly ILogger<UsersController> _logger;
     
     public UsersController(
@@ -31,12 +36,16 @@ public class UsersController : ControllerBase
         IAuthService authService,
         ICacheService cacheService,
         ICurrentUserService currentUserService,
+        IEmailService emailService,
+        IConfiguration configuration,
         ILogger<UsersController> logger)
     {
         _unitOfWork = unitOfWork;
         _authService = authService;
         _cacheService = cacheService;
         _currentUserService = currentUserService;
+        _emailService = emailService;
+        _configuration = configuration;
         _logger = logger;
     }
     
@@ -109,19 +118,22 @@ public class UsersController : ControllerBase
         var companyId = _currentUserService.CompanyId 
             ?? throw new UnauthorizedException();
         
+        var clientId = _currentUserService.ClientId
+            ?? throw new UnauthorizedException();
+        
         // Verificar se email já existe
         if (await _unitOfWork.Users.EmailExistsAsync(request.Email, companyId))
         {
             throw new ConflictException(ErrorMessages.UserAlreadyExists);
         }
         
-        var passwordHash = _authService.HashPassword(request.Password);
-        
+        // Usuário é criado sem senha — ela será definida pelo próprio usuário via link de ativação
         var user = Domain.Entities.User.Create(
-            companyId,
+            clientId,
             request.Email,
             request.Name,
-            passwordHash);
+            passwordHash: string.Empty,
+            companyId);
         
         await _unitOfWork.BeginTransactionAsync();
         
@@ -133,7 +145,32 @@ public class UsersController : ControllerBase
             var userRole = UserRole.Create(user.Id, request.InitialRole, _currentUserService.UserId);
             await _unitOfWork.UserRoles.AddAsync(userRole);
             
+            // Gerar token de ativação seguro (base64url de 32 bytes aleatórios, hash SHA-256 no banco)
+            var tokenBytes = RandomNumberGenerator.GetBytes(32);
+            var plainToken = Convert.ToBase64String(tokenBytes)
+                .Replace("+", "-").Replace("/", "_").Replace("=", "");
+            var hashedToken = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(plainToken))).ToLowerInvariant();
+            var expiry = DateTime.UtcNow.AddHours(72);
+            
+            await _unitOfWork.Users.UpdatePasswordResetTokenAsync(user.Id, hashedToken, expiry);
+            
             await _unitOfWork.CommitTransactionAsync();
+            
+            // Enviar e-mail de ativação (fora da transação — falha no e-mail não reverte o usuário)
+            try
+            {
+                var frontendUrl = _configuration["Email:FrontendUrl"]?.TrimEnd('/') ?? "http://localhost:5173";
+                var activationLink = $"{frontendUrl}/activate-account?token={Uri.EscapeDataString(plainToken)}";
+                await _emailService.SendAccountActivationEmailAsync(
+                    user.Email,
+                    user.Name,
+                    activationLink,
+                    user.Language.ToString().ToLower());
+            }
+            catch (Exception emailEx)
+            {
+                _logger.LogError(emailEx, "Falha ao enviar e-mail de ativação para {Email} — usuário criado mesmo assim", user.Email);
+            }
             
             _logger.LogInformation("Usuário criado: {UserId} - {Email}", user.Id, user.Email);
             
@@ -297,6 +334,49 @@ public class UsersController : ControllerBase
         _logger.LogInformation("Papel {Role} removido do usuário {UserId}", role, id);
         
         return Ok(ApiResponse.Ok(SuccessMessages.RoleRemoved));
+    }
+    
+    /// <summary>
+    /// Reenvia o e-mail de ativação para um usuário pendente
+    /// </summary>
+    [HttpPost("{id:guid}/resend-activation")]
+    [Authorize(Roles = "SuperAdmin,Admin,HR")]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> ResendActivation(Guid id)
+    {
+        var user = await _unitOfWork.Users.GetByIdAsync(id);
+        
+        if (user == null)
+        {
+            throw new NotFoundException("Usuário", id);
+        }
+        
+        if (user.Status != Domain.Enums.UserStatus.Pending)
+        {
+            throw new ValidationException("Status", "Usuário não está pendente de ativação.");
+        }
+        
+        var tokenBytes = RandomNumberGenerator.GetBytes(32);
+        var plainToken = Convert.ToBase64String(tokenBytes)
+            .Replace("+", "-").Replace("/", "_").Replace("=", "");
+        var hashedToken = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(plainToken))).ToLowerInvariant();
+        var expiry = DateTime.UtcNow.AddHours(72);
+        
+        await _unitOfWork.Users.UpdatePasswordResetTokenAsync(user.Id, hashedToken, expiry);
+        
+        var frontendUrl = _configuration["Email:FrontendUrl"]?.TrimEnd('/') ?? "http://localhost:5173";
+        var activationLink = $"{frontendUrl}/activate-account?token={Uri.EscapeDataString(plainToken)}";
+        
+        await _emailService.SendAccountActivationEmailAsync(
+            user.Email,
+            user.Name,
+            activationLink,
+            user.Language.ToString().ToLower());
+        
+        _logger.LogInformation("E-mail de ativação reenviado para: {UserId} - {Email}", user.Id, user.Email);
+        
+        return Ok(ApiResponse.Ok("E-mail de ativação reenviado com sucesso."));
     }
     
     /// <summary>

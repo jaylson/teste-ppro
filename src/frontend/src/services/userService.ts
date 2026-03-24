@@ -82,4 +82,11 @@ export const userService = {
   activate: async (id: string): Promise<void> => {
     await api.post(`${USERS_ENDPOINT}/${id}/activate`);
   },
+
+  /**
+   * Reenvia e-mail de ativação para usuário pendente
+   */
+  resendActivation: async (id: string): Promise<void> => {
+    await api.post(`${USERS_ENDPOINT}/${id}/resend-activation`);
+  },
 };

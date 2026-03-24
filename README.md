@@ -1,4 +1,4 @@
-# Partnership Manager
+# P-Pro | WP Manager
 
 Sistema de Gestão Societária para empresas que precisam gerenciar Cap Table, Vesting, Contratos, Valuations e comunicação com investidores.
 
@@ -301,7 +301,7 @@ docker exec pm-mysql mysqldump -u pm_user -p partnership_manager > backup.sql
 
 ## 📄 Licença
 
-Proprietary - © 2025 Partnership Manager
+Proprietary - © 2025 P-Pro | WP Manager
 
 ---
 

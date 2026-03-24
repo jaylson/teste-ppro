@@ -6,6 +6,7 @@ import type {
   ChangePasswordRequest,
   ForgotPasswordRequest,
   ResetPasswordRequest,
+  ActivateAccountRequest,
   UserInfo,
 } from '@/types';
 
@@ -17,6 +18,7 @@ const AUTH_ENDPOINTS = {
   CHANGE_PASSWORD: '/auth/change-password',
   FORGOT_PASSWORD: '/auth/forgot-password',
   RESET_PASSWORD: '/auth/reset-password',
+  ACTIVATE_ACCOUNT: '/auth/activate-account',
 };
 
 export const authService = {
@@ -78,5 +80,12 @@ export const authService = {
    */
   resetPassword: async (data: ResetPasswordRequest): Promise<void> => {
     await api.post(AUTH_ENDPOINTS.RESET_PASSWORD, data);
+  },
+
+  /**
+   * Ativa a conta de um novo usuário definindo sua senha pela primeira vez
+   */
+  activateAccount: async (data: ActivateAccountRequest): Promise<void> => {
+    await api.post(AUTH_ENDPOINTS.ACTIVATE_ACCOUNT, data);
   },
 };

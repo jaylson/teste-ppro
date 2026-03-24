@@ -1,4 +1,4 @@
-# Partnership Manager
+# P-Pro | WP Manager
 ## Plano de Execução de Desenvolvimento
 
 **Versão:** 1.0  
@@ -25,7 +25,7 @@
 ## 1. Visão Geral do Projeto
 
 ### 1.1 Objetivo
-Desenvolver o **Partnership Manager**, uma plataforma SaaS completa para gestão societária, incluindo cap table, vesting, contratos, valuation e portal do investidor.
+Desenvolver o **P-Pro | WP Manager**, uma plataforma SaaS completa para gestão societária, incluindo cap table, vesting, contratos, valuation e portal do investidor.
 
 ### 1.2 Escopo de Entrega
 
@@ -957,4 +957,4 @@ Gere testes para a tarefa [ID]:
 
 ---
 
-*Documento gerado em 19/01/2025 - Partnership Manager v1.0*
+*Documento gerado em 19/01/2025 - P-Pro | WP Manager v1.0*

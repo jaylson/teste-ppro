@@ -1,8 +1,8 @@
 // =====================================================
-// CONSTANTES DO SISTEMA - Partnership Manager
+// CONSTANTES DO SISTEMA - P-Pro | WP Manager
 // =====================================================
 
-export const APP_NAME = 'Partnership Manager';
+export const APP_NAME = 'P-Pro | WP Manager';
 export const APP_VERSION = '1.0.0';
 export const API_URL = import.meta.env.VITE_API_URL || '/api';
 

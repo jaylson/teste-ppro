@@ -13,4 +13,13 @@ public interface IEmailService
     /// <param name="resetLink">URL completa do reset (ex: https://app.exemplo.com/reset-password?token=...)</param>
     /// <param name="language">Código de idioma do usuário (ex: "pt", "en")</param>
     Task SendPasswordResetEmailAsync(string toEmail, string toName, string resetLink, string language);
+
+    /// <summary>
+    /// Envia o e-mail de ativação de conta para novos usuários.
+    /// </summary>
+    /// <param name="toEmail">Endereço de destino</param>
+    /// <param name="toName">Nome do destinatário</param>
+    /// <param name="activationLink">URL completa de ativação (ex: https://app.exemplo.com/activate-account?token=...)</param>
+    /// <param name="language">Código de idioma do usuário (ex: "pt", "en")</param>
+    Task SendAccountActivationEmailAsync(string toEmail, string toName, string activationLink, string language);
 }

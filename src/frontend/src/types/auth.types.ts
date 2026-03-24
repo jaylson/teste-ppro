@@ -43,3 +43,9 @@ export interface ResetPasswordRequest {
   newPassword: string;
   confirmNewPassword: string;
 }
+
+export interface ActivateAccountRequest {
+  token: string;
+  newPassword: string;
+  confirmNewPassword: string;
+}

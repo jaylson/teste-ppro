@@ -222,16 +222,12 @@ export default function Sidebar() {
   return (
     <aside className="sidebar">
       {/* Logo */}
-      <div className="sidebar-logo">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center">
-            <PieChart className="w-6 h-6 text-white" />
-          </div>
-          <div>
-            <h1 className="font-bold text-lg text-white">Partnership</h1>
-            <p className="text-xs text-white/60">Manager</p>
-          </div>
-        </div>
+      <div className="sidebar-logo flex justify-center">
+        <img
+          src="/logo.png"
+          alt="WP Manager"
+          className="h-20 w-auto object-contain"
+        />
       </div>
 
       {/* Navigation */}

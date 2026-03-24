@@ -30,7 +30,6 @@ public record CreateUserRequest
 {
     public string Name { get; init; } = string.Empty;
     public string Email { get; init; } = string.Empty;
-    public string Password { get; init; } = string.Empty;
     public string? Phone { get; init; }
     public Role InitialRole { get; init; } = Role.Viewer;
 }

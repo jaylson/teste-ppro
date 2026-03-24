@@ -302,7 +302,7 @@ public class ContractGenerationService : IContractGenerationService
         {
             row.RelativeItem().Column(column =>
             {
-                column.Item().Text("PARTNERSHIP MANAGER")
+                column.Item().Text("P-Pro | WP Manager")
                     .FontSize(18)
                     .Bold()
                     .FontColor(Colors.Blue.Medium);

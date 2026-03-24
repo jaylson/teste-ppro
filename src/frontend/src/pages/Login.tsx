@@ -65,14 +65,12 @@ export default function Login() {
   return (
     <div className="animate-fade-in">
       {/* Mobile Logo */}
-      <div className="lg:hidden flex items-center justify-center gap-3 mb-8">
-        <div className="w-12 h-12 bg-primary rounded-xl flex items-center justify-center">
-          <span className="text-white font-bold text-xl">PM</span>
-        </div>
-        <div>
-          <h1 className="font-bold text-xl text-primary">Partnership</h1>
-          <p className="text-sm text-primary-500">Manager</p>
-        </div>
+      <div className="lg:hidden flex items-center justify-center mb-8">
+        <img
+          src="/logo2.png"
+          alt="WP Manager"
+          className="h-48 w-auto object-contain"
+        />
       </div>
 
       {/* Form Header */}

@@ -133,18 +133,19 @@ public class UserRepository : BaseRepository<User>, IUserRepository
     public async Task AddAsync(User user)
     {
         var sql = @"INSERT INTO users 
-                    (id, company_id, email, name, password_hash, avatar_url, phone,
+                    (id, client_id, company_id, email, name, password_hash, avatar_url, phone,
                      status, language, timezone, preferences, two_factor_enabled,
                      created_at, updated_at, created_by)
                     VALUES 
-                    (@Id, @CompanyId, @Email, @Name, @PasswordHash, @AvatarUrl, @Phone,
+                    (@Id, @ClientId, @CompanyId, @Email, @Name, @PasswordHash, @AvatarUrl, @Phone,
                      @Status, @Language, @Timezone, @Preferences, @TwoFactorEnabled,
                      @CreatedAt, @UpdatedAt, @CreatedBy)";
 
         await Connection.ExecuteAsync(sql, new
         {
             Id = user.Id.ToString(),
-            CompanyId = user.CompanyId.ToString(),
+            ClientId = user.ClientId.ToString(),
+            CompanyId = user.CompanyId?.ToString(),
             user.Email,
             user.Name,
             user.PasswordHash,

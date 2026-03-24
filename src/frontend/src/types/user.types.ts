@@ -29,7 +29,6 @@ export interface UserSummary {
 export interface CreateUserRequest {
   name: string;
   email: string;
-  password: string;
   phone?: string;
   initialRole: Role;
 }

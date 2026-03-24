@@ -42,7 +42,7 @@ app.UseMiddleware<ExceptionHandlingMiddleware>();
 app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
-    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Partnership Manager API v1");
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "P-Pro | WP Manager API v1");
     c.RoutePrefix = "swagger";
 });
 
@@ -86,7 +86,7 @@ app.MapControllers();
 // =====================================================
 app.MapGet("/", () => Results.Ok(new
 {
-    Name = "Partnership Manager API",
+    Name = "P-Pro | WP Manager API",
     Version = "1.0.0",
     Status = "Running",
     Documentation = "/swagger",
@@ -97,7 +97,7 @@ app.MapGet("/", () => Results.Ok(new
 // =====================================================
 // RUN
 // =====================================================
-Log.Information("Partnership Manager API starting...");
+Log.Information("P-Pro | WP Manager API starting...");
 
 try
 {

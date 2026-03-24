@@ -369,6 +369,47 @@ public class AuthController : ControllerBase
         return Ok(ApiResponse.Ok("Senha redefinida com sucesso. Você já pode fazer login com a nova senha."));
     }
 
+    /// <summary>
+    /// Ativa a conta de um novo usuário definindo sua senha pela primeira vez.
+    /// </summary>
+    [HttpPost("activate-account")]
+    [AllowAnonymous]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> ActivateAccount([FromBody] ResetPasswordRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(request.Token))
+            throw new ValidationException("Token", "Token de ativação é obrigatório.");
+
+        if (request.NewPassword != request.ConfirmNewPassword)
+            throw new ValidationException("ConfirmNewPassword", ErrorMessages.PasswordMismatch);
+
+        var hashedToken = HashToken(request.Token);
+        var user = await _unitOfWork.Users.GetByPasswordResetTokenAsync(hashedToken);
+
+        if (user == null || !user.IsPasswordResetTokenValid())
+        {
+            _logger.LogWarning("Tentativa de ativação com token inválido ou expirado");
+            throw new ValidationException("Token", "O link de ativação é inválido ou já expirou.");
+        }
+
+        var newHash = _authService.HashPassword(request.NewPassword);
+        await _unitOfWork.Users.UpdatePasswordHashAsync(user.Id, newHash);
+
+        // Ativar o usuário caso ainda esteja Pending
+        if (user.Status == UserStatus.Pending)
+        {
+            user.Activate();
+            await _unitOfWork.Users.UpdateAsync(user);
+        }
+
+        await _unitOfWork.Users.UpdatePasswordResetTokenAsync(user.Id, null, null);
+
+        _logger.LogInformation("Conta ativada com sucesso para o usuário {UserId}", user.Id);
+
+        return Ok(ApiResponse.Ok("Conta ativada com sucesso. Você já pode fazer login."));
+    }
+
     // Gera o hash SHA-256 do token (base64 hex)
     private static string HashToken(string plainToken)
     {

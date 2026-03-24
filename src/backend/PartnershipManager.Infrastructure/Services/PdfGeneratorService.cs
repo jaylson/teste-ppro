@@ -45,7 +45,7 @@ public class PdfGeneratorService : IPdfGeneratorService
         {
             row.RelativeItem().Column(column =>
             {
-                column.Item().Text("PARTNERSHIP MANAGER").FontSize(20).Bold().FontColor(Colors.Blue.Medium);
+                column.Item().Text("P-Pro | WP Manager").FontSize(20).Bold().FontColor(Colors.Blue.Medium);
                 column.Item().Text("Sistema de Gestão de Parcerias").FontSize(10).FontColor(Colors.Grey.Darken2);
                 column.Item().PaddingTop(5).Text("contato@partnershipmanager.com").FontSize(9);
                 column.Item().Text("Tel: +55 (11) 1234-5678").FontSize(9);
