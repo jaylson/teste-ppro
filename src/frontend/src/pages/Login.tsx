@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -122,12 +122,12 @@ export default function Login() {
             />
             <span className="text-sm text-primary-600">{t('auth.rememberMe')}</span>
           </label>
-          <a
-            href="#"
+          <Link
+            to="/forgot-password"
             className="text-sm text-accent hover:text-accent-700 font-medium"
           >
             {t('auth.forgotPassword')}
-          </a>
+          </Link>
         </div>
 
         <Button

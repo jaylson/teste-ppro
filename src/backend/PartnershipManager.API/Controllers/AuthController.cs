@@ -1,3 +1,5 @@
+using System.Security.Cryptography;
+using System.Text;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PartnershipManager.Application.Common.Models;
@@ -6,6 +8,7 @@ using PartnershipManager.Domain.Constants;
 using PartnershipManager.Domain.Enums;
 using PartnershipManager.Domain.Exceptions;
 using PartnershipManager.Domain.Interfaces;
+using PartnershipManager.Domain.Interfaces.Services;
 using PartnershipManager.Infrastructure.Services;
 
 namespace PartnershipManager.API.Controllers;
@@ -20,17 +23,20 @@ public class AuthController : ControllerBase
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IAuthService _authService;
+    private readonly IEmailService _emailService;
     private readonly IConfiguration _configuration;
     private readonly ILogger<AuthController> _logger;
     
     public AuthController(
         IUnitOfWork unitOfWork,
         IAuthService authService,
+        IEmailService emailService,
         IConfiguration configuration,
         ILogger<AuthController> logger)
     {
         _unitOfWork = unitOfWork;
         _authService = authService;
+        _emailService = emailService;
         _configuration = configuration;
         _logger = logger;
     }
@@ -277,5 +283,96 @@ public class AuthController : ControllerBase
         _logger.LogInformation("Senha alterada para usuário: {UserId}", id);
         
         return Ok(ApiResponse.Ok(SuccessMessages.PasswordChanged));
+    }
+    
+    /// <summary>
+    /// Solicita recuperação de senha via e-mail.
+    /// Sempre retorna 200 OK para evitar enumeração de usuários (OWASP A01).
+    /// </summary>
+    [HttpPost("forgot-password")]
+    [AllowAnonymous]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status200OK)]
+    public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequest request)
+    {
+        try
+        {
+            var user = await _unitOfWork.Users.GetByEmailAsync(request.Email);
+
+            if (user != null && user.Status == UserStatus.Active)
+            {
+                // Gerar token seguro (base64url de 32 bytes aleatórios)
+                var tokenBytes = RandomNumberGenerator.GetBytes(32);
+                var plainToken = Convert.ToBase64String(tokenBytes)
+                    .Replace("+", "-").Replace("/", "_").Replace("=", "");
+
+                // Armazenar apenas o hash SHA-256 no banco
+                var hashedToken = HashToken(plainToken);
+                var expiry = DateTime.UtcNow.AddHours(1);
+
+                await _unitOfWork.Users.UpdatePasswordResetTokenAsync(user.Id, hashedToken, expiry);
+
+                var frontendUrl = _configuration["Email:FrontendUrl"]?.TrimEnd('/') ?? "http://localhost:5173";
+                var resetLink = $"{frontendUrl}/reset-password?token={Uri.EscapeDataString(plainToken)}";
+
+                await _emailService.SendPasswordResetEmailAsync(
+                    user.Email,
+                    user.Name,
+                    resetLink,
+                    user.Language.ToString().ToLower());
+
+                _logger.LogInformation("Link de recuperação de senha gerado para {Email}", user.Email);
+            }
+            else
+            {
+                _logger.LogInformation("Recuperação de senha solicitada para e-mail não encontrado/inativo: {Email}", request.Email);
+            }
+        }
+        catch (Exception ex)
+        {
+            // Nunca expor erros internos — retornar 200 mesmo assim
+            _logger.LogError(ex, "Erro ao processar forgot-password para {Email}", request.Email);
+        }
+
+        return Ok(ApiResponse.Ok("Se o e-mail existir em nossa base, você receberá as instruções em instantes."));
+    }
+
+    /// <summary>
+    /// Redefine a senha usando o token recebido por e-mail.
+    /// </summary>
+    [HttpPost("reset-password")]
+    [AllowAnonymous]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(request.Token))
+            throw new ValidationException("Token", "Token de recuperação é obrigatório.");
+
+        if (request.NewPassword != request.ConfirmNewPassword)
+            throw new ValidationException("ConfirmNewPassword", ErrorMessages.PasswordMismatch);
+
+        var hashedToken = HashToken(request.Token);
+        var user = await _unitOfWork.Users.GetByPasswordResetTokenAsync(hashedToken);
+
+        if (user == null || !user.IsPasswordResetTokenValid())
+        {
+            _logger.LogWarning("Tentativa de reset com token inválido ou expirado");
+            throw new ValidationException("Token", "O link de recuperação é inválido ou já expirou.");
+        }
+
+        var newHash = _authService.HashPassword(request.NewPassword);
+        await _unitOfWork.Users.UpdatePasswordHashAsync(user.Id, newHash);
+        await _unitOfWork.Users.UpdatePasswordResetTokenAsync(user.Id, null, null);
+
+        _logger.LogInformation("Senha redefinida com sucesso para o usuário {UserId}", user.Id);
+
+        return Ok(ApiResponse.Ok("Senha redefinida com sucesso. Você já pode fazer login com a nova senha."));
+    }
+
+    // Gera o hash SHA-256 do token (base64 hex)
+    private static string HashToken(string plainToken)
+    {
+        var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(plainToken));
+        return Convert.ToHexString(bytes).ToLowerInvariant();
     }
 }

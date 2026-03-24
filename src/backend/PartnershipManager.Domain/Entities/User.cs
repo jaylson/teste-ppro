@@ -25,6 +25,8 @@ public partial class User : BaseEntity
     public DateTime? LockoutEnd { get; private set; }
     public string? RefreshToken { get; private set; }
     public DateTime? RefreshTokenExpiry { get; private set; }
+    public string? PasswordResetToken { get; private set; }
+    public DateTime? PasswordResetTokenExpiry { get; private set; }
     
     // Navigation properties
     public Client? Client { get; private set; }
@@ -134,6 +136,23 @@ public partial class User : BaseEntity
         RefreshTokenExpiry = null;
         UpdatedAt = DateTime.UtcNow;
     }
+    
+    public void SetPasswordResetToken(string hashedToken, DateTime expiry)
+    {
+        PasswordResetToken = hashedToken;
+        PasswordResetTokenExpiry = expiry;
+        UpdatedAt = DateTime.UtcNow;
+    }
+    
+    public void ClearPasswordResetToken()
+    {
+        PasswordResetToken = null;
+        PasswordResetTokenExpiry = null;
+        UpdatedAt = DateTime.UtcNow;
+    }
+    
+    public bool IsPasswordResetTokenValid()
+        => PasswordResetToken != null && PasswordResetTokenExpiry > DateTime.UtcNow;
     
     public bool IsRefreshTokenValid(string token) 
         => RefreshToken == token && RefreshTokenExpiry > DateTime.UtcNow;

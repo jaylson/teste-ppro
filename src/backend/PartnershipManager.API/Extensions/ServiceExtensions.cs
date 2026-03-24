@@ -89,6 +89,7 @@ public static class InfrastructureServiceExtensions
         
         // Auth Service
         services.AddScoped<IAuthService, AuthService>();
+        services.AddScoped<IEmailService, GoogleSmtpEmailService>();
         services.AddScoped<IShareholderService, ShareholderService>();
         services.AddScoped<IShareClassService, ShareClassService>();
         services.AddScoped<IShareService, ShareService>();

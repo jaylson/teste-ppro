@@ -36,7 +36,6 @@ export interface ChangePasswordRequest {
 
 export interface ForgotPasswordRequest {
   email: string;
-  companyId: string;
 }
 
 export interface ResetPasswordRequest {

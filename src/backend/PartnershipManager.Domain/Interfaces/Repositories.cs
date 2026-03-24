@@ -273,6 +273,9 @@ public interface IUserRepository
     Task<bool> ExistsAsync(Guid id);
     Task UpdateRefreshTokenAsync(Guid userId, string? refreshToken, DateTime? expiry);
     Task UpdateLoginInfoAsync(Guid userId, bool success);
+    Task<User?> GetByPasswordResetTokenAsync(string hashedToken);
+    Task UpdatePasswordResetTokenAsync(Guid userId, string? hashedToken, DateTime? expiry);
+    Task UpdatePasswordHashAsync(Guid userId, string passwordHash);
 }
 
 /// <summary>

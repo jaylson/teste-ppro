@@ -33,6 +33,8 @@ public class UserRepository : BaseRepository<User>, IUserRepository
         lockout_end AS LockoutEnd,
         refresh_token AS RefreshToken,
         refresh_token_expiry AS RefreshTokenExpiry,
+        password_reset_token AS PasswordResetToken,
+        password_reset_token_expiry AS PasswordResetTokenExpiry,
         created_at AS CreatedAt,
         updated_at AS UpdatedAt,
         created_by AS CreatedBy,
@@ -261,6 +263,49 @@ public class UserRepository : BaseRepository<User>, IUserRepository
         
         return await Connection.QueryFirstOrDefaultAsync<User>(sql, 
             new { RefreshToken = refreshToken }, Transaction);
+    }
+
+    public async Task<User?> GetByPasswordResetTokenAsync(string hashedToken)
+    {
+        var sql = $@"SELECT {SelectColumns}
+                     FROM users
+                     WHERE password_reset_token = @Token
+                       AND is_deleted = 0";
+
+        return await Connection.QueryFirstOrDefaultAsync<User>(sql,
+            new { Token = hashedToken }, Transaction);
+    }
+
+    public async Task UpdatePasswordResetTokenAsync(Guid userId, string? hashedToken, DateTime? expiry)
+    {
+        var sql = @"UPDATE users SET
+                        password_reset_token        = @Token,
+                        password_reset_token_expiry = @Expiry,
+                        updated_at                  = @UpdatedAt
+                    WHERE id = @Id";
+
+        await Connection.ExecuteAsync(sql, new
+        {
+            Id        = userId.ToString(),
+            Token     = hashedToken,
+            Expiry    = expiry,
+            UpdatedAt = DateTime.UtcNow
+        }, Transaction);
+    }
+
+    public async Task UpdatePasswordHashAsync(Guid userId, string passwordHash)
+    {
+        var sql = @"UPDATE users SET
+                        password_hash = @PasswordHash,
+                        updated_at    = @UpdatedAt
+                    WHERE id = @Id";
+
+        await Connection.ExecuteAsync(sql, new
+        {
+            Id           = userId.ToString(),
+            PasswordHash = passwordHash,
+            UpdatedAt    = DateTime.UtcNow
+        }, Transaction);
     }
 
     public async Task DeleteAsync(Guid id)

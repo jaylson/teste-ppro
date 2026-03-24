@@ -9,6 +9,10 @@
         "dotnet test": true,
         "npm run build": true,
         "npm install": true,
-        "mysql": true
+        "mysql": true,
+        "/^docker restart ppro-frontend && echo \"Reiniciado ok\"$/": {
+            "approve": true,
+            "matchCommandLine": true
+        }
     }
 }

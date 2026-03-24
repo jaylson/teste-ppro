@@ -4,6 +4,8 @@ import type {
   AuthResponse,
   RefreshTokenRequest,
   ChangePasswordRequest,
+  ForgotPasswordRequest,
+  ResetPasswordRequest,
   UserInfo,
 } from '@/types';
 
@@ -13,6 +15,8 @@ const AUTH_ENDPOINTS = {
   REFRESH: '/auth/refresh',
   ME: '/auth/me',
   CHANGE_PASSWORD: '/auth/change-password',
+  FORGOT_PASSWORD: '/auth/forgot-password',
+  RESET_PASSWORD: '/auth/reset-password',
 };
 
 export const authService = {
@@ -60,5 +64,19 @@ export const authService = {
    */
   changePassword: async (data: ChangePasswordRequest): Promise<void> => {
     await api.post(AUTH_ENDPOINTS.CHANGE_PASSWORD, data);
+  },
+
+  /**
+   * Solicita link de recuperação de senha por e-mail
+   */
+  forgotPassword: async (data: ForgotPasswordRequest): Promise<void> => {
+    await api.post(AUTH_ENDPOINTS.FORGOT_PASSWORD, data);
+  },
+
+  /**
+   * Redefine a senha usando o token recebido por e-mail
+   */
+  resetPassword: async (data: ResetPasswordRequest): Promise<void> => {
+    await api.post(AUTH_ENDPOINTS.RESET_PASSWORD, data);
   },
 };

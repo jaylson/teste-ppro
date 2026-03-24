@@ -7,6 +7,8 @@ import AuthLayout from './components/layout/AuthLayout';
 
 // Pages
 import Login from './pages/Login';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 import Dashboard from './pages/Dashboard';
 import { CapTablePage, TransactionsPage } from './pages/captable';
 import Companies from './pages/Companies';
@@ -43,6 +45,8 @@ function App() {
       {/* Auth Routes */}
       <Route element={<AuthLayout />}>
         <Route path="/login" element={<Login />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
       </Route>
 
       {/* Protected Routes */}

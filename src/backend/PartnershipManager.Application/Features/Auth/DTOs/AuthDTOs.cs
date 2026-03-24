@@ -73,7 +73,7 @@ public record ChangePasswordRequest
 public record ForgotPasswordRequest
 {
     public string Email { get; init; } = string.Empty;
-    public Guid CompanyId { get; init; }
+    public Guid? CompanyId { get; init; }
 }
 
 /// <summary>

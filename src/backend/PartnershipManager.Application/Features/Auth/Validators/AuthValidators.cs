@@ -99,9 +99,6 @@ public class ForgotPasswordValidator : AbstractValidator<ForgotPasswordRequest>
         RuleFor(x => x.Email)
             .NotEmpty().WithMessage(string.Format(ErrorMessages.Required, "Email"))
             .EmailAddress().WithMessage(ErrorMessages.InvalidEmail);
-        
-        RuleFor(x => x.CompanyId)
-            .NotEmpty().WithMessage(string.Format(ErrorMessages.Required, "Empresa"));
     }
 }
 
