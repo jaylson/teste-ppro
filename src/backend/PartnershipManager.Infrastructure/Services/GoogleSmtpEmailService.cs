@@ -40,7 +40,8 @@ public sealed class GoogleSmtpEmailService : IEmailService
         _smtpPort   = int.Parse(section["SmtpPort"] ?? "587");
         _enableSsl  = bool.Parse(section["EnableSsl"]  ?? "true");
         _username   = section["Username"];
-        _password   = section["Password"];
+        // Suporta senha em texto puro ou codificada em Base64 (detecção automática)
+        _password   = DecodePasswordIfBase64(section["Password"]);
         _fromEmail  = section["FromEmail"]  ?? "noreply@example.com";
         _fromName   = section["FromName"]   ?? "Partnership Manager";
     }
@@ -87,6 +88,21 @@ public sealed class GoogleSmtpEmailService : IEmailService
     // -----------------------------------------------------------------------
     // Helpers privados
     // -----------------------------------------------------------------------
+
+    // Detecta e decodifica senha em Base64; retorna o valor original se não for Base64 válido
+    private static string? DecodePasswordIfBase64(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value)) return value;
+        try
+        {
+            var decoded = System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(value));
+            return decoded.All(c => c >= 32 && c < 127) ? decoded : value;
+        }
+        catch
+        {
+            return value;
+        }
+    }
 
     private async Task SendAsync(MimeMessage message)
     {
