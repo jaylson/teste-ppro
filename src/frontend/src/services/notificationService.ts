@@ -32,11 +32,11 @@ export const notificationService = {
   },
 
   async markAsRead(id: string): Promise<void> {
-    await api.post(`/notifications/${id}/read`);
+    await api.put(`/notifications/${id}/read`);
   },
 
   async markAllAsRead(): Promise<void> {
-    await api.post('/notifications/read-all');
+    await api.put('/notifications/read-all');
   },
 
   async getPreferences(): Promise<NotificationPreference[]> {

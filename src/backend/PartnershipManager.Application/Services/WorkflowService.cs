@@ -1,7 +1,11 @@
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using PartnershipManager.Application.Common.Models;
 using PartnershipManager.Application.DTOs.Workflow;
 using PartnershipManager.Domain.Entities;
 using PartnershipManager.Domain.Interfaces;
+using PartnershipManager.Domain.Interfaces.Services;
 
 namespace PartnershipManager.Application.Services;
 
@@ -19,10 +23,37 @@ public interface IWorkflowService
 public class WorkflowService : IWorkflowService
 {
     private readonly IWorkflowRepository _repo;
+    private readonly INotificationService _notifications;
+    private readonly IEmailService _emailService;
+    private readonly IUnitOfWork _uow;
+    private readonly ILogger<WorkflowService> _logger;
+    private readonly IConfiguration _configuration;
+    private readonly IHttpContextAccessor _httpContextAccessor;
 
-    public WorkflowService(IWorkflowRepository repo)
+    public WorkflowService(
+        IWorkflowRepository repo,
+        INotificationService notifications,
+        IEmailService emailService,
+        IUnitOfWork uow,
+        ILogger<WorkflowService> logger,
+        IConfiguration configuration,
+        IHttpContextAccessor httpContextAccessor)
     {
         _repo = repo;
+        _notifications = notifications;
+        _emailService = emailService;
+        _uow = uow;
+        _logger = logger;
+        _configuration = configuration;
+        _httpContextAccessor = httpContextAccessor;
+    }
+
+    private string GetFrontendUrl()
+    {
+        var origin = _httpContextAccessor.HttpContext?.Request.Headers["Origin"].FirstOrDefault();
+        if (!string.IsNullOrEmpty(origin))
+            return origin.TrimEnd('/');
+        return (_configuration["Email:FrontendUrl"] ?? "http://localhost:3000").TrimEnd('/');
     }
 
     public async Task<Guid> CreateAsync(Guid companyId, CreateWorkflowRequest request, Guid requestedBy)
@@ -54,7 +85,49 @@ public class WorkflowService : IWorkflowService
             DueDate = s.DueDate
         }).ToList();
 
-        return await _repo.CreateAsync(workflow, steps);
+        var workflowId = await _repo.CreateAsync(workflow, steps);
+
+        // Notificar aprovador da primeira etapa
+        var firstStep = steps.FirstOrDefault(s => s.StepOrder == 1) ?? steps.FirstOrDefault();
+        if (firstStep?.AssignedUserId != null)
+        {
+            var requester = await _uow.Users.GetByIdAsync(requestedBy);
+            var requesterName = requester?.Name ?? "Sistema";
+            var inAppActionUrl = $"/approvals/{workflowId}";
+            var emailActionUrl = $"{GetFrontendUrl()}/approvals/{workflowId}";
+
+            await _notifications.NotifyAsync(
+                companyId,
+                firstStep.AssignedUserId.Value,
+                "workflow_assigned",
+                $"Aprovação solicitada: {workflow.Title}",
+                $"Você foi designado como aprovador na etapa \"{firstStep.Name}\". Solicitado por: {requesterName}.",
+                actionUrl: inAppActionUrl,
+                referenceType: "workflow",
+                referenceId: workflowId);
+
+            var pref = await _notifications.GetPreferenceChannelAsync(firstStep.AssignedUserId.Value, "workflow_assigned");
+            if (pref != "none" && pref != "in_app")
+            {
+                var assignee = await _uow.Users.GetByIdAsync(firstStep.AssignedUserId.Value);
+                if (assignee != null)
+                {
+                    try
+                    {
+                        await _emailService.SendApprovalAssignedEmailAsync(
+                            assignee.Email, assignee.Name,
+                            workflow.Title, firstStep.Name, requesterName,
+                            workflow.Priority, firstStep.DueDate, emailActionUrl);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Falha ao enviar e-mail de atribuição de aprovação para {Email}", assignee.Email);
+                    }
+                }
+            }
+        }
+
+        return workflowId;
     }
 
     public async Task<WorkflowResponse?> GetByIdAsync(Guid id, Guid companyId)
@@ -92,10 +165,64 @@ public class WorkflowService : IWorkflowService
         var workflow = await _repo.GetByIdAsync(workflowId, companyId)
             ?? throw new InvalidOperationException("Workflow não encontrado.");
 
+        var approver = await _uow.Users.GetByIdAsync(userId);
+        var approverName = approver?.Name ?? "Aprovador";
+
         if (workflow.CurrentStep >= workflow.TotalSteps)
+        {
+            // Fluxo completamente aprovado — notificar solicitante
             await _repo.CompleteWorkflowAsync(workflowId, WorkflowStatuses.Approved);
+
+            await _NotifyRequesterDecisionAsync(
+                companyId, workflow, "approved", approverName, comments);
+        }
         else
-            await _repo.AdvanceStepAsync(workflowId, workflow.CurrentStep + 1);
+        {
+            // Avança para próxima etapa
+            var nextStepNumber = workflow.CurrentStep + 1;
+            await _repo.AdvanceStepAsync(workflowId, nextStepNumber);
+
+            // Notificar aprovador da próxima etapa
+            var nextStepAssignee = workflow.Steps
+                .FirstOrDefault(s => s.StepOrder == nextStepNumber);
+            if (nextStepAssignee?.AssignedUserId != null)
+            {
+                var requester = await _uow.Users.GetByIdAsync(workflow.RequestedBy);
+                var requesterName = requester?.Name ?? "Sistema";
+                var inAppActionUrl = $"/approvals/{workflowId}";
+                var emailActionUrl = $"{GetFrontendUrl()}/approvals/{workflowId}";
+
+                await _notifications.NotifyAsync(
+                    companyId,
+                    nextStepAssignee.AssignedUserId.Value,
+                    "workflow_assigned",
+                    $"Aprovação solicitada: {workflow.Title}",
+                    $"Você foi designado como aprovador na etapa \"{nextStepAssignee.Name}\". Solicitado por: {requesterName}.",
+                    actionUrl: inAppActionUrl,
+                    referenceType: "workflow",
+                    referenceId: workflowId);
+
+                var pref = await _notifications.GetPreferenceChannelAsync(nextStepAssignee.AssignedUserId.Value, "workflow_assigned");
+                if (pref != "none" && pref != "in_app")
+                {
+                    var assigneeUser = await _uow.Users.GetByIdAsync(nextStepAssignee.AssignedUserId.Value);
+                    if (assigneeUser != null)
+                    {
+                        try
+                        {
+                            await _emailService.SendApprovalAssignedEmailAsync(
+                                assigneeUser.Email, assigneeUser.Name,
+                                workflow.Title, nextStepAssignee.Name, requesterName,
+                                workflow.Priority, nextStepAssignee.DueDate, emailActionUrl);
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogError(ex, "Falha ao enviar e-mail de etapa ao aprovador {Email}", assigneeUser.Email);
+                        }
+                    }
+                }
+            }
+        }
     }
 
     public async Task RejectStepAsync(Guid workflowId, Guid stepId, Guid companyId, Guid userId, string comments)
@@ -111,6 +238,57 @@ public class WorkflowService : IWorkflowService
         await _repo.RecordApprovalAsync(approval);
         await _repo.UpdateStepStatusAsync(stepId, WorkflowStepStatuses.Completed, userId);
         await _repo.CompleteWorkflowAsync(workflowId, WorkflowStatuses.Rejected);
+
+        var workflow = await _repo.GetByIdAsync(workflowId, companyId);
+        if (workflow == null) return;
+
+        var approver = await _uow.Users.GetByIdAsync(userId);
+        var approverName = approver?.Name ?? "Aprovador";
+
+        await _NotifyRequesterDecisionAsync(
+            companyId, workflow, "rejected", approverName, comments);
+    }
+
+    private async Task _NotifyRequesterDecisionAsync(
+        Guid companyId, Workflow workflow, string finalStatus,
+        string approverName, string? comments)
+    {
+        var statusLabel = finalStatus == "approved" ? "aprovado" : "rejeitado";
+        var inAppActionUrl = $"/approvals/{workflow.Id}";
+        var emailActionUrl = $"{GetFrontendUrl()}/approvals/{workflow.Id}";
+
+        // Notificação in-app
+        await _notifications.NotifyAsync(
+            companyId,
+            workflow.RequestedBy,
+            finalStatus == "approved" ? "workflow_approved" : "workflow_rejected",
+            $"Fluxo {statusLabel}: {workflow.Title}",
+            string.IsNullOrWhiteSpace(comments)
+                ? $"O fluxo \"{workflow.Title}\" foi {statusLabel} por {approverName}."
+                : $"O fluxo \"{workflow.Title}\" foi {statusLabel} por {approverName}. Comentários: {comments}",
+            actionUrl: inAppActionUrl,
+            referenceType: "workflow",
+            referenceId: workflow.Id);
+
+        // E-mail ao solicitante
+        var notifType = finalStatus == "approved" ? "workflow_approved" : "workflow_rejected";
+        var pref = await _notifications.GetPreferenceChannelAsync(workflow.RequestedBy, notifType);
+        if (pref == "none" || pref == "in_app") return;
+
+        var requester = await _uow.Users.GetByIdAsync(workflow.RequestedBy);
+        if (requester == null) return;
+
+        try
+        {
+            await _emailService.SendApprovalDecisionEmailAsync(
+                requester.Email, requester.Name,
+                workflow.Title, finalStatus, approverName,
+                comments, emailActionUrl);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Falha ao enviar e-mail de decisão de aprovação para {Email}", requester.Email);
+        }
     }
 
     public Task CancelAsync(Guid workflowId, Guid companyId, Guid cancelledBy, string reason)

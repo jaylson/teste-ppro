@@ -9,6 +9,7 @@ public class CreateCommunicationRequest
     public string CommType { get; set; } = "announcement";
     public string Visibility { get; set; } = "all";
     public string? TargetRoles { get; set; }
+    public bool SendEmail { get; set; }
     public bool IsPinned { get; set; }
     public DateTime? ExpiresAt { get; set; }
 }
@@ -22,6 +23,7 @@ public class UpdateCommunicationRequest
     public string CommType { get; set; } = "announcement";
     public string Visibility { get; set; } = "all";
     public string? TargetRoles { get; set; }
+    public bool SendEmail { get; set; }
     public bool IsPinned { get; set; }
     public DateTime? ExpiresAt { get; set; }
 }
@@ -37,6 +39,7 @@ public class CommunicationResponse
     public string CommType { get; set; } = string.Empty;
     public string Visibility { get; set; } = string.Empty;
     public string? TargetRoles { get; set; }
+    public bool SendEmail { get; set; }
     public bool IsPinned { get; set; }
     public DateTime? PublishedAt { get; set; }
     public DateTime? ExpiresAt { get; set; }

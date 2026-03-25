@@ -1,8 +1,12 @@
 using System.Text.Json;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using PartnershipManager.Application.Common.Models;
 using PartnershipManager.Application.DTOs.Communication;
 using PartnershipManager.Domain.Entities;
 using PartnershipManager.Domain.Interfaces;
+using PartnershipManager.Domain.Interfaces.Services;
 
 namespace PartnershipManager.Application.Services;
 
@@ -22,13 +26,36 @@ public class CommunicationService : ICommunicationService
 {
     private readonly ICommunicationRepository _repo;
     private readonly INotificationService _notificationService;
+    private readonly IEmailService _emailService;
     private readonly IUnitOfWork _uow;
+    private readonly ILogger<CommunicationService> _logger;
+    private readonly IConfiguration _configuration;
+    private readonly IHttpContextAccessor _httpContextAccessor;
 
-    public CommunicationService(ICommunicationRepository repo, INotificationService notificationService, IUnitOfWork uow)
+    public CommunicationService(
+        ICommunicationRepository repo,
+        INotificationService notificationService,
+        IEmailService emailService,
+        IUnitOfWork uow,
+        ILogger<CommunicationService> logger,
+        IConfiguration configuration,
+        IHttpContextAccessor httpContextAccessor)
     {
         _repo = repo;
         _notificationService = notificationService;
+        _emailService = emailService;
         _uow = uow;
+        _logger = logger;
+        _configuration = configuration;
+        _httpContextAccessor = httpContextAccessor;
+    }
+
+    private string GetFrontendUrl()
+    {
+        var origin = _httpContextAccessor.HttpContext?.Request.Headers["Origin"].FirstOrDefault();
+        if (!string.IsNullOrEmpty(origin))
+            return origin.TrimEnd('/');
+        return (_configuration["Email:FrontendUrl"] ?? "http://localhost:3000").TrimEnd('/');
     }
 
     public async Task<PagedResult<CommunicationListResponse>> GetByCompanyAsync(
@@ -61,6 +88,7 @@ public class CommunicationService : ICommunicationService
             CommType = request.CommType,
             Visibility = request.Visibility,
             TargetRoles = request.TargetRoles,
+            SendEmail = request.SendEmail,
             IsPinned = request.IsPinned,
             ExpiresAt = request.ExpiresAt
         };
@@ -81,6 +109,7 @@ public class CommunicationService : ICommunicationService
         c.CommType = request.CommType;
         c.Visibility = request.Visibility;
         c.TargetRoles = request.TargetRoles;
+        c.SendEmail = request.SendEmail;
         c.IsPinned = request.IsPinned;
         c.ExpiresAt = request.ExpiresAt;
         c.UpdatedBy = userId;
@@ -97,11 +126,11 @@ public class CommunicationService : ICommunicationService
 
         // Determinar usuários a notificar com base na visibilidade
         var users = await _uow.Users.GetActiveUsersByCompanyAsync(companyId);
-        IEnumerable<Guid> targetUserIds;
+        List<Domain.Entities.User> targetUsers;
 
         if (communication.Visibility == CommunicationVisibilities.All)
         {
-            targetUserIds = users.Select(u => u.Id).Where(uid => uid != userId);
+            targetUsers = users.Where(u => u.Id != userId).ToList();
         }
         else
         {
@@ -128,32 +157,61 @@ public class CommunicationService : ICommunicationService
             }
 
             var targetRoleSet = new HashSet<string>(targetRoles, StringComparer.OrdinalIgnoreCase);
-            var filtered = new List<Guid>();
+            targetUsers = [];
             foreach (var user in users.Where(u => u.Id != userId))
             {
                 var roles = await _uow.UserRoles.GetRoleNamesByUserIdAsync(user.Id);
                 if (roles.Any(r => targetRoleSet.Contains(r)))
-                    filtered.Add(user.Id);
+                    targetUsers.Add(user);
             }
-            targetUserIds = filtered;
         }
 
-        if (targetUserIds.Any())
-        {
-            var body = !string.IsNullOrEmpty(communication.Summary)
-                ? communication.Summary
-                : $"Nova comunicação publicada: {communication.Title}";
+        if (targetUsers.Count == 0) return;
 
-            await _notificationService.NotifyUsersAsync(
-                companyId,
-                targetUserIds,
-                "communication_published",
-                communication.Title,
-                body,
-                actionUrl: $"/portal/communications/{id}",
-                referenceType: "communication",
-                referenceId: id
-            );
+        var body = !string.IsNullOrEmpty(communication.Summary)
+            ? communication.Summary
+            : $"Nova comunicação publicada: {communication.Title}";
+
+        // Notificação in-app para todos os usuários alvo
+        await _notificationService.NotifyUsersAsync(
+            companyId,
+            targetUsers.Select(u => u.Id),
+            "communication_published",
+            communication.Title,
+            body,
+            actionUrl: $"/portal/communications/{id}",
+            referenceType: "communication",
+            referenceId: id
+        );
+
+        // Envio de e-mail — somente se `send_email` estiver habilitado na comunicação
+        if (!communication.SendEmail) return;
+
+        var company = await _uow.Companies.GetByIdAsync(companyId);
+        var companyName = company?.Name ?? "Partnership Manager";
+        var actionUrl = $"{GetFrontendUrl()}/portal/communications/{id}";
+
+        foreach (var user in targetUsers)
+        {
+            var pref = await _notificationService.GetPreferenceChannelAsync(user.Id, "communication_published");
+            if (pref == "none" || pref == "in_app") continue;
+
+            try
+            {
+                await _emailService.SendCommunicationPublishedEmailAsync(
+                    user.Email,
+                    user.Name,
+                    communication.Title,
+                    communication.Summary,
+                    communication.CommType,
+                    actionUrl,
+                    companyName);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Falha ao enviar e-mail de comunicação para {Email}", user.Email);
+                // Não propaga — notificações in-app já foram enviadas
+            }
         }
     }
 

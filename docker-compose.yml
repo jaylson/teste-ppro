@@ -19,8 +19,8 @@ services:
       - Jwt__Secret=${JWT_SECRET:-PartnershipManager_SecretKey_2025_Min32Chars!}
       - Jwt__Issuer=${JWT_ISSUER:-PartnershipManager}
       - Jwt__Audience=${JWT_AUDIENCE:-PartnershipManagerApp}
-      - Cors__Origins=http://localhost:3000,http://frontend:3000,https://fantastic-space-parakeet-jw6454j4rjh7pj-3000.app.github.dev,https://fantastic-space-parakeet-jw6454j4rjh7pj-5000.app.github.dev
-      - Email__FrontendUrl=https://fantastic-space-parakeet-jw6454j4rjh7pj-3000.app.github.dev
+      - Cors__Origins=${CORS_ORIGINS:-http://localhost:3000,http://localhost:5173,http://frontend:3000}
+      - Email__FrontendUrl=${FRONTEND_URL:-http://localhost:3000}
     volumes:
       - contract_storage:/app/storage
     ports:

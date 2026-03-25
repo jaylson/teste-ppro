@@ -47,12 +47,20 @@ export default function NotificationDropdown({ onClose }: NotificationDropdownPr
   const markAsRead = useMarkAsRead();
   const markAllAsRead = useMarkAllAsRead();
 
+  function resolveNavPath(url: string): string {
+    try {
+      return new URL(url).pathname;
+    } catch {
+      return url;
+    }
+  }
+
   function handleClickNotification(n: Notification) {
     if (!n.isRead) {
       markAsRead.mutate(n.id);
     }
     if (n.actionUrl) {
-      navigate(n.actionUrl);
+      navigate(resolveNavPath(n.actionUrl));
     }
     onClose();
   }

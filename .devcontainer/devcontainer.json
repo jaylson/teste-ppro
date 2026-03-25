@@ -1,0 +1,17 @@
+{
+  "name": "Partnership Manager",
+  "forwardPorts": [3000, 5000],
+  "portsAttributes": {
+    "3000": {
+      "label": "Frontend",
+      "onAutoForward": "openBrowserOnce",
+      "visibility": "public"
+    },
+    "5000": {
+      "label": "API",
+      "onAutoForward": "silent",
+      "visibility": "public"
+    }
+  },
+  "postStartCommand": "cd /workspaces/teste-ppro && docker-compose up -d 2>/dev/null || true"
+}

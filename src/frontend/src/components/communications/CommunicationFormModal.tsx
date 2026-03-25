@@ -1,7 +1,7 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { X, Pin } from 'lucide-react';
+import { X, Pin, Mail } from 'lucide-react';
 import { Button, Input } from '@/components/ui';
 import { useCreateCommunication, useUpdateCommunication, usePublishCommunication } from '@/hooks/useCommunications';
 import type { Communication, CreateCommunicationRequest } from '@/types/phase6';
@@ -13,6 +13,7 @@ const schema = z.object({
   commType: z.string().min(1, 'Tipo é obrigatório'),
   visibility: z.string().min(1, 'Visibilidade é obrigatória'),
   isPinned: z.boolean(),
+  sendEmail: z.boolean(),
   expiresAt: z.string().optional(),
 });
 
@@ -60,11 +61,13 @@ export default function CommunicationFormModal({ communication, onClose }: Commu
       commType: communication?.commType ?? 'announcement',
       visibility: communication?.visibility ?? 'all',
       isPinned: communication?.isPinned ?? false,
+      sendEmail: communication?.sendEmail ?? false,
       expiresAt: communication?.expiresAt ? communication.expiresAt.split('T')[0] : '',
     },
   });
 
   const isPinned = watch('isPinned');
+  const sendEmail = watch('sendEmail');
 
   async function handleSaveDraft(data: FormData) {
     const payload: CreateCommunicationRequest = {
@@ -180,7 +183,27 @@ export default function CommunicationFormModal({ communication, onClose }: Commu
               <Pin className="w-4 h-4" />
               {isPinned ? 'Fixado' : 'Fixar comunicação'}
             </button>
+
+            <button
+              type="button"
+              onClick={() => setValue('sendEmail', !sendEmail)}
+              className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-sm font-medium transition-colors ${
+                sendEmail
+                  ? 'bg-cyan-50 border-cyan-300 text-cyan-700'
+                  : 'border-primary-200 text-primary-500 hover:bg-primary-50'
+              }`}
+            >
+              <Mail className="w-4 h-4" />
+              {sendEmail ? 'Envio por e-mail ativo' : 'Enviar por e-mail'}
+            </button>
           </div>
+          {sendEmail && (
+            <p className="text-xs text-cyan-600 bg-cyan-50 border border-cyan-200 rounded-lg px-3 py-2">
+              Ao publicar, um e-mail será enviado para todos os usuários que se
+              enquadram na visibilidade selecionada, respeitando as preferências
+              de notificação de cada usuário.
+            </p>
+          )}
         </form>
 
         {/* Footer */}

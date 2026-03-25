@@ -10,6 +10,7 @@ export interface Communication {
   commType: 'announcement' | 'update' | 'report' | 'alert' | 'invitation';
   visibility: 'all' | 'investors' | 'founders' | 'employees' | 'specific';
   targetRoles?: string[];
+  sendEmail: boolean;
   isPinned: boolean;
   publishedAt?: string;
   expiresAt?: string;
@@ -27,6 +28,7 @@ export interface CreateCommunicationRequest {
   commType: string;
   visibility: string;
   targetRoles?: string[];
+  sendEmail?: boolean;
   isPinned: boolean;
   expiresAt?: string;
 }

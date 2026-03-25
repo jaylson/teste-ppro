@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { notificationService, type NotificationFilters } from '@/services/notificationService';
-import type { NotificationPreference } from '@/types/phase6';
+import type { Notification, NotificationPreference } from '@/types/phase6';
+import type { PagedResult } from '@/types';
 import toast from 'react-hot-toast';
 
 const QUERY_KEY = ['notifications'];
@@ -25,7 +26,7 @@ export function useUnreadNotificationsCount() {
   return useQuery({
     queryKey: [...QUERY_KEY, 'unread-count'],
     queryFn: () => notificationService.getUnreadCount(),
-    refetchInterval: 30000,
+    refetchInterval: 15000,
     staleTime: 10000,
   });
 }
@@ -34,12 +35,33 @@ export function useMarkAsRead() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (id: string) => notificationService.markAsRead(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: QUERY_KEY });
+    onMutate: async (id: string) => {
+      await queryClient.cancelQueries({ queryKey: QUERY_KEY });
+
+      // Optimistic update: mark as read in all cached queries
+      queryClient.setQueriesData<PagedResult<Notification>>(
+        { queryKey: QUERY_KEY, exact: false },
+        (old) => {
+          if (!old || !('items' in old)) return old;
+          return { ...old, items: old.items.map((n) => n.id === id ? { ...n, isRead: true } : n) };
+        }
+      );
+      queryClient.setQueriesData<Notification[]>(
+        { queryKey: [...QUERY_KEY, 'recent'], exact: true },
+        (old) => old?.map((n) => n.id === id ? { ...n, isRead: true } : n)
+      );
+      queryClient.setQueriesData<number>(
+        { queryKey: [...QUERY_KEY, 'unread-count'], exact: true },
+        (old) => (old != null && old > 0 ? old - 1 : 0)
+      );
     },
     onError: (error: any) => {
+      queryClient.invalidateQueries({ queryKey: QUERY_KEY });
       const message = error.response?.data?.message || 'Erro ao marcar como lida';
       toast.error(message);
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: QUERY_KEY });
     },
   });
 }
@@ -48,13 +70,35 @@ export function useMarkAllAsRead() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: () => notificationService.markAllAsRead(),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: QUERY_KEY });
-      toast.success('Todas as notificações marcadas como lidas');
+    onMutate: async () => {
+      await queryClient.cancelQueries({ queryKey: QUERY_KEY });
+
+      queryClient.setQueriesData<PagedResult<Notification>>(
+        { queryKey: QUERY_KEY, exact: false },
+        (old) => {
+          if (!old || !('items' in old)) return old;
+          return { ...old, items: old.items.map((n) => ({ ...n, isRead: true })) };
+        }
+      );
+      queryClient.setQueriesData<Notification[]>(
+        { queryKey: [...QUERY_KEY, 'recent'], exact: true },
+        (old) => old?.map((n) => ({ ...n, isRead: true }))
+      );
+      queryClient.setQueriesData<number>(
+        { queryKey: [...QUERY_KEY, 'unread-count'], exact: true },
+        () => 0
+      );
     },
     onError: (error: any) => {
+      queryClient.invalidateQueries({ queryKey: QUERY_KEY });
       const message = error.response?.data?.message || 'Erro ao marcar notificações';
       toast.error(message);
+    },
+    onSuccess: () => {
+      toast.success('Todas as notificações marcadas como lidas');
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: QUERY_KEY });
     },
   });
 }

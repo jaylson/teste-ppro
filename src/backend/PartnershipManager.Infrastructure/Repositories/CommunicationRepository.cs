@@ -46,7 +46,8 @@ public class CommunicationRepository : ICommunicationRepository
         var sql = $@"
             SELECT id AS Id, company_id AS CompanyId, title AS Title, content AS Content,
                    content_html AS ContentHtml, summary AS Summary, comm_type AS CommType,
-                   visibility AS Visibility, target_roles AS TargetRoles, attachments AS Attachments,
+                   visibility AS Visibility, target_roles AS TargetRoles, send_email AS SendEmail,
+                   attachments AS Attachments,
                    is_pinned AS IsPinned, published_at AS PublishedAt, expires_at AS ExpiresAt,
                    created_by AS CreatedBy, views_count AS ViewsCount,
                    created_at AS CreatedAt, updated_at AS UpdatedAt
@@ -67,7 +68,8 @@ public class CommunicationRepository : ICommunicationRepository
         var sql = @"
             SELECT id AS Id, company_id AS CompanyId, title AS Title, content AS Content,
                    content_html AS ContentHtml, summary AS Summary, comm_type AS CommType,
-                   visibility AS Visibility, target_roles AS TargetRoles, attachments AS Attachments,
+                   visibility AS Visibility, target_roles AS TargetRoles, send_email AS SendEmail,
+                   attachments AS Attachments,
                    is_pinned AS IsPinned, published_at AS PublishedAt, expires_at AS ExpiresAt,
                    created_by AS CreatedBy, views_count AS ViewsCount,
                    created_at AS CreatedAt, updated_at AS UpdatedAt
@@ -81,11 +83,11 @@ public class CommunicationRepository : ICommunicationRepository
         var sql = @"
             INSERT INTO communications
                 (id, company_id, title, content, content_html, summary, comm_type, visibility,
-                 target_roles, attachments, is_pinned, published_at, expires_at, created_by,
+                 target_roles, send_email, attachments, is_pinned, published_at, expires_at, created_by,
                  views_count, created_at, updated_at, updated_by)
             VALUES
                 (@Id, @CompanyId, @Title, @Content, @ContentHtml, @Summary, @CommType, @Visibility,
-                 @TargetRoles, @Attachments, @IsPinned, @PublishedAt, @ExpiresAt, @CreatedBy,
+                 @TargetRoles, @SendEmail, @Attachments, @IsPinned, @PublishedAt, @ExpiresAt, @CreatedBy,
                  @ViewsCount, @CreatedAt, @UpdatedAt, @UpdatedBy)";
 
         await _context.Connection.ExecuteAsync(sql, c);
@@ -99,8 +101,8 @@ public class CommunicationRepository : ICommunicationRepository
             UPDATE communications
             SET title = @Title, content = @Content, content_html = @ContentHtml, summary = @Summary,
                 comm_type = @CommType, visibility = @Visibility, target_roles = @TargetRoles,
-                attachments = @Attachments, is_pinned = @IsPinned, expires_at = @ExpiresAt,
-                updated_at = @UpdatedAt, updated_by = @UpdatedBy
+                send_email = @SendEmail, attachments = @Attachments, is_pinned = @IsPinned,
+                expires_at = @ExpiresAt, updated_at = @UpdatedAt, updated_by = @UpdatedBy
             WHERE id = @Id AND company_id = @CompanyId AND deleted_at IS NULL";
         await _context.Connection.ExecuteAsync(sql, c);
     }
@@ -165,7 +167,8 @@ public class CommunicationRepository : ICommunicationRepository
         var sql = @"
             SELECT id AS Id, company_id AS CompanyId, title AS Title, content AS Content,
                    content_html AS ContentHtml, summary AS Summary, comm_type AS CommType,
-                   visibility AS Visibility, target_roles AS TargetRoles, attachments AS Attachments,
+                   visibility AS Visibility, target_roles AS TargetRoles, send_email AS SendEmail,
+                   attachments AS Attachments,
                    is_pinned AS IsPinned, published_at AS PublishedAt, expires_at AS ExpiresAt,
                    created_by AS CreatedBy, views_count AS ViewsCount,
                    created_at AS CreatedAt, updated_at AS UpdatedAt

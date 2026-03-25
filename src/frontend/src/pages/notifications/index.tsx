@@ -57,12 +57,20 @@ export default function NotificationsPage() {
   const items = data?.items ?? [];
   const totalPages = data ? Math.ceil(data.total / 20) : 1;
 
+  function resolveNavPath(url: string): string {
+    try {
+      return new URL(url).pathname;
+    } catch {
+      return url;
+    }
+  }
+
   function handleClick(n: Notification) {
     if (!n.isRead) {
       markAsRead.mutate(n.id);
     }
     if (n.actionUrl) {
-      navigate(n.actionUrl);
+      navigate(resolveNavPath(n.actionUrl));
     }
   }
 

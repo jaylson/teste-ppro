@@ -1,11 +1,13 @@
 import { useState, useRef, useEffect } from 'react';
 import { Bell } from 'lucide-react';
+import { useQueryClient } from '@tanstack/react-query';
 import { useUnreadNotificationsCount } from '@/hooks/useNotifications';
 import NotificationDropdown from './NotificationDropdown';
 
 export default function NotificationBell() {
   const [isOpen, setIsOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const queryClient = useQueryClient();
   const { data: count = 0 } = useUnreadNotificationsCount();
 
   useEffect(() => {
@@ -18,10 +20,17 @@ export default function NotificationBell() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  function handleToggle() {
+    if (!isOpen) {
+      queryClient.invalidateQueries({ queryKey: ['notifications'] });
+    }
+    setIsOpen((prev) => !prev);
+  }
+
   return (
     <div ref={ref} className="relative">
       <button
-        onClick={() => setIsOpen((prev) => !prev)}
+        onClick={handleToggle}
         className="relative p-2 rounded-lg text-primary-600 hover:bg-primary-50 hover:text-primary transition-colors"
         aria-label="Notificações"
       >

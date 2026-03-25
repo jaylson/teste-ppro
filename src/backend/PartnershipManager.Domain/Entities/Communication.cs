@@ -10,6 +10,7 @@ public class Communication : BaseEntity
     public string CommType { get; set; } = "announcement";
     public string Visibility { get; set; } = "all";
     public string? TargetRoles { get; set; }
+    public bool SendEmail { get; set; }
     public string? Attachments { get; set; }
     public bool IsPinned { get; set; }
     public DateTime? PublishedAt { get; set; }

@@ -18,6 +18,8 @@ public interface INotificationService
     Task MarkAllAsReadAsync(Guid userId, Guid companyId);
     Task<IEnumerable<NotificationPreferenceResponse>> GetPreferencesAsync(Guid userId);
     Task UpdatePreferenceAsync(Guid userId, string notificationType, string channel);
+    /// <summary>Returns the notification channel for a user/type ("in_app", "email", "both", "none"). Defaults to "both" when no preference is set.</summary>
+    Task<string> GetPreferenceChannelAsync(Guid userId, string notificationType);
 }
 
 public class NotificationService : INotificationService
@@ -85,6 +87,12 @@ public class NotificationService : INotificationService
     {
         var p = new NotificationPreference { UserId = userId, NotificationType = notificationType, Channel = channel };
         return _repo.UpsertPreferenceAsync(p);
+    }
+
+    public async Task<string> GetPreferenceChannelAsync(Guid userId, string notificationType)
+    {
+        var pref = await _repo.GetPreferenceAsync(userId, notificationType);
+        return pref?.Channel ?? "both";
     }
 
     private static NotificationResponse Map(Notification n) => new()

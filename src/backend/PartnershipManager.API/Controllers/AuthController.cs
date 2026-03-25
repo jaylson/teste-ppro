@@ -311,7 +311,8 @@ public class AuthController : ControllerBase
 
                 await _unitOfWork.Users.UpdatePasswordResetTokenAsync(user.Id, hashedToken, expiry);
 
-                var frontendUrl = _configuration["Email:FrontendUrl"]?.TrimEnd('/') ?? "http://localhost:5173";
+                var frontendUrl = (Request.Headers["Origin"].FirstOrDefault()
+                    ?? _configuration["Email:FrontendUrl"])?.TrimEnd('/') ?? "http://localhost:5173";
                 var resetLink = $"{frontendUrl}/reset-password?token={Uri.EscapeDataString(plainToken)}";
 
                 await _emailService.SendPasswordResetEmailAsync(
@@ -394,15 +395,18 @@ public class AuthController : ControllerBase
         }
 
         var newHash = _authService.HashPassword(request.NewPassword);
-        await _unitOfWork.Users.UpdatePasswordHashAsync(user.Id, newHash);
+
+        // Atualizar hash no objeto em memória antes de persistir via UpdateAsync
+        // (evita que UpdateAsync sobrescreva o hash com o valor vazio anterior)
+        user.ChangePassword(newHash);
 
         // Ativar o usuário caso ainda esteja Pending
         if (user.Status == UserStatus.Pending)
         {
             user.Activate();
-            await _unitOfWork.Users.UpdateAsync(user);
         }
 
+        await _unitOfWork.Users.UpdateAsync(user);
         await _unitOfWork.Users.UpdatePasswordResetTokenAsync(user.Id, null, null);
 
         _logger.LogInformation("Conta ativada com sucesso para o usuário {UserId}", user.Id);

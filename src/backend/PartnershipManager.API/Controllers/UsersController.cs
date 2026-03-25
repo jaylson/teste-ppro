@@ -159,7 +159,8 @@ public class UsersController : ControllerBase
             // Enviar e-mail de ativação (fora da transação — falha no e-mail não reverte o usuário)
             try
             {
-                var frontendUrl = _configuration["Email:FrontendUrl"]?.TrimEnd('/') ?? "http://localhost:5173";
+                var frontendUrl = (Request.Headers["Origin"].FirstOrDefault()
+                    ?? _configuration["Email:FrontendUrl"])?.TrimEnd('/') ?? "http://localhost:5173";
                 var activationLink = $"{frontendUrl}/activate-account?token={Uri.EscapeDataString(plainToken)}";
                 await _emailService.SendAccountActivationEmailAsync(
                     user.Email,
@@ -365,7 +366,8 @@ public class UsersController : ControllerBase
         
         await _unitOfWork.Users.UpdatePasswordResetTokenAsync(user.Id, hashedToken, expiry);
         
-        var frontendUrl = _configuration["Email:FrontendUrl"]?.TrimEnd('/') ?? "http://localhost:5173";
+        var frontendUrl = (Request.Headers["Origin"].FirstOrDefault()
+            ?? _configuration["Email:FrontendUrl"])?.TrimEnd('/') ?? "http://localhost:5173";
         var activationLink = $"{frontendUrl}/activate-account?token={Uri.EscapeDataString(plainToken)}";
         
         await _emailService.SendAccountActivationEmailAsync(

@@ -371,4 +371,294 @@ public sealed class GoogleSmtpEmailService : IEmailService
             ? $"Bem-vindo, {toName}!\n\nSua conta foi criada no P-Pro | WP Manager.\n\nAcesse o link abaixo para definir sua senha e ativar o acesso (válido por 72 horas):\n{activationLink}\n\nSe você não esperava este convite, pode ignorar este e-mail.\n\nP-Pro | WP Manager"
             : $"Welcome, {toName}!\n\nYour account has been created in P-Pro | WP Manager.\n\nClick the link below to set your password and activate your access (valid for 72 hours):\n{activationLink}\n\nIf you weren't expecting this invitation, you can safely ignore this email.\n\nP-Pro | WP Manager";
     }
+
+    // -----------------------------------------------------------------------
+    // Communication Published e-mail
+    // -----------------------------------------------------------------------
+
+    /// <inheritdoc/>
+    public async Task SendCommunicationPublishedEmailAsync(
+        string toEmail, string toName,
+        string commTitle, string? commSummary, string commType,
+        string actionUrl, string companyName)
+    {
+        var logId = Guid.NewGuid();
+        var subject = $"P-Pro | {companyName} — Nova comunicação: {commTitle}";
+        var log = new EmailLog
+        {
+            Id             = logId,
+            RecipientEmail = toEmail,
+            RecipientName  = toName,
+            Subject        = subject,
+            TemplateName   = "communication-published",
+            ReferenceType  = "communication",
+            Status         = "queued",
+            CreatedAt      = DateTime.UtcNow,
+            UpdatedAt      = DateTime.UtcNow
+        };
+        await _emailLogRepository.CreateAsync(log);
+        try
+        {
+            var commTypeLabel = commType switch
+            {
+                "announcement" => "Anúncio",
+                "update"       => "Atualização",
+                "report"       => "Relatório",
+                "alert"        => "Alerta",
+                "invitation"   => "Convite",
+                _              => commType
+            };
+            var bodyText = !string.IsNullOrWhiteSpace(commSummary)
+                ? commSummary
+                : $"Nova comunicação publicada por {companyName}.";
+
+            var html = $@"<!DOCTYPE html>
+<html lang=""pt-BR"">
+<head><meta charset=""UTF-8""/><meta name=""viewport"" content=""width=device-width,initial-scale=1.0""/></head>
+<body style=""margin:0;padding:0;background-color:#f3f4f6;font-family:Arial,Helvetica,sans-serif;"">
+<table width=""100%"" cellpadding=""0"" cellspacing=""0"" style=""background-color:#f3f4f6;padding:40px 0;"">
+  <tr><td align=""center"">
+    <table width=""600"" cellpadding=""0"" cellspacing=""0"" style=""background-color:#ffffff;border-radius:8px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.08);"">
+      <tr><td style=""background-color:#111827;padding:32px 40px;text-align:center;"">
+        <span style=""color:#ffffff;font-size:22px;font-weight:bold;letter-spacing:1px;"">P-Pro | WP Manager</span>
+      </td></tr>
+      <tr><td style=""padding:40px;"">
+        <p style=""color:#6b7280;font-size:12px;font-weight:600;letter-spacing:1px;text-transform:uppercase;margin:0 0 8px;"">{commTypeLabel}</p>
+        <p style=""color:#111827;font-size:20px;font-weight:bold;margin:0 0 16px;"">{commTitle}</p>
+        <p style=""color:#374151;font-size:15px;line-height:1.6;margin:0 0 8px;"">Olá, {toName}!</p>
+        <p style=""color:#374151;font-size:15px;line-height:1.6;margin:0 0 32px;"">{bodyText}</p>
+        <table width=""100%"" cellpadding=""0"" cellspacing=""0"">
+          <tr><td align=""center"" style=""padding:0 0 32px;"">
+            <a href=""{actionUrl}"" style=""display:inline-block;background-color:#0891B2;color:#ffffff;font-size:16px;font-weight:bold;text-decoration:none;padding:14px 36px;border-radius:6px;"">
+              Ver Comunicação
+            </a>
+          </td></tr>
+        </table>
+        <p style=""color:#9ca3af;font-size:12px;margin:0;"">Este e-mail foi enviado automaticamente por {companyName} via P-Pro. Por favor, não responda.</p>
+      </td></tr>
+      <tr><td style=""background-color:#f9fafb;padding:20px 40px;text-align:center;"">
+        <p style=""color:#9ca3af;font-size:12px;margin:0;"">© {DateTime.UtcNow.Year} P-Pro | WP Manager</p>
+      </td></tr>
+    </table>
+  </td></tr>
+</table>
+</body></html>";
+
+            var message = new MimeMessage();
+            message.From.Add(new MailboxAddress(_fromName, _fromEmail));
+            message.To.Add(new MailboxAddress(toName, toEmail));
+            message.Subject = subject;
+            var bb = new BodyBuilder
+            {
+                HtmlBody = html,
+                TextBody = $"Olá, {toName}!\n\n{bodyText}\n\nAcesse: {actionUrl}\n\nP-Pro | WP Manager"
+            };
+            message.Body = bb.ToMessageBody();
+            await SendAsync(message);
+            await _emailLogRepository.UpdateStatusAsync(logId, "sent");
+            _logger.LogInformation("E-mail de comunicação publicada enviado para {Email}", toEmail);
+        }
+        catch (Exception ex)
+        {
+            await _emailLogRepository.UpdateStatusAsync(logId, "failed", ex.Message);
+            _logger.LogError(ex, "Falha ao enviar e-mail de comunicação para {Email}", toEmail);
+            throw;
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    // Approval Assigned e-mail
+    // -----------------------------------------------------------------------
+
+    /// <inheritdoc/>
+    public async Task SendApprovalAssignedEmailAsync(
+        string toEmail, string toName,
+        string workflowTitle, string stepName, string requesterName,
+        string priority, DateTime? dueDate, string actionUrl)
+    {
+        var logId = Guid.NewGuid();
+        var subject = $"P-Pro | Aprovação solicitada: {workflowTitle}";
+        var log = new EmailLog
+        {
+            Id             = logId,
+            RecipientEmail = toEmail,
+            RecipientName  = toName,
+            Subject        = subject,
+            TemplateName   = "approval-assigned",
+            ReferenceType  = "workflow",
+            Status         = "queued",
+            CreatedAt      = DateTime.UtcNow,
+            UpdatedAt      = DateTime.UtcNow
+        };
+        await _emailLogRepository.CreateAsync(log);
+        try
+        {
+            var priorityLabel = priority switch
+            {
+                "low"    => "Baixa",
+                "medium" => "Média",
+                "high"   => "Alta",
+                "urgent" => "Urgente",
+                _        => priority
+            };
+            var priorityColor = priority switch
+            {
+                "urgent" => "#DC2626",
+                "high"   => "#D97706",
+                "medium" => "#2563EB",
+                _        => "#6B7280"
+            };
+            var dueDateStr = dueDate.HasValue
+                ? $"<p style=\"color:#374151;font-size:14px;margin:0 0 8px;\"><strong>Prazo:</strong> {dueDate.Value:dd/MM/yyyy}</p>"
+                : "";
+
+            var html = $@"<!DOCTYPE html>
+<html lang=""pt-BR"">
+<head><meta charset=""UTF-8""/><meta name=""viewport"" content=""width=device-width,initial-scale=1.0""/></head>
+<body style=""margin:0;padding:0;background-color:#f3f4f6;font-family:Arial,Helvetica,sans-serif;"">
+<table width=""100%"" cellpadding=""0"" cellspacing=""0"" style=""background-color:#f3f4f6;padding:40px 0;"">
+  <tr><td align=""center"">
+    <table width=""600"" cellpadding=""0"" cellspacing=""0"" style=""background-color:#ffffff;border-radius:8px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.08);"">
+      <tr><td style=""background-color:#111827;padding:32px 40px;text-align:center;"">
+        <span style=""color:#ffffff;font-size:22px;font-weight:bold;letter-spacing:1px;"">P-Pro | WP Manager</span>
+      </td></tr>
+      <tr><td style=""padding:40px;"">
+        <p style=""color:#374151;font-size:15px;line-height:1.6;margin:0 0 8px;"">Olá, {toName}!</p>
+        <p style=""color:#374151;font-size:15px;line-height:1.6;margin:0 0 24px;"">Você foi designado como aprovador em um fluxo de aprovação.</p>
+        <div style=""background-color:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:24px;margin:0 0 32px;"">
+          <p style=""color:#111827;font-size:17px;font-weight:bold;margin:0 0 12px;"">{workflowTitle}</p>
+          <p style=""color:#374151;font-size:14px;margin:0 0 8px;""><strong>Etapa:</strong> {stepName}</p>
+          <p style=""color:#374151;font-size:14px;margin:0 0 8px;""><strong>Solicitado por:</strong> {requesterName}</p>
+          <p style=""color:#374151;font-size:14px;margin:0 0 8px;""><strong>Prioridade:</strong> <span style=""color:{priorityColor};font-weight:600;"">{priorityLabel}</span></p>
+          {dueDateStr}
+        </div>
+        <table width=""100%"" cellpadding=""0"" cellspacing=""0"">
+          <tr><td align=""center"" style=""padding:0 0 32px;"">
+            <a href=""{actionUrl}"" style=""display:inline-block;background-color:#0891B2;color:#ffffff;font-size:16px;font-weight:bold;text-decoration:none;padding:14px 36px;border-radius:6px;"">
+              Revisar e Aprovar
+            </a>
+          </td></tr>
+        </table>
+        <p style=""color:#9ca3af;font-size:12px;margin:0;"">Este e-mail foi enviado automaticamente. Por favor, não responda.</p>
+      </td></tr>
+      <tr><td style=""background-color:#f9fafb;padding:20px 40px;text-align:center;"">
+        <p style=""color:#9ca3af;font-size:12px;margin:0;"">© {DateTime.UtcNow.Year} P-Pro | WP Manager</p>
+      </td></tr>
+    </table>
+  </td></tr>
+</table>
+</body></html>";
+
+            var message = new MimeMessage();
+            message.From.Add(new MailboxAddress(_fromName, _fromEmail));
+            message.To.Add(new MailboxAddress(toName, toEmail));
+            message.Subject = subject;
+            var bb = new BodyBuilder
+            {
+                HtmlBody = html,
+                TextBody = $"Olá, {toName}!\n\nVocê foi designado como aprovador em: {workflowTitle}\nEtapa: {stepName}\nSolicitado por: {requesterName}\nPrioridade: {priorityLabel}\n\nAcesse: {actionUrl}\n\nP-Pro | WP Manager"
+            };
+            message.Body = bb.ToMessageBody();
+            await SendAsync(message);
+            await _emailLogRepository.UpdateStatusAsync(logId, "sent");
+            _logger.LogInformation("E-mail de aprovação atribuída enviado para {Email}", toEmail);
+        }
+        catch (Exception ex)
+        {
+            await _emailLogRepository.UpdateStatusAsync(logId, "failed", ex.Message);
+            _logger.LogError(ex, "Falha ao enviar e-mail de aprovação para {Email}", toEmail);
+            throw;
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    // Approval Decision e-mail
+    // -----------------------------------------------------------------------
+
+    /// <inheritdoc/>
+    public async Task SendApprovalDecisionEmailAsync(
+        string toEmail, string toName,
+        string workflowTitle, string finalStatus, string approverName,
+        string? comments, string actionUrl)
+    {
+        var logId = Guid.NewGuid();
+        bool approved = string.Equals(finalStatus, "approved", StringComparison.OrdinalIgnoreCase);
+        var statusLabel = approved ? "Aprovado" : "Rejeitado";
+        var subject = $"P-Pro | Fluxo {statusLabel}: {workflowTitle}";
+        var log = new EmailLog
+        {
+            Id             = logId,
+            RecipientEmail = toEmail,
+            RecipientName  = toName,
+            Subject        = subject,
+            TemplateName   = "approval-decision",
+            ReferenceType  = "workflow",
+            Status         = "queued",
+            CreatedAt      = DateTime.UtcNow,
+            UpdatedAt      = DateTime.UtcNow
+        };
+        await _emailLogRepository.CreateAsync(log);
+        try
+        {
+            var headerColor = approved ? "#059669" : "#DC2626";
+            var headerText  = approved ? "✓ Aprovado" : "✗ Rejeitado";
+            var commentsHtml = !string.IsNullOrWhiteSpace(comments)
+                ? $"<div style=\"background-color:#f9fafb;border-left:4px solid {headerColor};padding:12px 16px;margin:16px 0;\"><p style=\"color:#374151;font-size:14px;margin:0;\"><strong>Comentários:</strong> {comments}</p></div>"
+                : "";
+
+            var html = $@"<!DOCTYPE html>
+<html lang=""pt-BR"">
+<head><meta charset=""UTF-8""/><meta name=""viewport"" content=""width=device-width,initial-scale=1.0""/></head>
+<body style=""margin:0;padding:0;background-color:#f3f4f6;font-family:Arial,Helvetica,sans-serif;"">
+<table width=""100%"" cellpadding=""0"" cellspacing=""0"" style=""background-color:#f3f4f6;padding:40px 0;"">
+  <tr><td align=""center"">
+    <table width=""600"" cellpadding=""0"" cellspacing=""0"" style=""background-color:#ffffff;border-radius:8px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.08);"">
+      <tr><td style=""background-color:#111827;padding:32px 40px;text-align:center;"">
+        <span style=""color:#ffffff;font-size:22px;font-weight:bold;letter-spacing:1px;"">P-Pro | WP Manager</span>
+      </td></tr>
+      <tr><td style=""padding:40px;"">
+        <div style=""text-align:center;margin:0 0 24px;"">
+          <span style=""display:inline-block;background-color:{headerColor};color:#ffffff;font-size:18px;font-weight:bold;padding:10px 28px;border-radius:6px;"">{headerText}</span>
+        </div>
+        <p style=""color:#374151;font-size:15px;line-height:1.6;margin:0 0 8px;"">Olá, {toName}!</p>
+        <p style=""color:#374151;font-size:15px;line-height:1.6;margin:0 0 24px;"">O fluxo de aprovação <strong>{workflowTitle}</strong> foi <strong>{statusLabel.ToLower()}</strong> por <strong>{approverName}</strong>.</p>
+        {commentsHtml}
+        <table width=""100%"" cellpadding=""0"" cellspacing=""0"">
+          <tr><td align=""center"" style=""padding:24px 0 32px;"">
+            <a href=""{actionUrl}"" style=""display:inline-block;background-color:#0891B2;color:#ffffff;font-size:16px;font-weight:bold;text-decoration:none;padding:14px 36px;border-radius:6px;"">
+              Ver Fluxo
+            </a>
+          </td></tr>
+        </table>
+        <p style=""color:#9ca3af;font-size:12px;margin:0;"">Este e-mail foi enviado automaticamente. Por favor, não responda.</p>
+      </td></tr>
+      <tr><td style=""background-color:#f9fafb;padding:20px 40px;text-align:center;"">
+        <p style=""color:#9ca3af;font-size:12px;margin:0;"">© {DateTime.UtcNow.Year} P-Pro | WP Manager</p>
+      </td></tr>
+    </table>
+  </td></tr>
+</table>
+</body></html>";
+
+            var message = new MimeMessage();
+            message.From.Add(new MailboxAddress(_fromName, _fromEmail));
+            message.To.Add(new MailboxAddress(toName, toEmail));
+            message.Subject = subject;
+            var bb = new BodyBuilder
+            {
+                HtmlBody = html,
+                TextBody = $"Olá, {toName}!\n\nO fluxo \"{workflowTitle}\" foi {statusLabel.ToLower()} por {approverName}.\n{(string.IsNullOrWhiteSpace(comments) ? "" : $"Comentários: {comments}\n")}\nAcesse: {actionUrl}\n\nP-Pro | WP Manager"
+            };
+            message.Body = bb.ToMessageBody();
+            await SendAsync(message);
+            await _emailLogRepository.UpdateStatusAsync(logId, "sent");
+            _logger.LogInformation("E-mail de decisão de aprovação enviado para {Email}", toEmail);
+        }
+        catch (Exception ex)
+        {
+            await _emailLogRepository.UpdateStatusAsync(logId, "failed", ex.Message);
+            _logger.LogError(ex, "Falha ao enviar e-mail de decisão para {Email}", toEmail);
+            throw;
+        }
+    }
 }

@@ -63,6 +63,14 @@ export const useAuthStore = create<AuthState>()(
     }),
     {
       name: 'pm-auth-storage',
+      storage: {
+        getItem: (key) => {
+          const value = sessionStorage.getItem(key);
+          return value ? JSON.parse(value) : null;
+        },
+        setItem: (key, value) => sessionStorage.setItem(key, JSON.stringify(value)),
+        removeItem: (key) => sessionStorage.removeItem(key),
+      },
       partialize: (state) => ({
         user: state.user,
         accessToken: state.accessToken,
