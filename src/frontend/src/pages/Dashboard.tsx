@@ -339,12 +339,12 @@ export default function Dashboard() {
                 pendingWorkflows.map((workflow) => (
                   <tr key={workflow.id}>
                     <td>
-                      <span className="font-medium">{workflow.workflowType}</span>
+                      <span className="font-medium">{workflow.workflowTypeLabel || workflow.workflowType}</span>
                     </td>
                     <td>
                       <div className="flex items-center gap-3">
-                        <Avatar name={workflow.requestedBy} size="sm" />
-                        {workflow.requestedBy}
+                        <Avatar name={workflow.requestedByName || workflow.requestedBy} size="sm" />
+                        {workflow.requestedByName || workflow.requestedBy}
                       </div>
                     </td>
                     <td>

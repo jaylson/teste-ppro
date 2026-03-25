@@ -294,11 +294,21 @@ public class WorkflowService : IWorkflowService
     public Task CancelAsync(Guid workflowId, Guid companyId, Guid cancelledBy, string reason)
         => _repo.CancelWorkflowAsync(workflowId, cancelledBy, reason);
 
+    private static readonly Dictionary<string, string> WorkflowTypeLabels = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ["contract_approval"]       = "Aprovação de Contrato",
+        ["shareholder_change"]      = "Alteração de Sócio",
+        ["communication_approval"]  = "Aprovação de Comunicado",
+        ["document_verification"]   = "Verificação de Documento",
+        ["vesting_approval"]        = "Aprovação de Vesting",
+    };
+
     private static WorkflowResponse MapToResponse(Workflow w) => new()
     {
         Id = w.Id,
         CompanyId = w.CompanyId,
         WorkflowType = w.WorkflowType,
+        WorkflowTypeLabel = WorkflowTypeLabels.TryGetValue(w.WorkflowType, out var label) ? label : w.WorkflowType,
         ReferenceType = w.ReferenceType,
         ReferenceId = w.ReferenceId,
         Title = w.Title,
@@ -308,6 +318,7 @@ public class WorkflowService : IWorkflowService
         CurrentStep = w.CurrentStep,
         TotalSteps = w.TotalSteps,
         RequestedBy = w.RequestedBy,
+        RequestedByName = w.RequestedByName ?? w.RequestedBy.ToString(),
         RequestedAt = w.RequestedAt,
         DueDate = w.DueDate,
         CompletedAt = w.CompletedAt,

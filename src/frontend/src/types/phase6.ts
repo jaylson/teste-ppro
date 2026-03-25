@@ -90,6 +90,7 @@ export interface Workflow {
   id: string;
   companyId: string;
   workflowType: string;
+  workflowTypeLabel: string;
   referenceType: string;
   referenceId: string;
   title: string;
@@ -99,6 +100,7 @@ export interface Workflow {
   currentStep: number;
   totalSteps: number;
   requestedBy: string;
+  requestedByName: string;
   requestedAt: string;
   dueDate?: string;
   completedAt?: string;

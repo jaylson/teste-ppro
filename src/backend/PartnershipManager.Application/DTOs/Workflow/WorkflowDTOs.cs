@@ -42,6 +42,8 @@ public class WorkflowResponse
     public int CurrentStep { get; set; }
     public int TotalSteps { get; set; }
     public Guid RequestedBy { get; set; }
+    public string RequestedByName { get; set; } = string.Empty;
+    public string WorkflowTypeLabel { get; set; } = string.Empty;
     public DateTime RequestedAt { get; set; }
     public DateTime? DueDate { get; set; }
     public DateTime? CompletedAt { get; set; }

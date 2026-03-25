@@ -13,6 +13,7 @@ public class Workflow : BaseEntity
     public int CurrentStep { get; set; } = 1;
     public int TotalSteps { get; set; } = 1;
     public Guid RequestedBy { get; set; }
+    public string? RequestedByName { get; set; }
     public DateTime RequestedAt { get; set; }
     public DateTime? DueDate { get; set; }
     public DateTime? CompletedAt { get; set; }

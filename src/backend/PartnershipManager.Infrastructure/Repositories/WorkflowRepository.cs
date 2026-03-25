@@ -127,9 +127,12 @@ public class WorkflowRepository : IWorkflowRepository
                    w.reference_type AS ReferenceType, w.reference_id AS ReferenceId,
                    w.title AS Title, w.description AS Description, w.status AS Status,
                    w.priority AS Priority, w.current_step AS CurrentStep, w.total_steps AS TotalSteps,
-                   w.requested_by AS RequestedBy, w.requested_at AS RequestedAt, w.due_date AS DueDate,
+                   w.requested_by AS RequestedBy,
+                   COALESCE(u.name, CAST(w.requested_by AS CHAR)) AS RequestedByName,
+                   w.requested_at AS RequestedAt, w.due_date AS DueDate,
                    w.created_at AS CreatedAt, w.updated_at AS UpdatedAt
             FROM workflows w
+            LEFT JOIN users u ON u.id = w.requested_by
             INNER JOIN workflow_steps ws ON ws.workflow_id = w.id AND ws.is_current = 1
                 AND (ws.assigned_user_id = @UserId OR ws.assigned_role IS NOT NULL)
             WHERE w.company_id = @CompanyId AND w.status IN ('pending','in_progress') AND w.deleted_at IS NULL";
