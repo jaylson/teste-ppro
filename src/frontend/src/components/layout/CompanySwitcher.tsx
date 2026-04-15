@@ -34,7 +34,9 @@ export function CompanySwitcher() {
   useEffect(() => {
     if (isLoadingCompanies || companies.length === 0) return;
 
-    const isValid = selectedCompanyId && companies.some((c) => c.id === selectedCompanyId);
+    const isValid =
+      selectedCompanyId === '__all__' ||
+      (selectedCompanyId != null && companies.some((c) => c.id === selectedCompanyId));
 
     if (!isValid) {
       if (user?.companyId && companies.some((c) => c.id === user.companyId)) {
@@ -49,6 +51,11 @@ export function CompanySwitcher() {
     () => companies.find((company) => company.id === selectedCompanyId),
     [companies, selectedCompanyId]
   );
+
+  const displayName =
+    selectedCompanyId === '__all__'
+      ? 'Todas as empresas'
+      : (activeCompany?.name || 'Selecione uma empresa');
 
   useEffect(() => {
     if (!isModalOpen) {
@@ -76,7 +83,7 @@ export function CompanySwitcher() {
         <div className="flex flex-col">
           <span className="text-xs text-primary-600">Empresa</span>
           <span className="text-sm font-semibold truncate">
-            {activeCompany?.name || 'Selecione uma empresa'}
+            {displayName}
           </span>
         </div>
         </div>
@@ -124,6 +131,7 @@ export function CompanySwitcher() {
                   disabled={isLoadingCompanies}
                 >
                   <option value="">Selecione uma empresa</option>
+                  <option value="__all__">🏢 Todas as empresas (Grupo)</option>
                   {companies.map((company) => (
                     <option key={company.id} value={company.id}>
                       {company.name}
@@ -136,7 +144,7 @@ export function CompanySwitcher() {
               <Button type="button" variant="secondary" onClick={() => setIsModalOpen(false)}>
                 Cancelar
               </Button>
-              <Button type="button" onClick={handleConfirmChange} disabled={!tempCompanyId}>
+              <Button type="button" onClick={handleConfirmChange} disabled={tempCompanyId === ''}>
                 Confirmar
               </Button>
             </div>

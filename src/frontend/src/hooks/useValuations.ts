@@ -17,7 +17,7 @@ export function useValuations(filters?: ValuationFilters) {
     queryKey: [...QUERY_KEY, filters],
     queryFn: () => valuationService.list(filters),
     staleTime: 30000,
-    enabled: !!filters?.companyId,
+    enabled: filters !== undefined,
   });
 }
 

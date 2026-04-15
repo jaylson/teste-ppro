@@ -26,22 +26,23 @@ public class NotificationRepository : INotificationRepository
     }
 
     public async Task<(IEnumerable<Notification> Items, int Total)> GetByUserAsync(
-        Guid userId, Guid companyId, int page, int pageSize)
+        Guid userId, Guid? companyId, int page, int pageSize)
     {
+        var companyFilter = companyId.HasValue ? "AND company_id = @CompanyId" : string.Empty;
         var parameters = new { UserId = userId, CompanyId = companyId, PageSize = pageSize, Offset = (page - 1) * pageSize };
 
         var total = await _context.Connection.ExecuteScalarAsync<int>(
-            "SELECT COUNT(*) FROM notifications WHERE user_id = @UserId AND company_id = @CompanyId AND deleted_at IS NULL",
+            $"SELECT COUNT(*) FROM notifications WHERE user_id = @UserId {companyFilter} AND deleted_at IS NULL",
             parameters);
 
-        var sql = @"
+        var sql = $@"
             SELECT id AS Id, user_id AS UserId, company_id AS CompanyId,
                    notification_type AS NotificationType, title AS Title, body AS Body,
                    action_url AS ActionUrl, reference_type AS ReferenceType,
                    reference_id AS ReferenceId, is_read AS IsRead, read_at AS ReadAt,
                    created_at AS CreatedAt, updated_at AS UpdatedAt
             FROM notifications
-            WHERE user_id = @UserId AND company_id = @CompanyId AND deleted_at IS NULL
+            WHERE user_id = @UserId {companyFilter} AND deleted_at IS NULL
             ORDER BY created_at DESC
             LIMIT @PageSize OFFSET @Offset";
 
@@ -49,23 +50,25 @@ public class NotificationRepository : INotificationRepository
         return (items, total);
     }
 
-    public async Task<IEnumerable<Notification>> GetRecentByUserAsync(Guid userId, Guid companyId, int limit = 10)
+    public async Task<IEnumerable<Notification>> GetRecentByUserAsync(Guid userId, Guid? companyId, int limit = 10)
     {
-        var sql = @"
+        var companyFilter = companyId.HasValue ? "AND company_id = @CompanyId" : string.Empty;
+        var sql = $@"
             SELECT id AS Id, user_id AS UserId, company_id AS CompanyId,
                    notification_type AS NotificationType, title AS Title, body AS Body,
                    action_url AS ActionUrl, reference_type AS ReferenceType,
                    reference_id AS ReferenceId, is_read AS IsRead, read_at AS ReadAt,
                    created_at AS CreatedAt, updated_at AS UpdatedAt
             FROM notifications
-            WHERE user_id = @UserId AND company_id = @CompanyId AND deleted_at IS NULL
+            WHERE user_id = @UserId {companyFilter} AND deleted_at IS NULL
             ORDER BY created_at DESC LIMIT @Limit";
         return await _context.Connection.QueryAsync<Notification>(sql, new { UserId = userId, CompanyId = companyId, Limit = limit });
     }
 
-    public async Task<int> GetUnreadCountAsync(Guid userId, Guid companyId)
+    public async Task<int> GetUnreadCountAsync(Guid userId, Guid? companyId)
     {
-        var sql = "SELECT COUNT(*) FROM notifications WHERE user_id = @UserId AND company_id = @CompanyId AND is_read = 0 AND deleted_at IS NULL";
+        var companyFilter = companyId.HasValue ? "AND company_id = @CompanyId" : string.Empty;
+        var sql = $"SELECT COUNT(*) FROM notifications WHERE user_id = @UserId {companyFilter} AND is_read = 0 AND deleted_at IS NULL";
         return await _context.Connection.ExecuteScalarAsync<int>(sql, new { UserId = userId, CompanyId = companyId });
     }
 

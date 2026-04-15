@@ -14,10 +14,11 @@ public class ValuationRepository : IValuationRepository
     }
 
     public async Task<(IEnumerable<Valuation> Items, int Total)> GetPagedAsync(
-        Guid clientId, Guid companyId, int page, int pageSize,
+        Guid clientId, Guid? companyId, int page, int pageSize,
         string? status = null, string? eventType = null)
     {
-        var where = "WHERE v.client_id = @ClientId AND v.company_id = @CompanyId AND v.is_deleted = 0";
+        var where = "WHERE v.client_id = @ClientId AND v.is_deleted = 0";
+        if (companyId.HasValue) where += " AND v.company_id = @CompanyId";
         if (!string.IsNullOrWhiteSpace(status)) where += " AND v.status = @Status";
         if (!string.IsNullOrWhiteSpace(eventType)) where += " AND v.event_type = @EventType";
 
@@ -40,7 +41,7 @@ public class ValuationRepository : IValuationRepository
         using var multi = await _context.Connection.QueryMultipleAsync(sql, new
         {
             ClientId = clientId.ToString(),
-            CompanyId = companyId.ToString(),
+            CompanyId = companyId?.ToString(),
             Status = status,
             EventType = eventType,
             PageSize = pageSize,

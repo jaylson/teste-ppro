@@ -10,7 +10,7 @@ namespace PartnershipManager.Infrastructure.Services.Valuation;
 
 public interface IValuationService
 {
-    Task<ValuationListResponse> GetPagedAsync(Guid clientId, Guid companyId, int page, int pageSize,
+    Task<ValuationListResponse> GetPagedAsync(Guid clientId, Guid? companyId, int page, int pageSize,
         string? status = null, string? eventType = null);
     Task<ValuationResponse> GetByIdAsync(Guid id, Guid clientId);
     Task<ValuationResponse> CreateAsync(Guid clientId, CreateValuationRequest request, Guid? userId = null);
@@ -41,7 +41,7 @@ public class ValuationService : IValuationService
         _formulaVersionRepo = unitOfWork.FormulaVersions;
     }
 
-    public async Task<ValuationListResponse> GetPagedAsync(Guid clientId, Guid companyId, int page, int pageSize,
+    public async Task<ValuationListResponse> GetPagedAsync(Guid clientId, Guid? companyId, int page, int pageSize,
         string? status = null, string? eventType = null)
     {
         var (items, total) = await _unitOfWork.Valuations.GetPagedAsync(clientId, companyId, page, pageSize, status, eventType);

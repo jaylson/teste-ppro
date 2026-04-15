@@ -60,7 +60,7 @@ api.interceptors.request.use(
     if (accessToken) {
       config.headers.Authorization = `Bearer ${accessToken}`;
     }
-    if (selectedCompanyId) {
+    if (selectedCompanyId && selectedCompanyId !== '__all__') {
       config.headers['X-Company-Id'] = selectedCompanyId;
     }
     return config;

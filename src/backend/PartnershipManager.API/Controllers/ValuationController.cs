@@ -26,7 +26,7 @@ public class ValuationController : ControllerBase
     [HttpGet]
     [ProducesResponseType(typeof(ApiResponse<ValuationListResponse>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetPaged(
-        [FromQuery] Guid companyId,
+        [FromQuery] Guid? companyId,
         [FromQuery] string? status = null,
         [FromQuery] string? eventType = null,
         [FromQuery] int page = 1,

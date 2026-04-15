@@ -13,10 +13,10 @@ export function useWorkflows(params?: WorkflowFilters) {
   });
 }
 
-export function usePendingWorkflows() {
+export function usePendingWorkflows(companyId?: string) {
   return useQuery({
-    queryKey: [...QUERY_KEY, 'pending'],
-    queryFn: () => workflowService.getPending(),
+    queryKey: [...QUERY_KEY, 'pending', companyId],
+    queryFn: () => workflowService.getPending(companyId),
     staleTime: 30000,
   });
 }

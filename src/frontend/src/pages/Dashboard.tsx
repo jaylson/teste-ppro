@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import {
@@ -8,15 +9,18 @@ import {
   ArrowUpRight,
   Plus,
   Download,
+  Building2,
 } from 'lucide-react';
 import { Button, Card, StatCard, Badge, Avatar } from '@/components/ui';
 import { useAuthStore } from '@/stores/authStore';
 import { useClientStore } from '@/stores/clientStore';
+import { useClientCompanies } from '@/hooks';
 import { useValuations } from '@/hooks/useValuations';
 import { useShareholders } from '@/hooks/useShareholders';
 import { usePendingWorkflows, useWorkflows } from '@/hooks/useWorkflows';
 import { useCapTableSummaryByType } from '@/hooks/useCapTable';
 import { contractService } from '@/services/contractService';
+import { workflowService } from '@/services/workflowService';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -45,8 +49,17 @@ function formatCurrency(amount: number | null | undefined): string {
 export default function Dashboard() {
   const { user } = useAuthStore();
   const { selectedCompanyId } = useClientStore();
-  const companyId = user?.companyId || selectedCompanyId || undefined;
+  const { data: companies = [] } = useClientCompanies(user?.clientId || '');
+  const isAllCompanies = selectedCompanyId === '__all__';
+  const companyId = isAllCompanies
+    ? undefined
+    : (selectedCompanyId || user?.companyId || undefined);
   const { t } = useTranslation();
+  const companyIds = useMemo(() => companies.map((company) => company.id), [companies]);
+  const selectedCompanyName = useMemo(
+    () => companies.find((company) => company.id === companyId)?.name,
+    [companies, companyId]
+  );
 
   // ─── Helpers (with t) ────────────────────────────────────────────────────────
 
@@ -65,27 +78,90 @@ export default function Dashboard() {
 
   // ─── Data Fetching ──────────────────────────────────────────────────────────
 
-  const { data: valuationsData } = useValuations({ companyId, pageSize: 20 });
+  const { data: valuationsData } = useValuations({
+    companyId,
+    pageSize: 100,
+    status: 'approved',
+  });
   const { data: shareholdersData } = useShareholders({ companyId, pageSize: 1 });
-  const { data: pendingWorkflows } = usePendingWorkflows();
-  const { data: recentWorkflows } = useWorkflows({ pageSize: 4 });
+  const { data: pendingWorkflows } = usePendingWorkflows(companyId);
+  const { data: recentWorkflows } = useWorkflows({ companyId, pageSize: 4 });
   const { data: capTableByType } = useCapTableSummaryByType(companyId);
   const { data: contractsData } = useQuery({
     queryKey: ['contracts', 'dashboard', companyId],
-    queryFn: () => contractService.getContracts({ companyId: companyId!, pageSize: 1 }),
-    enabled: !!companyId,
+    queryFn: () => contractService.getContracts({ companyId: companyId, pageSize: 1 }),
+    enabled: isAllCompanies || !!companyId,
     staleTime: 60_000,
   });
 
+  const { data: groupPendingWorkflows = [] } = useQuery({
+    queryKey: ['dashboard', 'workflows', 'pending', 'group', companyIds],
+    queryFn: async () => {
+      const allPending = await Promise.all(
+        companyIds.map((id) => workflowService.getPending(id))
+      );
+      const merged = allPending.flat();
+      const unique = Array.from(new Map(merged.map((item) => [item.id, item])).values());
+      return unique;
+    },
+    enabled: isAllCompanies && companyIds.length > 0,
+    staleTime: 60_000,
+  });
+
+  const { data: groupRecentWorkflows = [] } = useQuery({
+    queryKey: ['dashboard', 'workflows', 'recent', 'group', companyIds],
+    queryFn: async () => {
+      const allRecent = await Promise.all(
+        companyIds.map((id) => workflowService.getAll({ companyId: id, page: 1, pageSize: 4 }))
+      );
+
+      return allRecent
+        .flatMap((result) => result.items)
+        .sort(
+          (a, b) =>
+            new Date(b.requestedAt).getTime() - new Date(a.requestedAt).getTime()
+        )
+        .slice(0, 4);
+    },
+    enabled: isAllCompanies && companyIds.length > 0,
+    staleTime: 60_000,
+  });
+
+  const effectivePendingWorkflows = isAllCompanies ? groupPendingWorkflows : (pendingWorkflows ?? []);
+  const effectiveRecentWorkflows = isAllCompanies
+    ? groupRecentWorkflows
+    : (recentWorkflows?.items ?? []);
+
   // ─── Derived Values ──────────────────────────────────────────────────────────
 
-  // Valuations sorted chronologically (oldest → newest)
+  // Approved valuations sorted chronologically (oldest → newest)
   const sortedValuations = [...(valuationsData?.items ?? [])].sort(
     (a, b) => new Date(a.valuationDate).getTime() - new Date(b.valuationDate).getTime()
   );
   const approvedValuations = sortedValuations.filter((v) => v.status === 'approved');
   const latestValuation = approvedValuations[approvedValuations.length - 1] ?? null;
   const firstValuation = approvedValuations[0] ?? null;
+
+  const groupedValuationAmount = useMemo(() => {
+    if (!isAllCompanies || approvedValuations.length === 0) return null;
+
+    const latestByCompany = new Map<string, (typeof approvedValuations)[number]>();
+
+    for (const valuation of approvedValuations) {
+      const current = latestByCompany.get(valuation.companyId);
+      if (
+        !current ||
+        new Date(valuation.valuationDate).getTime() > new Date(current.valuationDate).getTime()
+      ) {
+        latestByCompany.set(valuation.companyId, valuation);
+      }
+    }
+
+    return Array.from(latestByCompany.values()).reduce(
+      (sum, item) => sum + (item.valuationAmount ?? 0),
+      0
+    );
+  }, [approvedValuations, isAllCompanies]);
 
   const valuationGrowthPct =
     approvedValuations.length >= 2 &&
@@ -103,11 +179,13 @@ export default function Dashboard() {
     {
       icon: <TrendingUp className="w-6 h-6" />,
       iconColor: 'bg-success',
-      value: latestValuation?.valuationAmount != null
-        ? formatCurrency(latestValuation.valuationAmount)
-        : '—',
+      value: isAllCompanies
+        ? formatCurrency(groupedValuationAmount)
+        : (latestValuation?.valuationAmount != null
+          ? formatCurrency(latestValuation.valuationAmount)
+          : '—'),
       label: t('dashboard.currentValuation'),
-      badge: valuationGrowthPct != null
+      badge: !isAllCompanies && valuationGrowthPct != null
         ? { value: `${valuationGrowthPct >= 0 ? '+' : ''}${valuationGrowthPct}%`, variant: 'success' as const }
         : undefined,
     },
@@ -121,9 +199,9 @@ export default function Dashboard() {
     {
       icon: <AlertCircle className="w-6 h-6" />,
       iconColor: 'bg-warning',
-      value: pendingWorkflows != null ? String(pendingWorkflows.length) : '—',
+      value: String(effectivePendingWorkflows.length),
       label: t('dashboard.pendingApprovals'),
-      badge: pendingWorkflows?.length
+      badge: effectivePendingWorkflows.length
         ? { value: t('common.urgent'), variant: 'warning' as const }
         : undefined,
     },
@@ -155,8 +233,8 @@ export default function Dashboard() {
   })();
 
   // Bar chart — all valuations by date
-  const maxValuation = Math.max(...sortedValuations.map((v) => v.valuationAmount ?? 0), 1);
-  const valuationBars = sortedValuations
+  const maxValuation = Math.max(...approvedValuations.map((v) => v.valuationAmount ?? 0), 1);
+  const valuationBars = approvedValuations
     .filter((v) => v.valuationAmount != null)
     .map((v) => ({
       label: new Date(v.valuationDate).toLocaleDateString('pt-BR', {
@@ -174,7 +252,9 @@ export default function Dashboard() {
         <div>
           <h1 className="page-title">{t('dashboard.title')}</h1>
           <p className="page-subtitle">
-            {t('dashboard.subtitle', { company: user?.companyName || 'sua empresa' })}
+            {isAllCompanies
+              ? 'Visão consolidada de todas as empresas do grupo'
+              : t('dashboard.subtitle', { company: selectedCompanyName || user?.companyName || 'sua empresa' })}
           </p>
         </div>
         <div className="flex gap-3">
@@ -184,6 +264,16 @@ export default function Dashboard() {
           <Button icon={<Plus className="w-4 h-4" />}>{t('dashboard.newEvent')}</Button>
         </div>
       </div>
+
+      {/* Aviso modo grupo */}
+      {isAllCompanies && (
+        <div className="flex items-center gap-3 rounded-lg border border-info/40 bg-info/10 px-4 py-3 text-sm text-info">
+          <Building2 className="w-4 h-4 flex-shrink-0" />
+          <span>
+            <strong>Modo Grupo:</strong> os indicadores exibem totais consolidados de todas as empresas. Selecione uma empresa específica para ver métricas individuais como Cap Table e Valuation.
+          </span>
+        </div>
+      )}
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -197,7 +287,12 @@ export default function Dashboard() {
         {/* Distribuição Societária */}
         <Card>
           <h3 className="font-semibold text-primary mb-4">{t('dashboard.shareholderDistribution')}</h3>
-          {donutSegments.length > 0 ? (
+          {isAllCompanies ? (
+            <div className="flex flex-col items-center justify-center h-48 gap-2 text-primary-400 text-sm text-center px-4">
+              <Building2 className="w-8 h-8 text-primary-300" />
+              <span>Selecione uma empresa específica para visualizar o Cap Table</span>
+            </div>
+          ) : donutSegments.length > 0 ? (
             <>
               <div className="relative w-48 h-48 mx-auto">
                 <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
@@ -248,14 +343,19 @@ export default function Dashboard() {
         <Card>
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-semibold text-primary">{t('dashboard.valuationEvolution')}</h3>
-            {valuationGrowthPct != null && (
+            {!isAllCompanies && valuationGrowthPct != null && (
               <div className="flex items-center gap-1 text-success text-sm font-medium">
                 <ArrowUpRight className="w-4 h-4" />
                 {valuationGrowthPct >= 0 ? '+' : ''}{valuationGrowthPct}%
               </div>
             )}
           </div>
-          {valuationBars.length > 0 ? (
+          {isAllCompanies ? (
+            <div className="flex flex-col items-center justify-center h-40 gap-2 text-primary-400 text-sm text-center px-4">
+              <TrendingUp className="w-8 h-8 text-primary-300" />
+              <span>Selecione uma empresa específica para visualizar o histórico de valuation</span>
+            </div>
+          ) : valuationBars.length > 0 ? (
             <>
               <div className="flex items-end justify-between h-40 gap-2">
                 {valuationBars.map((item, i) => (
@@ -293,9 +393,9 @@ export default function Dashboard() {
         {/* Atividade Recente */}
         <Card>
           <h3 className="font-semibold text-primary mb-4">{t('dashboard.recentActivity')}</h3>
-          {recentWorkflows?.items?.length ? (
+          {effectiveRecentWorkflows.length ? (
             <div className="space-y-4">
-              {recentWorkflows.items.map((workflow) => (
+              {effectiveRecentWorkflows.map((workflow) => (
                 <div key={workflow.id} className="flex items-start gap-3">
                   <div className="w-2 h-2 mt-2 rounded-full bg-accent flex-shrink-0" />
                   <div className="flex-1">
@@ -335,8 +435,8 @@ export default function Dashboard() {
               </tr>
             </thead>
             <tbody>
-              {pendingWorkflows?.length ? (
-                pendingWorkflows.map((workflow) => (
+              {effectivePendingWorkflows.length ? (
+                effectivePendingWorkflows.map((workflow) => (
                   <tr key={workflow.id}>
                     <td>
                       <span className="font-medium">{workflow.workflowTypeLabel || workflow.workflowType}</span>

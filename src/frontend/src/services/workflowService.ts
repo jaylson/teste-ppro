@@ -9,6 +9,7 @@ interface ApiResponse<T> {
 }
 
 export interface WorkflowFilters {
+  companyId?: string;
   status?: string;
   workflowType?: string;
   priority?: string;
@@ -22,8 +23,10 @@ export const workflowService = {
     return response.data.data;
   },
 
-  async getPending(): Promise<Workflow[]> {
-    const response = await api.get<ApiResponse<Workflow[]>>('/workflows/pending');
+  async getPending(companyId?: string): Promise<Workflow[]> {
+    const response = await api.get<ApiResponse<Workflow[]>>('/workflows/pending', {
+      params: companyId ? { companyId } : undefined,
+    });
     return response.data.data;
   },
 

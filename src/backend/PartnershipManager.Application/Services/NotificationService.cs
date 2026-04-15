@@ -11,9 +11,9 @@ public interface INotificationService
         string? actionUrl = null, string? referenceType = null, Guid? referenceId = null);
     Task NotifyUsersAsync(Guid companyId, IEnumerable<Guid> userIds, string type, string title, string body,
         string? actionUrl = null, string? referenceType = null, Guid? referenceId = null);
-    Task<PagedResult<NotificationResponse>> GetByUserAsync(Guid userId, Guid companyId, int page, int pageSize);
-    Task<IEnumerable<NotificationResponse>> GetRecentAsync(Guid userId, Guid companyId, int limit = 10);
-    Task<int> GetUnreadCountAsync(Guid userId, Guid companyId);
+    Task<PagedResult<NotificationResponse>> GetByUserAsync(Guid userId, Guid? companyId, int page, int pageSize);
+    Task<IEnumerable<NotificationResponse>> GetRecentAsync(Guid userId, Guid? companyId, int limit = 10);
+    Task<int> GetUnreadCountAsync(Guid userId, Guid? companyId);
     Task MarkAsReadAsync(Guid id, Guid userId);
     Task MarkAllAsReadAsync(Guid userId, Guid companyId);
     Task<IEnumerable<NotificationPreferenceResponse>> GetPreferencesAsync(Guid userId);
@@ -56,19 +56,19 @@ public class NotificationService : INotificationService
             await NotifyAsync(companyId, uid, type, title, body, actionUrl, referenceType, referenceId);
     }
 
-    public async Task<PagedResult<NotificationResponse>> GetByUserAsync(Guid userId, Guid companyId, int page, int pageSize)
+    public async Task<PagedResult<NotificationResponse>> GetByUserAsync(Guid userId, Guid? companyId, int page, int pageSize)
     {
         var (items, total) = await _repo.GetByUserAsync(userId, companyId, page, pageSize);
         return new PagedResult<NotificationResponse>(items.Select(Map), total, page, pageSize);
     }
 
-    public async Task<IEnumerable<NotificationResponse>> GetRecentAsync(Guid userId, Guid companyId, int limit = 10)
+    public async Task<IEnumerable<NotificationResponse>> GetRecentAsync(Guid userId, Guid? companyId, int limit = 10)
     {
         var items = await _repo.GetRecentByUserAsync(userId, companyId, limit);
         return items.Select(Map);
     }
 
-    public Task<int> GetUnreadCountAsync(Guid userId, Guid companyId)
+    public Task<int> GetUnreadCountAsync(Guid userId, Guid? companyId)
         => _repo.GetUnreadCountAsync(userId, companyId);
 
     public Task MarkAsReadAsync(Guid id, Guid userId)

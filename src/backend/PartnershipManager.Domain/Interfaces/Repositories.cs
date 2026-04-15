@@ -527,7 +527,7 @@ public interface ICacheService
 public interface IValuationRepository
 {
     Task<(IEnumerable<Valuation> Items, int Total)> GetPagedAsync(
-        Guid clientId, Guid companyId, int page, int pageSize,
+        Guid clientId, Guid? companyId, int page, int pageSize,
         string? status = null, string? eventType = null);
     Task<Valuation?> GetByIdAsync(Guid id, Guid clientId);
     Task<Valuation?> GetLastApprovedAsync(Guid clientId, Guid companyId);
@@ -755,9 +755,9 @@ public interface IDataRoomRepository
 public interface INotificationRepository
 {
     Task<Guid> CreateAsync(Notification notification);
-    Task<(IEnumerable<Notification> Items, int Total)> GetByUserAsync(Guid userId, Guid companyId, int page, int pageSize);
-    Task<IEnumerable<Notification>> GetRecentByUserAsync(Guid userId, Guid companyId, int limit = 10);
-    Task<int> GetUnreadCountAsync(Guid userId, Guid companyId);
+    Task<(IEnumerable<Notification> Items, int Total)> GetByUserAsync(Guid userId, Guid? companyId, int page, int pageSize);
+    Task<IEnumerable<Notification>> GetRecentByUserAsync(Guid userId, Guid? companyId, int limit = 10);
+    Task<int> GetUnreadCountAsync(Guid userId, Guid? companyId);
     Task MarkAsReadAsync(Guid id, Guid userId);
     Task MarkAllAsReadAsync(Guid userId, Guid companyId);
     Task<NotificationPreference?> GetPreferenceAsync(Guid userId, string notificationType);

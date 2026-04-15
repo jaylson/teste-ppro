@@ -27,7 +27,7 @@ public class NotificationsController : BaseApiController
         try
         {
             var userId = GetRequiredUserId();
-            var companyId = HttpContext.GetRequiredCompanyId();
+            var companyId = HttpContext.GetCompanyId();
             var result = await _service.GetByUserAsync(userId, companyId, page, pageSize);
             return Ok(ApiResponse<PagedResult<NotificationResponse>>.Ok(result));
         }
@@ -44,7 +44,7 @@ public class NotificationsController : BaseApiController
         try
         {
             var userId = GetRequiredUserId();
-            var companyId = HttpContext.GetRequiredCompanyId();
+            var companyId = HttpContext.GetCompanyId();
             var count = await _service.GetUnreadCountAsync(userId, companyId);
             return Ok(new { count });
         }
@@ -61,7 +61,7 @@ public class NotificationsController : BaseApiController
         try
         {
             var userId = GetRequiredUserId();
-            var companyId = HttpContext.GetRequiredCompanyId();
+            var companyId = HttpContext.GetCompanyId();
             var result = await _service.GetRecentAsync(userId, companyId, 10);
             return Ok(ApiResponse<IEnumerable<NotificationResponse>>.Ok(result));
         }
